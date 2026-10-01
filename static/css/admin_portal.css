@@ -24,6 +24,7 @@ body { color: var(--portal-text); background: var(--portal-bg); font-family: sys
 .portal-table { --bs-table-bg: transparent; white-space: nowrap; }
 .portal-table thead th { background: #f5f8f9; color: #637680; font-size: .72rem; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; padding: .9rem 1rem; border-bottom: 1px solid var(--portal-border); }
 .portal-table td { padding: .85rem 1rem; border-color: #edf1f3; font-size: .87rem; }
+.portal-table .portal-description { min-width: 16rem; max-width: 24rem; white-space: normal; overflow-wrap: anywhere; }
 .portal-actions { min-width: 360px; }
 .portal-actions .btn { margin: .1rem .2rem .1rem 0; }
 .portal-badge { display: inline-block; padding: .22rem .55rem; border-radius: .35rem; font-size: .72rem; font-weight: 750; letter-spacing: .025em; }

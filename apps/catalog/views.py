@@ -2,18 +2,28 @@ from django.contrib import messages
 from django.db.models import ProtectedError, Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import urlencode
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.accounts.permissions import account_admin_required
 from .forms import ProductForm, SupplierForm
-from .models import Product, Supplier
+from .models import Product, Status, Supplier
+from .selectors import list_supplier_page
 
 
 @account_admin_required
 @require_GET
 def supplier_list(request):
-    suppliers = Supplier.objects.order_by("supplier_name", "supplier_id")
-    return render(request, "catalog/admin/list.html", {"items": suppliers, "kind": "supplier"})
+    query = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "").strip().upper()
+    if status and status not in Status.values:
+        return HttpResponseForbidden("Invalid status")
+    page_obj = list_supplier_page(page=request.GET.get("page", 1), q=query, status=status)
+    filter_query = urlencode({key: value for key, value in {"q": query, "status": status}.items() if value})
+    return render(request, "catalog/admin/list.html", {
+        "items": page_obj.object_list, "kind": "supplier", "query": query,
+        "status_filter": status, "page_obj": page_obj, "filter_query": filter_query,
+    })
 
 
 @account_admin_required
