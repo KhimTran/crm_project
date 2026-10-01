@@ -1,0 +1,10 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>{{ response.recipient.survey.title }}</title></head><body>
+<h1>{{ response.recipient.survey.title }}</h1>
+<form method="post" action="{% url 'surveys:submit' response.recipient_id %}">{% csrf_token %}
+{% for question in questions %}<fieldset><legend>{{ question.question_text }}</legend>
+{% for option in question.surveyoption_set.all %}<label><input type="radio" data-question="{{ question.pk }}" name="question_{{ question.pk }}" value="{{ option.pk }}">{{ option.option_text }}</label>{% endfor %}
+{% if not question.surveyoption_set.all %}<textarea name="question_{{ question.pk }}" data-question="{{ question.pk }}"></textarea>{% endif %}
+</fieldset>{% endfor %}
+<input type="hidden" name="answers" id="answers"><button type="submit">Gửi khảo sát</button></form>
+<script>document.querySelector('form').addEventListener('submit', function () { const answers = []; document.querySelectorAll('[data-question]').forEach(function (input) { if ((input.type === 'radio' && input.checked) || (input.type !== 'radio' && input.value.trim())) { const item = {question_id: Number(input.dataset.question)}; if (input.type === 'radio') item.option_id = Number(input.value); else item.answer_text = input.value; answers.push(item); } }); document.getElementById('answers').value = JSON.stringify(answers); });</script>
+</body></html>
