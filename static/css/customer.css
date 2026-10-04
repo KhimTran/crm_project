@@ -1,0 +1,49 @@
+* { box-sizing: border-box; }
+
+.customer-layout {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  color: #25352d;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
+}
+
+.customer-layout a { color: #236647; }
+.customer-layout a:focus-visible { outline: 3px solid #236647; outline-offset: 4px; }
+.customer-skip-link { position: absolute; left: 1rem; top: -6rem; padding: .75rem; background: #fff; }
+.customer-skip-link:focus { top: 1rem; }
+.customer-header { border-bottom: 1px solid #dce6df; background: #f5faf6; }
+.customer-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 2rem;
+}
+.customer-brand { font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+.customer-nav { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+.customer-nav a { padding: .25rem 0; text-decoration: none; }
+.customer-nav a:hover { text-decoration: underline; }
+.customer-nav a[aria-disabled="true"] { color: #59685f; cursor: default; text-decoration: none; }
+.customer-user { margin-left: auto; max-width: 100%; color: #59685f; overflow-wrap: anywhere; }
+.customer-main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem 1.25rem; }
+.customer-footer { padding: 1rem 1.25rem; border-top: 1px solid #dce6df; text-align: center; color: #59685f; }
+.customer-footer p { margin: 0; }
+.customer-messages { display: grid; gap: .75rem; margin-bottom: 1.5rem; }
+.customer-message { padding: .85rem 1rem; border: 1px solid #c8d9ce; border-radius: .5rem; background: #f2f8f4; overflow-wrap: anywhere; }
+.customer-message.success { color: #195c37; border-color: #a5ceb6; background: #edf8f0; }
+.customer-message.error { color: #8c2525; border-color: #e2baba; background: #fff1f1; }
+.customer-message.warning { color: #795800; border-color: #e5d59c; background: #fff9e7; }
+
+@media (max-width: 720px) {
+  .customer-header-inner { align-items: flex-start; gap: .75rem; }
+  .customer-brand, .customer-nav { width: 100%; }
+  .customer-nav { gap: .5rem 1rem; }
+  .customer-user { margin-left: 0; }
+  .customer-main { padding: 1.5rem 1rem; }
+}

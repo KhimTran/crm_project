@@ -1,0 +1,43 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cửa hàng cầu lông{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/customer.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="customer-layout">
+  <a class="customer-skip-link" href="#main-content">Đến nội dung chính</a>
+  <header class="customer-header">
+    <div class="customer-header-inner">
+      <a class="customer-brand" href="/">Cửa hàng cầu lông</a>
+      <nav class="customer-nav" aria-label="Điều hướng cửa hàng">
+        <a href="/">Trang chủ</a>
+        {% comment %}TODO: Gắn URL shop, khảo sát cá nhân và tài khoản khi TV1 hoàn thành các route.{% endcomment %}
+        <a href="#" aria-disabled="true">Sản phẩm</a>
+        <a href="#" aria-disabled="true">Khảo sát của tôi</a>
+        <a href="#" aria-disabled="true">Tài khoản</a>
+      </nav>
+      {% if request.user.is_authenticated %}
+        <span class="customer-user">{{ request.user.email }}</span>
+      {% endif %}
+    </div>
+  </header>
+  <main id="main-content" class="customer-main" tabindex="-1">
+    {% if messages %}
+      <div class="customer-messages" aria-live="polite" aria-atomic="true">
+        {% for message in messages %}
+          <div class="customer-message{% if message.tags %} {{ message.tags }}{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="customer-footer">
+    <p>&copy; {% now "Y" %} Cửa hàng cầu lông</p>
+  </footer>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
