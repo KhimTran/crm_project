@@ -20,11 +20,18 @@ from .api import api
 from apps.admin_portal import views as portal_views
 
 urlpatterns = [
-    path('', portal_views.home, name='home'),
-    path('login/', portal_views.portal_login, name='login'),
-    path('logout/', portal_views.portal_logout, name='logout'),
-    path('api/', api.urls),
-    path('admin/', admin.site.urls),
+    # Admin Portal
+    path('admin-portal/', portal_views.home, name='admin_portal_home'),
+    path('admin-portal/login/', portal_views.portal_login, name='login'),
+    path('admin-portal/logout/', portal_views.portal_logout, name='logout'),
     path('admin-portal/', include('apps.admin_portal.urls')),
+
+    # API
+    path('api/', api.urls),
+
+    # Django built-in admin, chỉ dùng khi phát triển
+    path('admin/', admin.site.urls),
+
+    # Surveys
     path('surveys/', include('apps.surveys.urls')),
 ]

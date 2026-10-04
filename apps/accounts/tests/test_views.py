@@ -113,7 +113,7 @@ class AccountAdminViewTests(TestCase):
         for route in routes:
             response = self.client.get(route)
             self.assertEqual(response.status_code, 302)
-            self.assertTrue(response.url.startswith("/login/?next="))
+            self.assertTrue(response.url.startswith("/admin-portal/login/?next="))
         self.client.force_login(self.customer)
         for route in routes:
             self.assertEqual(self.client.get(route).status_code, 403)

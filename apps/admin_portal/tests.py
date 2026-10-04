@@ -16,40 +16,41 @@ class AdminPortalUiTests(TestCase):
         self.customer = get_user_model().objects.create_user("customer@example.test", self.password)
 
     def test_login_root_and_safe_next(self):
-        response = self.client.get("/login/")
+        self.assertEqual(self.client.get("/").status_code, 404)
+        response = self.client.get("/admin-portal/login/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Email")
         self.assertContains(response, "Password")
         self.assertNotContains(response, "portal-sidebar")
-        self.assertRedirects(self.client.get("/"), "/login/", fetch_redirect_response=False)
+        self.assertRedirects(self.client.get("/admin-portal/"), "/admin-portal/login/", fetch_redirect_response=False)
         response = self.client.get(reverse("accounts_admin:list"))
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(response.url.startswith("/login/?next="))
-        response = self.client.post("/login/", {
+        self.assertTrue(response.url.startswith("/admin-portal/login/?next="))
+        response = self.client.post("/admin-portal/login/", {
             "email": self.admin.email.upper(), "password": self.password,
             "next": reverse("accounts_admin:list"),
         })
         self.assertRedirects(response, reverse("accounts_admin:list"), fetch_redirect_response=False)
         self.assertEqual(self.client.session.get("_auth_user_id"), str(self.admin.pk))
-        self.assertRedirects(self.client.get("/"), reverse("accounts_admin:list"), fetch_redirect_response=False)
+        self.assertRedirects(self.client.get("/admin-portal/"), reverse("accounts_admin:list"), fetch_redirect_response=False)
         self.assertEqual(self.client.get(reverse("accounts_admin:list")).status_code, 200)
-        self.assertRedirects(self.client.get("/login/"), reverse("accounts_admin:list"), fetch_redirect_response=False)
+        self.assertRedirects(self.client.get("/admin-portal/login/"), reverse("accounts_admin:list"), fetch_redirect_response=False)
 
     def test_login_rejects_invalid_customer_locked_and_unsafe_next(self):
         for email, password in ((self.admin.email, "wrong"),
                                 ("missing@example.test", self.password),
                                 (self.customer.email, self.password)):
-            response = self.client.post("/login/", {"email": email, "password": password})
+            response = self.client.post("/admin-portal/login/", {"email": email, "password": password})
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, "Unable to sign in")
             self.assertNotIn("sessionid", self.client.cookies)
         self.admin.status = AccountStatus.LOCKED
         self.admin.save(update_fields=["status"])
-        response = self.client.post("/login/", {"email": self.admin.email, "password": self.password})
+        response = self.client.post("/admin-portal/login/", {"email": self.admin.email, "password": self.password})
         self.assertContains(response, "Unable to sign in")
         self.admin.status = AccountStatus.ACTIVE
         self.admin.save(update_fields=["status"])
-        response = self.client.post("/login/", {
+        response = self.client.post("/admin-portal/login/", {
             "email": self.admin.email, "password": self.password,
             "next": "https://example.org/elsewhere",
         })
@@ -67,12 +68,12 @@ class AdminPortalUiTests(TestCase):
     def test_logout_is_post_csrf_and_invalidates_session(self):
         client = Client(enforce_csrf_checks=True)
         client.force_login(self.admin)
-        self.assertEqual(client.get("/logout/").status_code, 405)
-        self.assertEqual(client.post("/logout/").status_code, 403)
+        self.assertEqual(client.get("/admin-portal/logout/").status_code, 405)
+        self.assertEqual(client.post("/admin-portal/logout/").status_code, 403)
         page = client.get(reverse("accounts_admin:list"))
         self.assertEqual(page.status_code, 200)
         token = client.cookies["csrftoken"].value
-        self.assertRedirects(client.post("/logout/", {"csrfmiddlewaretoken": token}), "/login/", fetch_redirect_response=False)
+        self.assertRedirects(client.post("/admin-portal/logout/", {"csrfmiddlewaretoken": token}), "/admin-portal/login/", fetch_redirect_response=False)
         self.assertEqual(client.get(reverse("accounts_admin:list")).status_code, 302)
 
     def test_account_page_sidebar_modals_and_safe_content(self):
