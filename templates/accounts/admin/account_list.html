@@ -1,0 +1,112 @@
+{% extends 'admin_portal/base.html' %}
+{% block title %}Account Management · CRM Admin Portal{% endblock %}
+{% block page_title %}Account Management{% endblock %}
+{% block content %}
+<div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
+  <p class="text-muted mb-0">Create accounts and manage access from one place.</p>
+  <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#createModal">Create Account</button>
+</div>
+
+<section class="portal-panel" aria-label="Account filters">
+  <form method="get" action="{% url 'accounts_admin:list' %}" class="row g-3 align-items-end">
+    <div class="col-12 col-md-5 col-lg-4"><label class="form-label" for="id_q">Search by email</label>{{ filters.q }}{{ filters.q.errors }}</div>
+    <div class="col-12 col-sm-4 col-md-2 col-lg-auto"><button class="btn btn-outline-primary w-100" type="submit">Search</button></div>
+    <div class="col-6 col-sm-4 col-md-2 col-lg-2"><label class="form-label" for="id_role">Role</label>{{ filters.role }}{{ filters.role.errors }}</div>
+    <div class="col-6 col-sm-4 col-md-2 col-lg-2"><label class="form-label" for="id_status">Status</label>{{ filters.status }}{{ filters.status.errors }}</div>
+    <div class="col-12 col-lg-auto"><a class="btn btn-link" href="{% url 'accounts_admin:list' %}">Clear</a></div>
+  </form>
+</section>
+
+<section class="portal-panel p-0" aria-label="Account results">
+  {% if filters_valid %}
+    {% if page_obj.object_list %}
+    <div class="table-responsive">
+      <table class="table portal-table align-middle mb-0">
+        <thead><tr><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Last Login</th><th scope="col">Created At</th><th scope="col">Actions</th></tr></thead>
+        <tbody>
+          {% for account in page_obj.object_list %}
+          <tr>
+            <td><span class="fw-semibold">{{ account.email }}</span><br><small class="text-muted">ID {{ account.account_id }}</small></td>
+            <td><span class="portal-badge role-{{ account.role|lower }}">{{ account.role }}</span></td>
+            <td><span class="portal-badge status-{{ account.status|lower }}">{{ account.status }}</span></td>
+            <td>{{ account.last_login_at|date:"Y-m-d H:i"|default:"Never" }}</td>
+            <td>{{ account.created_at|date:"Y-m-d" }}</td>
+            <td class="portal-actions">
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#roleModal" data-account-email="{{ account.email }}" data-role-url="{% url 'accounts_admin:role' account.account_id %}" data-account-role="{{ account.role }}">Change Role</button>
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#resetModal" data-account-email="{{ account.email }}" data-reset-url="{% url 'accounts_admin:reset_password' account.account_id %}">Reset Password</button>
+              {% if account.status == 'ACTIVE' %}
+              <button class="btn btn-sm btn-outline-warning" type="button" data-bs-toggle="modal" data-bs-target="#confirmModal" data-confirm-title="Lock Account" data-confirm-action="Lock Account" data-confirm-url="{% url 'accounts_admin:lock' account.account_id %}" data-account-email="{{ account.email }}">Lock</button>
+              {% else %}
+              <button class="btn btn-sm btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#confirmModal" data-confirm-title="Unlock Account" data-confirm-action="Unlock Account" data-confirm-url="{% url 'accounts_admin:unlock' account.account_id %}" data-account-email="{{ account.email }}">Unlock</button>
+              {% endif %}
+              <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#confirmModal" data-confirm-title="Delete Account" data-confirm-action="Delete Account" data-confirm-url="{% url 'accounts_admin:delete' account.account_id %}" data-account-email="{{ account.email }}" data-account-role="{{ account.role }}" data-account-status="{{ account.status }}">Delete</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<div class="portal-empty"><h2 class="h6">No accounts found.</h2><p class="text-muted mb-0">Change the filters or create an account.</p></div>{% endif %}
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="portal-pagination" aria-label="Account pages">
+      <span class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} accounts</span>
+      <div class="d-flex gap-2">
+        {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}{% if filter_query %}&amp;{{ filter_query }}{% endif %}">Previous</a>{% endif %}
+        {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}{% if filter_query %}&amp;{{ filter_query }}{% endif %}">Next</a>{% endif %}
+      </div>
+    </nav>{% endif %}
+  {% else %}<div class="portal-empty"><p class="text-danger mb-0">Check the filter values and try again.</p></div>{% endif %}
+</section>
+
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'accounts_admin:create' %}" novalidate>{% csrf_token %}
+      <div class="modal-header"><h2 class="modal-title h5" id="createModalTitle">Create Account</h2></div>
+      <div class="modal-body">
+        {% if create_form.non_field_errors %}<div class="alert alert-danger">{{ create_form.non_field_errors }}</div>{% endif %}
+        <div class="mb-3"><label class="form-label" for="id_email">Email</label>{{ create_form.email }}{{ create_form.email.errors }}</div>
+        <div class="row g-3 mb-3"><div class="col-6"><label class="form-label" for="id_create_role">Role</label>{{ create_form.role }}{{ create_form.role.errors }}</div><div class="col-6"><label class="form-label" for="id_create_status">Status</label>{{ create_form.status }}{{ create_form.status.errors }}</div></div>
+        <div class="mb-3"><label class="form-label" for="id_password">Password</label>{{ create_form.password }}{{ create_form.password.errors }}</div>
+        <div><label class="form-label" for="id_password_confirm">Confirm Password</label>{{ create_form.password_confirm }}{{ create_form.password_confirm.errors }}</div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Create Account</button></div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="roleModal" tabindex="-1" aria-labelledby="roleModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="" id="roleForm">{% csrf_token %}
+      <div class="modal-header"><h2 class="modal-title h5" id="roleModalTitle">Change Role</h2></div>
+      <div class="modal-body"><p class="text-muted">Account: <strong id="roleAccountEmail"></strong></p><label class="form-label" for="id_role_choice">Role</label><select class="form-select" id="id_role_choice" name="role"><option value="ADMIN">ADMIN</option><option value="CUSTOMER">CUSTOMER</option></select></div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Change Role</button></div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalTitle" aria-hidden="true" {% if reset_account %}data-reopen-url="{% url 'accounts_admin:reset_password' reset_account.account_id %}"{% endif %}>
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% if reset_account %}{% url 'accounts_admin:reset_password' reset_account.account_id %}{% endif %}" id="resetForm" novalidate>{% csrf_token %}
+      <div class="modal-header"><h2 class="modal-title h5" id="resetModalTitle">Reset Password</h2></div>
+      <div class="modal-body"><p class="text-muted">Account: <strong id="resetAccountEmail">{% if reset_account %}{{ reset_account.email }}{% endif %}</strong></p>
+        {% if reset_form.non_field_errors %}<div class="alert alert-danger">{{ reset_form.non_field_errors }}</div>{% endif %}
+        <div class="mb-3"><label class="form-label" for="id_new_password">New Password</label>{{ reset_form.new_password }}{{ reset_form.new_password.errors }}</div>
+        <div><label class="form-label" for="id_new_password_confirm">Confirm New Password</label>{{ reset_form.new_password_confirm }}{{ reset_form.new_password_confirm.errors }}</div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Reset Password</button></div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="" id="confirmForm">{% csrf_token %}
+      <div class="modal-header"><h2 class="modal-title h5" id="confirmModalTitle">Confirm action</h2></div>
+      <div class="modal-body"><p class="mb-2">Account: <strong id="confirmAccountEmail"></strong></p><p class="text-muted mb-2" id="confirmAccountDetails"></p><p class="text-danger mb-0" id="confirmWarning"></p></div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn" id="confirmSubmit" type="submit">Confirm</button></div>
+    </form>
+  </div></div>
+</div>
+{% if show_create_modal %}<span data-reopen-modal="createModal" hidden></span>{% endif %}
+{% if show_reset_modal %}<span data-reopen-modal="resetModal" hidden></span>{% endif %}
+{% endblock %}

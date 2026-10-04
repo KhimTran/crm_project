@@ -15,8 +15,23 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from .api import api
+from apps.admin_portal import views as portal_views
 
 urlpatterns = [
+    # Admin Portal
+    path('admin-portal/', portal_views.home, name='admin_portal_home'),
+    path('admin-portal/login/', portal_views.portal_login, name='login'),
+    path('admin-portal/logout/', portal_views.portal_logout, name='logout'),
+    path('admin-portal/', include('apps.admin_portal.urls')),
+
+    # API
+    path('api/', api.urls),
+
+    # Django built-in admin, chỉ dùng khi phát triển
     path('admin/', admin.site.urls),
+
+    # Surveys
+    path('surveys/', include('apps.surveys.urls')),
 ]

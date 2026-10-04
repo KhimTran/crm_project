@@ -1,0 +1,49 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Quản lý quan hệ khách hàng{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/crm.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="crm-layout">
+  <a class="crm-skip-link" href="#main-content">Đến nội dung chính</a>
+  <div class="crm-shell">
+    <aside class="crm-sidebar" aria-label="Điều hướng CRM">
+      <p class="crm-brand">CRM</p>
+      <p class="crm-sidebar-caption">Quan hệ khách hàng</p>
+      <nav class="crm-nav" aria-label="Chức năng CRM">
+        {% comment %}TODO: Gắn URL landing và module CRM sau khi TV4/TV5 hoàn thành các route.{% endcomment %}
+        <a href="#" aria-disabled="true">Tổng quan</a>
+        <a href="#" aria-disabled="true">Khách hàng</a>
+        <a href="#" aria-disabled="true">Phản hồi</a>
+        <a href="#" aria-disabled="true">Khảo sát</a>
+      </nav>
+    </aside>
+    <div class="crm-workspace">
+      <header class="crm-header">
+        <div>
+          <p class="crm-eyebrow">KHÔNG GIAN CRM</p>
+          <h1>{% block page_title %}Tổng quan{% endblock %}</h1>
+        </div>
+        {% if request.user.is_authenticated %}
+          <span class="crm-user">{{ request.user.email }}</span>
+        {% endif %}
+      </header>
+      <main id="main-content" class="crm-main" tabindex="-1">
+        {% if messages %}
+          <div class="crm-messages" aria-live="polite" aria-atomic="true">
+            {% for message in messages %}
+              <div class="crm-message{% if message.tags %} {{ message.tags }}{% endif %}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

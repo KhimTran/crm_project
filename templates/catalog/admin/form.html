@@ -1,0 +1,7 @@
+{% extends 'admin_portal/base.html' %}
+{% block title %}{{ title }} · CRM Admin Portal{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="portal-section-intro"><a href="{% if 'supplier' in request.path %}{% url 'catalog_admin:supplier_list' %}{% else %}{% url 'catalog_admin:product_list' %}{% endif %}">Back to list</a></div>
+<section class="portal-panel"><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary" type="submit">Save</button></form></section>
+{% endblock %}

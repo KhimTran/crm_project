@@ -1,0 +1,18 @@
+{% extends 'admin_portal/base.html' %}
+{% block title %}Account {{ account.account_id }} · CRM Admin Portal{% endblock %}
+{% block page_title %}Account {{ account.account_id }}{% endblock %}
+{% block content %}
+<div class="portal-section-intro"><a href="{% url 'accounts_admin:list' %}">Back to Accounts</a></div>
+<section class="portal-panel">
+  <h2 class="h6">Account information</h2>
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Email</dt><dd class="col-sm-9">{{ account.email }}</dd>
+    <dt class="col-sm-3">Role</dt><dd class="col-sm-9">{{ account.role }}</dd>
+    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">{{ account.status }}</dd>
+    <dt class="col-sm-3">Last login</dt><dd class="col-sm-9">{{ account.last_login_at|date:"Y-m-d H:i"|default:"Never" }}</dd>
+    <dt class="col-sm-3">Created</dt><dd class="col-sm-9">{{ account.created_at|date:"Y-m-d H:i" }}</dd>
+    <dt class="col-sm-3">Updated</dt><dd class="col-sm-9">{{ account.updated_at|date:"Y-m-d H:i" }}</dd>
+  </dl>
+</section>
+<p class="text-muted">Account actions are available from the Account Management list.</p>
+{% endblock %}

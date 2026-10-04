@@ -1,0 +1,19 @@
+{% extends 'admin_portal/base.html' %}
+{% block title %}Database Tools · CRM Admin Portal{% endblock %}
+{% block page_title %}Database Tools{% endblock %}
+{% block content %}
+<div class="portal-section-intro"><p class="text-muted mb-0">Available database operations are shown here. Administrative actions require confirmation.</p></div>
+<section class="portal-panel">
+  <h2 class="h6">Seed Data</h2>
+  {% if seed_available %}
+  <p class="text-muted">Run the existing repeatable development seed command.</p>
+  <form method="post" action="{% url 'seed_data' %}">{% csrf_token %}
+    <label class="form-label" for="seed-confirm">Type SEED to confirm</label>
+    <input class="form-control portal-confirm-input" id="seed-confirm" name="confirm" required autocomplete="off">
+    <button class="btn btn-outline-primary mt-3" type="submit">Seed Data</button>
+  </form>
+  {% else %}<p class="text-muted mb-0">Seed Data is available only in development mode.</p>{% endif %}
+</section>
+<section class="portal-panel"><h2 class="h6">Backup and Restore</h2><p class="text-muted mb-0">No callable Admin Portal backup or restore backend is available yet. These actions will appear after a reviewed service is implemented.</p></section>
+<section class="portal-panel"><h2 class="h6">SQL Export</h2><p class="text-muted mb-0">The current export script writes the canonical project dump. A safe downloadable UI export is not available yet.</p></section>
+{% endblock %}

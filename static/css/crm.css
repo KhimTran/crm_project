@@ -1,0 +1,50 @@
+* { box-sizing: border-box; }
+
+.crm-layout {
+  margin: 0;
+  background: #eef2f7;
+  color: #233249;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
+}
+.crm-layout a:focus-visible { outline: 3px solid #73b0f5; outline-offset: 4px; }
+.crm-skip-link { position: absolute; left: 1rem; top: -6rem; z-index: 1; padding: .75rem; background: #fff; color: #233249; }
+.crm-skip-link:focus { top: 1rem; }
+.crm-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
+.crm-sidebar { padding: 2rem 1.25rem; background: #18304e; color: #fff; }
+.crm-brand { margin: 0; font-size: 1.5rem; font-weight: 700; letter-spacing: .08em; }
+.crm-sidebar-caption { margin: .25rem 0 2rem; color: #c4d4e8; font-size: .875rem; }
+.crm-nav { display: flex; flex-direction: column; gap: .5rem; }
+.crm-nav a { padding: .7rem .9rem; border-radius: .4rem; color: #e5edf7; text-decoration: none; }
+.crm-nav a:hover { background: #294765; }
+.crm-nav a[aria-disabled="true"] { cursor: default; }
+.crm-workspace { min-width: 0; }
+.crm-header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid #d8e0eb;
+  background: #fff;
+}
+.crm-eyebrow { margin: 0 0 .25rem; color: #536984; font-size: .75rem; letter-spacing: .08em; }
+.crm-header h1 { margin: 0; font-size: 1.5rem; }
+.crm-user { max-width: 100%; color: #536984; overflow-wrap: anywhere; }
+.crm-main { padding: 2rem; }
+.crm-messages { display: grid; gap: .75rem; margin-bottom: 1.5rem; }
+.crm-message { padding: .85rem 1rem; border-left: 4px solid #5484bd; border-radius: .3rem; background: #fff; overflow-wrap: anywhere; }
+.crm-message.success { border-left-color: #2a8851; color: #195c37; }
+.crm-message.error { border-left-color: #bd4545; color: #8c2525; }
+.crm-message.warning { border-left-color: #b18a18; color: #795800; }
+
+@media (max-width: 760px) {
+  .crm-shell { grid-template-columns: minmax(0, 1fr); }
+  .crm-sidebar { padding: 1rem; }
+  .crm-sidebar-caption { margin-bottom: 1rem; }
+  .crm-nav { flex-direction: row; flex-wrap: wrap; gap: .25rem; }
+  .crm-nav a { padding: .5rem .75rem; }
+  .crm-header { padding: 1rem; }
+  .crm-main { padding: 1rem; }
+}

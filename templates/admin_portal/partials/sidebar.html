@@ -1,0 +1,13 @@
+<div class="portal-brand">CRM <span>Admin Portal</span></div>
+<nav class="portal-nav" aria-label="Modules">
+  <p class="portal-nav-heading">Administration</p>
+  <a class="portal-nav-link {% if active_section == 'accounts' or request.resolver_match.namespace == 'accounts_admin' %}active{% endif %}" href="{% url 'accounts_admin:list' %}" {% if active_section == 'accounts' or request.resolver_match.namespace == 'accounts_admin' %}aria-current="page"{% endif %}>Accounts</a>
+  <p class="portal-nav-heading">CRM modules</p>
+  <span class="portal-nav-link disabled" aria-disabled="true">Customers <small>Planned</small></span>
+  <a class="portal-nav-link {% if '/catalog/products/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:product_list' %}" {% if '/catalog/products/' in request.path %}aria-current="page"{% endif %}>Products</a>
+  <a class="portal-nav-link {% if '/catalog/suppliers/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:supplier_list' %}" {% if '/catalog/suppliers/' in request.path %}aria-current="page"{% endif %}>Suppliers</a>
+  <span class="portal-nav-link disabled" aria-disabled="true">Feedback <small>Planned</small></span>
+  <span class="portal-nav-link disabled" aria-disabled="true">Surveys <small>Planned</small></span>
+  <p class="portal-nav-heading">System</p>
+  <a class="portal-nav-link {% if active_section == 'database' %}active{% endif %}" href="{% url 'database_tools' %}" {% if active_section == 'database' %}aria-current="page"{% endif %}>Database Tools</a>
+</nav>
