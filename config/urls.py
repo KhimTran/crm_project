@@ -32,6 +32,9 @@ urlpatterns = [
     # Django built-in admin, chỉ dùng khi phát triển
     path('admin/', admin.site.urls),
 
+    # CRM – khách hàng (TV4)
+    path('crm/customers/', include('apps.customers.urls')),
+
     # Surveys
     path('surveys/', include('apps.surveys.urls')),
 ]

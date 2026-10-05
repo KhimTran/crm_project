@@ -17,7 +17,7 @@
       <nav class="crm-nav" aria-label="Chức năng CRM">
         {% comment %}TODO: Gắn URL landing và module CRM sau khi TV4/TV5 hoàn thành các route.{% endcomment %}
         <a href="#" aria-disabled="true">Tổng quan</a>
-        <a href="#" aria-disabled="true">Khách hàng</a>
+        <a href="{% url 'customers:list' %}">Khách hàng</a>
         <a href="#" aria-disabled="true">Phản hồi</a>
         <a href="#" aria-disabled="true">Khảo sát</a>
       </nav>

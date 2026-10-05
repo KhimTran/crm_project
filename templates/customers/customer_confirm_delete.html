@@ -1,0 +1,28 @@
+{% extends "layouts/base_crm.html" %}
+{% load static %}
+{% block title %}Xóa khách hàng{% endblock %}
+{% block page_title %}Xóa khách hàng{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}">{% endblock %}
+
+{% block content %}
+<div class="crm-card crm-form">
+  <p>Bạn có chắc muốn xóa khách hàng <strong>{{ customer.customer_code }} – {{ customer.full_name }}</strong> ({{ customer.account.email }})?</p>
+
+  {% if counts.feedbacks or counts.surveys_sent %}
+    <div class="crm-message warning" role="alert">
+      Khách hàng này đã có <strong>{{ counts.feedbacks }}</strong> phản hồi,
+      được gửi <strong>{{ counts.surveys_sent }}</strong> khảo sát
+      (đã làm <strong>{{ counts.surveys_answered }}</strong>).
+      Các dữ liệu này vẫn được giữ lại cho báo cáo, nhưng khách hàng sẽ bị ẩn khỏi danh sách.
+    </div>
+  {% endif %}
+
+  <p>Sau khi xóa, tài khoản đăng nhập của khách hàng sẽ bị khóa.</p>
+
+  <form method="post" class="crm-actions">
+    {% csrf_token %}
+    <button type="submit" class="crm-btn crm-btn-danger">Xác nhận xóa</button>
+    <a class="crm-btn crm-btn-secondary" href="{% url 'customers:list' %}">Hủy</a>
+  </form>
+</div>
+{% endblock %}
