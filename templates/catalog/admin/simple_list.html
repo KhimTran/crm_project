@@ -1,0 +1,30 @@
+{% extends 'admin_portal/base.html' %}
+{% block title %}{{ title }} · CRM Admin Portal{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
+  <p class="text-muted mb-0">Catalog records in the CRM.</p>
+  <a class="btn btn-primary" href="{% url create_url %}">Create {{ singular }}</a>
+</div>
+<section class="portal-panel"><form method="get" class="row g-3 align-items-end">
+  <div class="col-12 col-md-6 col-lg-5"><label class="form-label" for="simple-query">Search</label><input class="form-control" id="simple-query" name="q" value="{{ query }}" placeholder="Search by name or description..."></div>
+  <div class="col-12 col-md-4 col-lg-3"><label class="form-label" for="simple-status">Status</label><select class="form-select" id="simple-status" name="status"><option value="">All statuses</option><option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>ACTIVE</option><option value="INACTIVE" {% if status_filter == 'INACTIVE' %}selected{% endif %}>INACTIVE</option></select></div>
+  <div class="col-12 col-md-auto d-flex align-items-center gap-2 flex-wrap"><button class="btn btn-outline-primary" type="submit">Search</button><a class="btn btn-link" href="{% url list_url %}">Clear</a></div>
+</form></section>
+<section class="portal-panel p-0"><div class="table-responsive"><table class="table portal-table align-middle mb-0">
+  <thead><tr><th scope="col">ID</th><th scope="col">Name</th><th scope="col">Description</th><th scope="col">Status</th><th scope="col">Created At</th><th scope="col">Actions</th></tr></thead>
+  <tbody>{% for item in items %}<tr>
+    <td>{{ item.pk }}</td><td>{{ item }}</td><td>{{ item.description|default:'—' }}</td><td>{{ item.status }}</td><td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+    <td><div class="d-flex gap-2 flex-wrap align-items-center"><a class="btn btn-sm btn-outline-secondary" href="{% url edit_url item.pk %}">Edit</a><form method="post" action="{% url delete_url item.pk %}" onsubmit="return confirm('Bạn có chắc muốn xóa mục này?');">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button></form></div></td>
+  </tr>{% empty %}<tr><td colspan="6">No records found.</td></tr>{% endfor %}</tbody>
+</table></div></section>
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="portal-pagination" aria-label="Pages">
+  <span class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} records</span>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}{% if filter_query %}&amp;{{ filter_query }}{% endif %}">Previous</a>{% endif %}
+    {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}{% if filter_query %}&amp;{{ filter_query }}{% endif %}">Next</a>{% endif %}
+  </div>
+</nav>
+{% endif %}
+{% endblock %}
