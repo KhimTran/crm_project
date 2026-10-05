@@ -12,3 +12,7 @@ class InvalidFeedbackStatus(FeedbackServiceError):
 
 class FeedbackNoteRequired(FeedbackServiceError):
     pass
+
+
+class ProductNotAvailable(FeedbackServiceError):
+    pass

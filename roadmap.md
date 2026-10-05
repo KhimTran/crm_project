@@ -65,9 +65,9 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 - ✅ **Chi tiết** `/crm/customers/<id>/`: thông tin, sở thích, lịch sử phản hồi. *(Xong: kèm số phản hồi/khảo sát, nút khóa/mở/xóa ngay trên trang. CSKH được xem danh sách + chi tiết nhưng ẩn nút Thêm/Khóa/Xóa; backend vẫn chặn.)*
 
 ### Bước 2 – Phản hồi (T6)
-- **4.2.4 Phía KH** (`@role_required("CUSTOMER")`): `/feedbacks/new/?product=<id>` (sản phẩm, 1–5 sao, nội dung → `NEW`); `/feedbacks/mine/` (lịch sử + `manager_note` + trạng thái). TV1 đặt nút "Gửi phản hồi" ở trang chi tiết sản phẩm trỏ tới URL này.
+- ✅ **4.2.4 Phía KH** (`@role_required("CUSTOMER")`): `/feedbacks/new/?product=<id>` (sản phẩm, 1–5 sao, nội dung → `NEW`); `/feedbacks/mine/` (lịch sử + `manager_note` + trạng thái). TV1 đặt nút "Gửi phản hồi" ở trang chi tiết sản phẩm trỏ tới URL này. *(Xong: chỉ chọn sản phẩm ACTIVE, nội dung ≤ 2000 ký tự, KH chỉ thấy phản hồi của mình; menu "Phản hồi của tôi" ở `base_customer.html`. Link cho TV1: `{% url 'feedbacks:create' %}?product={{ product.product_id }}`.)*
 - ✅ **4.1.4 Phía quản lý** `/crm/feedbacks/` (`CRM_MANAGER`, `CUSTOMER_SERVICE`): lọc theo trạng thái, sản phẩm, số sao, khoảng ngày; xem chi tiết; cập nhật trạng thái + trả lời → `handled_by=request.user`, `resolved_at` khi `RESOLVED`. *(Xong: `selectors.filter_feedbacks`, `services.handle_feedback`, route `crm_feedbacks:list/detail` trong `apps/feedback/crm_urls.py`, link menu "Phản hồi". Quy tắc: chỉ chọn `IN_PROGRESS`/`RESOLVED`; `RESOLVED` bắt buộc có câu trả lời; sửa câu trả lời giữ nguyên `resolved_at`, mở lại → xóa `resolved_at`.)*
-- **Badge** phản hồi `NEW` trên menu: `apps/feedback/context_processors.py` (đăng ký trong settings – báo TV1) và gắn URL thật vào `base_crm.html`.
+- ✅ **Badge** phản hồi `NEW` trên menu: `apps/feedback/context_processors.py` (đăng ký trong settings – báo TV1) và gắn URL thật vào `base_crm.html`.
 
 ### Bước 3 – Báo cáo KH (T7)
 - `apps/customers/reports.py`: nhóm tuổi (`<18, 18–24, 25–34, 35–44, 45–54, ≥55`, dùng `date_of_birth`), sở thích (group theo type/value), trình độ, giới tính, KH mới theo tháng (`TruncMonth(created_at)`), điểm hài lòng TB theo sản phẩm (`Avg("rating")`).
@@ -102,7 +102,7 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 - [x] 4.1.2 Xóa KH – xóa mềm + khóa account, trang xác nhận có cảnh báo số phản hồi/khảo sát; test pass, smoke test `crm_dev` ổn (05/10/2026)
 - [x] 4.1.3 Khóa / mở KH – có lý do trong thông báo, khóa chặn đăng nhập và cắt phiên; 23 test `apps.customers` + 137 test toàn dự án pass (05/10/2026)
 - [x] 4.1.4 Tiếp nhận phản hồi – lọc (từ khóa/trạng thái/sản phẩm/số sao/khoảng ngày), xem chi tiết, xử lý + trả lời; 13 test `apps.feedback` + 150 test toàn dự án pass (05/10/2026)
-- [ ] 4.2.4 KH gửi phản hồi
+- [x] 4.2.4 KH gửi phản hồi + badge menu – 7 test mới, 55 test `apps.customers`+`apps.feedback` pass (05/10/2026)
 - [ ] 4.1.5 Báo cáo KH (Chart.js offline, nút in)
 - [ ] Seed ≥ 40 KH, ≥ 30 phản hồi đủ 3 trạng thái
 - [ ] Test pass, PR được TV1 kiểm thử chéo

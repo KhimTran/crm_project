@@ -1,0 +1,43 @@
+{% extends "layouts/base_customer.html" %}
+{% load static %}
+{% block title %}Phản hồi của tôi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/customer_feedbacks.css' %}">{% endblock %}
+
+{% block content %}
+<div class="cf-head">
+  <h1>Phản hồi của tôi</h1>
+  <a class="cf-btn" href="{% url 'feedbacks:create' %}">+ Gửi phản hồi mới</a>
+</div>
+
+{% for f in page %}
+  <article class="cf-card">
+    <header class="cf-card-head">
+      <strong>{{ f.product.product_name }}</strong>
+      <span class="cf-stars" aria-label="{{ f.rating }} sao">{{ f.rating }}★</span>
+      <span class="cf-status cf-{{ f.status|lower }}">{{ f.status_label }}</span>
+      <time datetime="{{ f.created_at|date:'c' }}">{{ f.created_at|date:"d/m/Y H:i" }}</time>
+    </header>
+    <p class="cf-content">{{ f.content|linebreaksbr }}</p>
+    {% if f.manager_note %}
+      <div class="cf-reply">
+        <p class="cf-reply-title">Cửa hàng trả lời{% if f.resolved_at %} · {{ f.resolved_at|date:"d/m/Y H:i" }}{% endif %}</p>
+        <p>{{ f.manager_note|linebreaksbr }}</p>
+      </div>
+    {% elif f.status == "NEW" %}
+      <p class="cf-muted">Cửa hàng đã nhận phản hồi và sẽ xử lý sớm.</p>
+    {% else %}
+      <p class="cf-muted">Cửa hàng đang xử lý phản hồi của bạn.</p>
+    {% endif %}
+  </article>
+{% empty %}
+  <p>Bạn chưa gửi phản hồi nào. <a href="{% url 'feedbacks:create' %}">Gửi phản hồi đầu tiên</a>.</p>
+{% endfor %}
+
+{% if page.has_other_pages %}
+  <nav class="cf-pagination" aria-label="Phân trang">
+    {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">&laquo; Trước</a>{% endif %}
+    <span>Trang {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Sau &raquo;</a>{% endif %}
+  </nav>
+{% endif %}
+{% endblock %}

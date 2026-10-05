@@ -1,11 +1,21 @@
 from django.db import transaction
 from django.utils import timezone
 
+from apps.catalog.models import Status as ProductStatus
+
 from .constants import FeedbackStatus
-from .errors import FeedbackNoteRequired, FeedbackNotFound, InvalidFeedbackStatus
+from .errors import FeedbackNoteRequired, FeedbackNotFound, InvalidFeedbackStatus, ProductNotAvailable
 from .models import Feedback
 
 HANDLE_STATUSES = (FeedbackStatus.IN_PROGRESS, FeedbackStatus.RESOLVED)
+
+
+# tv4: 4.2.4 khách hàng gửi phản hồi về sản phẩm, trạng thái ban đầu NEW
+def create_feedback(*, customer, product, rating, content):
+    if product.status != ProductStatus.ACTIVE:
+        raise ProductNotAvailable("Sản phẩm không còn kinh doanh")
+    return Feedback.objects.create(customer=customer, product=product, rating=rating,
+                                   content=content.strip(), status=FeedbackStatus.NEW)
 
 
 # tv4: 4.1.4 cập nhật trạng thái + câu trả lời của phản hồi, ghi người xử lý và thời điểm xử lý xong

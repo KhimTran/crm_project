@@ -1,6 +1,6 @@
 from django import forms
 
-from apps.catalog.models import Product
+from apps.catalog.models import Product, Status as ProductStatus
 
 from .constants import RATING_CHOICES, FeedbackStatus
 from .models import Feedback
@@ -47,3 +47,18 @@ class FeedbackHandleForm(forms.Form):
         if cleaned.get("status") == FeedbackStatus.RESOLVED and not cleaned.get("manager_note"):
             self.add_error("manager_note", "Cần nhập câu trả lời trước khi đánh dấu Đã xử lý.")
         return cleaned
+
+
+class FeedbackCreateForm(forms.Form):
+    product = forms.ModelChoiceField(label="Sản phẩm", queryset=Product.objects.none(),
+                                     empty_label="-- Chọn sản phẩm --")
+    rating = forms.TypedChoiceField(label="Mức độ hài lòng", coerce=int, choices=RATING_CHOICES,
+                                    widget=forms.RadioSelect)
+    content = forms.CharField(label="Nội dung phản hồi", max_length=2000, strip=True,
+                              widget=forms.Textarea(attrs={"rows": 5, "maxlength": 2000}))
+
+    # tv4: 4.2.4 chỉ cho chọn sản phẩm đang kinh doanh
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["product"].queryset = (Product.objects.filter(status=ProductStatus.ACTIVE)
+                                           .order_by("product_name"))
