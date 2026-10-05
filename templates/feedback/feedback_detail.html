@@ -15,7 +15,8 @@
     <h2 id="fb-info">Nội dung phản hồi</h2>
     <dl class="crm-dl">
       <dt>Khách hàng</dt>
-      <dd>{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }}{% if feedback.customer.status == "DELETED" %} <span class="crm-badge locked">Đã xóa</span>{% endif %}</dd>
+      <dd>{% if feedback.customer.status == "DELETED" %}{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }} <span class="crm-badge locked">Đã xóa</span>
+        {% else %}<a href="{% url 'customers:detail' feedback.customer.customer_id %}">{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }}</a>{% endif %}</dd>
       <dt>Email / SĐT</dt><dd>{{ feedback.customer.account.email }} · {{ feedback.customer.phone|default:"–" }}</dd>
       <dt>Sản phẩm</dt><dd>{{ feedback.product.product_name }}</dd>
       <dt>Số sao</dt><dd><span class="crm-stars" aria-label="{{ feedback.rating }} sao">{{ feedback.rating }}★</span></dd>

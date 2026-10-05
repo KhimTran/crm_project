@@ -62,7 +62,7 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 - ✅ **4.1.1 Thêm** `/crm/customers/new/`: `create_customer()` trong `transaction.atomic()` – kiểm tra trùng email / SĐT → tạo Account role `CUSTOMER` (mật khẩu tạm `secrets.token_urlsafe`, hiện 1 lần) → tạo Customer + CustomerPreference.
 - ✅ **4.1.2 Xóa** `/crm/customers/<id>/delete/`: GET = trang xác nhận kèm số phản hồi / khảo sát liên quan; POST = xóa mềm + khóa account. Nút xóa ẩn bằng `perms.customers.delete_customer`; view kiểm tra `has_perm` (CSKH không được xóa). *(Chặn CSKH bằng `@role_required("CRM_MANAGER")` vì TV3 chưa gán permission cho Group; khi có thể thêm `has_perm`.)*
 - ✅ **4.1.3 Khóa / mở** `/crm/customers/<id>/lock/`, `/unlock/` (POST): đổi `account.status`, không khóa KH đã xóa. KH bị khóa đăng nhập phải thấy "Tài khoản đã bị khóa" (phối hợp TV1). *(Xong phía TV4: khóa chặn đăng nhập + cắt phiên đang mở. Còn chờ TV1: câu báo "Tài khoản đã bị khóa" ở trang đăng nhập.)*
-- **Chi tiết** `/crm/customers/<id>/`: thông tin, sở thích, lịch sử phản hồi.
+- ✅ **Chi tiết** `/crm/customers/<id>/`: thông tin, sở thích, lịch sử phản hồi. *(Xong: kèm số phản hồi/khảo sát, nút khóa/mở/xóa ngay trên trang. CSKH được xem danh sách + chi tiết nhưng ẩn nút Thêm/Khóa/Xóa; backend vẫn chặn.)*
 
 ### Bước 2 – Phản hồi (T6)
 - **4.2.4 Phía KH** (`@role_required("CUSTOMER")`): `/feedbacks/new/?product=<id>` (sản phẩm, 1–5 sao, nội dung → `NEW`); `/feedbacks/mine/` (lịch sử + `manager_note` + trạng thái). TV1 đặt nút "Gửi phản hồi" ở trang chi tiết sản phẩm trỏ tới URL này.

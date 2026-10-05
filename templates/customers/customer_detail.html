@@ -1,0 +1,97 @@
+{% extends "layouts/base_crm.html" %}
+{% load static %}
+{% block title %}{{ customer.customer_code }} – {{ customer.full_name }}{% endblock %}
+{% block page_title %}{{ customer.customer_code }} – {{ customer.full_name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}">
+<link rel="stylesheet" href="{% static 'css/crm_feedbacks.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="crm-toolbar">
+  <a href="{% url 'customers:list' %}">&laquo; Quay lại danh sách khách hàng</a>
+  {% if can_manage %}
+    <div class="crm-row-actions">
+      {% if customer.account.status == "ACTIVE" %}
+        <form method="post" action="{% url 'customers:lock' customer.customer_id %}">
+          {% csrf_token %}
+          <input type="hidden" name="from" value="detail">
+          <input type="text" name="reason" maxlength="255" placeholder="Lý do khóa" aria-label="Lý do khóa">
+          <button type="submit" class="crm-btn crm-btn-secondary">Khóa</button>
+        </form>
+      {% else %}
+        <form method="post" action="{% url 'customers:unlock' customer.customer_id %}">
+          {% csrf_token %}
+          <input type="hidden" name="from" value="detail">
+          <button type="submit" class="crm-btn crm-btn-secondary">Mở khóa</button>
+        </form>
+      {% endif %}
+      <a class="crm-btn crm-btn-danger" href="{% url 'customers:delete' customer.customer_id %}">Xóa</a>
+    </div>
+  {% endif %}
+</div>
+
+<div class="crm-feedback-grid">
+  <section class="crm-card" aria-labelledby="cus-info">
+    <h2 id="cus-info">Thông tin khách hàng</h2>
+    <dl class="crm-dl">
+      <dt>Mã khách hàng</dt><dd>{{ customer.customer_code }}</dd>
+      <dt>Họ tên</dt><dd>{{ customer.full_name }}</dd>
+      <dt>Email</dt><dd>{{ customer.account.email }}</dd>
+      <dt>Số điện thoại</dt><dd>{{ customer.phone|default:"–" }}</dd>
+      <dt>Ngày sinh</dt><dd>{{ customer.date_of_birth|date:"d/m/Y"|default:"–" }}</dd>
+      <dt>Giới tính</dt><dd>{{ customer.gender_label|default:"–" }}</dd>
+      <dt>Địa chỉ</dt><dd>{{ customer.address|default:"–" }}</dd>
+      <dt>Trình độ</dt><dd>{{ customer.playing_level_label|default:"–" }}</dd>
+      <dt>Tài khoản</dt>
+      <dd>{% if customer.account.status == "ACTIVE" %}<span class="crm-badge">Hoạt động</span>{% else %}<span class="crm-badge locked">Đã khóa</span>{% endif %}</dd>
+      <dt>Đăng nhập gần nhất</dt><dd>{{ customer.account.last_login|date:"d/m/Y H:i"|default:"Chưa đăng nhập" }}</dd>
+      <dt>Ngày tạo</dt><dd>{{ customer.created_at|date:"d/m/Y H:i" }}</dd>
+    </dl>
+  </section>
+
+  <section class="crm-card" aria-labelledby="cus-pref">
+    <h2 id="cus-pref">Sở thích</h2>
+    {% if preferences %}
+      <dl class="crm-dl">
+        {% for type, values in preferences.items %}
+          <dt>{{ type }}</dt><dd>{{ values|join:", " }}</dd>
+        {% endfor %}
+      </dl>
+    {% else %}
+      <p>Khách hàng chưa khai báo sở thích.</p>
+    {% endif %}
+    <h2>Tương tác</h2>
+    <dl class="crm-dl">
+      <dt>Phản hồi đã gửi</dt><dd>{{ counts.feedbacks }}</dd>
+      <dt>Khảo sát được gửi</dt><dd>{{ counts.surveys_sent }}</dd>
+      <dt>Khảo sát đã trả lời</dt><dd>{{ counts.surveys_answered }}</dd>
+    </dl>
+  </section>
+</div>
+
+<section class="crm-card crm-section" aria-labelledby="cus-feedbacks">
+  <h2 id="cus-feedbacks">Lịch sử phản hồi</h2>
+  <table class="crm-table">
+    <thead>
+      <tr><th>#</th><th>Ngày gửi</th><th>Sản phẩm</th><th>Số sao</th><th>Nội dung</th><th>Trạng thái</th><th>Trả lời</th><th>Thao tác</th></tr>
+    </thead>
+    <tbody>
+      {% for f in feedbacks %}
+        <tr>
+          <td>{{ f.feedback_id }}</td>
+          <td>{{ f.created_at|date:"d/m/Y H:i" }}</td>
+          <td>{{ f.product.product_name }}</td>
+          <td><span class="crm-stars" aria-label="{{ f.rating }} sao">{{ f.rating }}★</span></td>
+          <td>{{ f.content|truncatechars:80 }}</td>
+          <td><span class="crm-badge fb-{{ f.status|lower }}">{{ f.status_label }}</span></td>
+          <td>{{ f.manager_note|default:"–"|truncatechars:60 }}</td>
+          <td><a class="crm-btn crm-btn-secondary crm-btn-sm" href="{% url 'crm_feedbacks:detail' f.feedback_id %}">Xem / xử lý</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8">Khách hàng chưa gửi phản hồi nào.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

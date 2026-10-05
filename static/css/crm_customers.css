@@ -32,4 +32,6 @@
 .crm-filter { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .75rem 1rem; align-items: end; margin-bottom: 1rem; }
 .crm-filter .crm-field select, .crm-filter .crm-field input { width: 100%; }
 .crm-btn-sm { padding: .35rem .7rem; font-size: .875rem; white-space: nowrap; }
+.crm-section { margin-top: 1rem; }
+.crm-section h2, .crm-card h2 { margin-top: 0; font-size: 1.1rem; }
 @media (max-width: 760px) { .crm-form-grid { grid-template-columns: minmax(0, 1fr); } }
