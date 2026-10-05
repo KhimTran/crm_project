@@ -2,11 +2,13 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import role_required
 from apps.feedback.models import Feedback
 
+from . import reports
 from .constants import CustomerStatus, PreferenceType
 from .errors import CustomerNotFound, CustomerServiceError
 from .forms import CustomerCreateForm, CustomerFilterForm, CustomerLockForm
@@ -78,7 +80,7 @@ def customer_detail(request, customer_id):
                  .order_by("-created_at", "-feedback_id"))
     return render(request, "customers/customer_detail.html", {
         "customer": customer,
-        "preferences": preferences,
+        "preferences": reports.preference_report(),
         "feedbacks": feedbacks,
         "counts": customer_related_counts(customer),
         "can_manage": is_crm_manager(request.user),
@@ -141,3 +143,21 @@ def customer_delete(request, customer_id):
         return redirect("customers:list")
     return render(request, "customers/customer_confirm_delete.html",
                   {"customer": customer, "counts": customer_related_counts(customer)})
+
+
+# tv4: 4.1.5 trang báo cáo khách hàng: biểu đồ Chart.js + bảng số liệu, có nút In
+@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
+def customer_report(request):
+    charts = {
+        "age": reports.age_group_report(),
+        "gender": reports.gender_report(),
+        "level": reports.playing_level_report(),
+        "monthly": reports.new_customers_by_month(),
+        "satisfaction": reports.satisfaction_by_product(),
+        "preferences": reports.preference_report(),
+    }
+    return render(request, "customers/customer_report.html", {
+        "summary": reports.summary(),
+        "charts": charts,
+        "generated_at": timezone.localtime(),
+    })

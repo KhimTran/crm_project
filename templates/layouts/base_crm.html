@@ -20,6 +20,7 @@
         <a href="{% url 'customers:list' %}">Khách hàng</a>
         <a href="{% url 'crm_feedbacks:list' %}">Phản hồi{% if new_feedback_count %} <span class="crm-nav-badge" aria-label="{{ new_feedback_count }} phản hồi mới">{{ new_feedback_count }}</span>{% endif %}</a>
         <a href="#" aria-disabled="true">Khảo sát</a>
+        <a href="{% url 'customer_reports:customers' %}">Báo cáo khách hàng</a>
       </nav>
     </aside>
     <div class="crm-workspace">

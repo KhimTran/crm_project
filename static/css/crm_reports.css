@@ -1,0 +1,21 @@
+.report-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.report-tile { display: grid; gap: .2rem; padding: 1rem 1.25rem; background: #fff; border: 1px solid #d8e0eb; border-radius: .5rem; }
+.report-tile span, .report-tile small { color: #536984; font-size: .875rem; }
+.report-tile strong { font-size: 1.75rem; color: #18304e; }
+.report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.report-section { display: grid; gap: .75rem; align-content: start; break-inside: avoid; page-break-inside: avoid; }
+.report-wide { grid-column: 1 / -1; }
+.report-chart { position: relative; height: 260px; }
+.report-section .crm-table td:last-child, .report-section .crm-table th:last-child { text-align: right; }
+@media (max-width: 900px) { .report-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* tv4: 4.1.5 bản in: bỏ menu, nút, khung; giữ biểu đồ + bảng */
+@media print {
+  .crm-sidebar, .crm-skip-link, .crm-messages, .report-no-print { display: none !important; }
+  .crm-shell { display: block; }
+  .crm-header, .crm-main { padding: 0; }
+  body { background: #fff; }
+  .crm-card, .report-tile { border-color: #999; }
+  .report-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-chart { height: 220px; }
+}

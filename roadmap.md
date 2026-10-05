@@ -73,6 +73,7 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 - `apps/customers/reports.py`: nhóm tuổi (`<18, 18–24, 25–34, 35–44, 45–54, ≥55`, dùng `date_of_birth`), sở thích (group theo type/value), trình độ, giới tính, KH mới theo tháng (`TruncMonth(created_at)`), điểm hài lòng TB theo sản phẩm (`Avg("rating")`).
 - Template `/crm/reports/customers/`: mỗi chỉ tiêu 1 biểu đồ Chart.js + bảng số liệu, dữ liệu truyền bằng `json_script`; nút In (`window.print()` + `@media print`).
 - Chart.js **bản offline** tại `static/js/chart.umd.min.js`.
+- ✅ *(Xong: `apps/customers/reports.py`, `/crm/reports/customers/` (`customer_reports:customers`, Quản lý CRM + CSKH), Chart.js 4.4.6 offline, `static/js/customer_report.js`, bản in ẩn menu/nút. Không tính KH đã xóa; KH thiếu dữ liệu vào dòng "Chưa khai báo". Gom theo tháng bằng Python thay `TruncMonth` vì MySQL chưa chắc có bảng timezone.)*
 
 ### Bước 4 – Dữ liệu demo (T7)
 `seed_customers()` / `seed_feedbacks()` cho TV3 gọi trong `seed_data`: ≥ 40 KH (`kh01…kh40`, `Khach@123`, kh40 bị khóa), tên Việt, đủ nhóm tuổi / trình độ / sở thích, `created_at` rải 6–12 tháng; ≥ 30 phản hồi về vợt / giày / cầu ở cả 3 trạng thái, một số đã có `manager_note`. Idempotent.
@@ -103,7 +104,7 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 - [x] 4.1.3 Khóa / mở KH – có lý do trong thông báo, khóa chặn đăng nhập và cắt phiên; 23 test `apps.customers` + 137 test toàn dự án pass (05/10/2026)
 - [x] 4.1.4 Tiếp nhận phản hồi – lọc (từ khóa/trạng thái/sản phẩm/số sao/khoảng ngày), xem chi tiết, xử lý + trả lời; 13 test `apps.feedback` + 150 test toàn dự án pass (05/10/2026)
 - [x] 4.2.4 KH gửi phản hồi + badge menu – 7 test mới, 55 test `apps.customers`+`apps.feedback` pass (05/10/2026)
-- [ ] 4.1.5 Báo cáo KH (Chart.js offline, nút in)
+- [x] 4.1.5 Báo cáo KH (Chart.js offline, nút in) – 6 test pass (05/10/2026)
 - [ ] Seed ≥ 40 KH, ≥ 30 phản hồi đủ 3 trạng thái
 - [ ] Test pass, PR được TV1 kiểm thử chéo
 - [ ] Đã kiểm thử chéo phần TV3
