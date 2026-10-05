@@ -76,6 +76,7 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 - ✅ *(Xong: `apps/customers/reports.py`, `/crm/reports/customers/` (`customer_reports:customers`, Quản lý CRM + CSKH), Chart.js 4.4.6 offline, `static/js/customer_report.js`, bản in ẩn menu/nút. Không tính KH đã xóa; KH thiếu dữ liệu vào dòng "Chưa khai báo". Gom theo tháng bằng Python thay `TruncMonth` vì MySQL chưa chắc có bảng timezone.)*
 
 ### Bước 4 – Dữ liệu demo (T7)
+✅ *(Xong: `apps/customers/seed.py` (`seed_customers`), `apps/feedback/seed.py` (`seed_feedbacks`), đã gọi trong `seed_data`. Email `kh01@example.test`…`kh40@example.test`, mật khẩu `Khach@123`; 36 phản hồi trên các sản phẩm đang bán (seed_data không tạo thêm sản phẩm vì test catalog yêu cầu đúng 8). Chạy lại không sinh trùng.)*
 `seed_customers()` / `seed_feedbacks()` cho TV3 gọi trong `seed_data`: ≥ 40 KH (`kh01…kh40`, `Khach@123`, kh40 bị khóa), tên Việt, đủ nhóm tuổi / trình độ / sở thích, `created_at` rải 6–12 tháng; ≥ 30 phản hồi về vợt / giày / cầu ở cả 3 trạng thái, một số đã có `manager_note`. Idempotent.
 
 ### Bước 5 – Test & PR (T8)
@@ -105,7 +106,7 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 - [x] 4.1.4 Tiếp nhận phản hồi – lọc (từ khóa/trạng thái/sản phẩm/số sao/khoảng ngày), xem chi tiết, xử lý + trả lời; 13 test `apps.feedback` + 150 test toàn dự án pass (05/10/2026)
 - [x] 4.2.4 KH gửi phản hồi + badge menu – 7 test mới, 55 test `apps.customers`+`apps.feedback` pass (05/10/2026)
 - [x] 4.1.5 Báo cáo KH (Chart.js offline, nút in) – 6 test pass (05/10/2026)
-- [ ] Seed ≥ 40 KH, ≥ 30 phản hồi đủ 3 trạng thái
+- [x] Seed ≥ 40 KH, ≥ 30 phản hồi đủ 3 trạng thái – 3 test, 178 test toàn dự án pass (05/10/2026)
 - [ ] Test pass, PR được TV1 kiểm thử chéo
 - [ ] Đã kiểm thử chéo phần TV3
 - [ ] Bộ lọc KH đã bàn giao cho TV5 – code xong `apps/customers/selectors.py` + 7 test (05/10/2026), còn gửi TV5

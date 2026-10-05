@@ -10,7 +10,9 @@ from django.utils import timezone
 from apps.accounts.models import Account
 from apps.catalog.models import Brand, Category, Product, Supplier
 from apps.customers.models import Customer, CustomerPreference
+from apps.customers.seed import seed_customers
 from apps.feedback.models import Feedback
+from apps.feedback.seed import seed_feedbacks
 from apps.surveys.models import Survey, SurveyOption, SurveyQuestion, SurveyRecipient, SurveyResponse, SurveyAnswer
 
 
@@ -81,4 +83,8 @@ class Command(BaseCommand):
             recipient.status = "COMPLETED"
             recipient.completed_at = now
             recipient.save(update_fields=["status", "completed_at"])
+        # tv4: khách hàng demo kh01…kh40 + phản hồi demo (apps/customers/seed.py, apps/feedback/seed.py)
+        new_customers = seed_customers()
+        new_feedbacks = seed_feedbacks(handler=admin)
+        self.stdout.write(f"TV4 demo: {new_customers} new customers, {new_feedbacks} new feedbacks.")
         self.stdout.write(self.style.SUCCESS("Demo accounts, suppliers, products and survey data ready."))
