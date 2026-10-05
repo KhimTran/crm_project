@@ -80,7 +80,7 @@ def customer_detail(request, customer_id):
                  .order_by("-created_at", "-feedback_id"))
     return render(request, "customers/customer_detail.html", {
         "customer": customer,
-        "preferences": reports.preference_report(),
+        "preferences": preferences,
         "feedbacks": feedbacks,
         "counts": customer_related_counts(customer),
         "can_manage": is_crm_manager(request.user),
