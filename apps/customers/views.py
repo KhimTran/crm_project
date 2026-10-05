@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
@@ -9,24 +8,25 @@ from apps.accounts.decorators import role_required
 
 from .constants import CustomerStatus
 from .errors import CustomerNotFound, CustomerServiceError
-from .forms import CustomerCreateForm, CustomerLockForm
+from .forms import CustomerCreateForm, CustomerFilterForm, CustomerLockForm
 from .models import Customer
+from .selectors import customer_queryset, filter_customers
 from .services import create_customer, customer_related_counts, delete_customer, lock_customer, unlock_customer
 
 PAGE_SIZE = 10
 
 
-# tv4: danh sách khách hàng chưa xóa, tìm theo tên/SĐT/email, phân trang
+# tv4: danh sách khách hàng chưa xóa, tìm kiếm + bộ lọc (selectors.filter_customers), phân trang
 @role_required("CRM_MANAGER")
 def customer_list(request):
-    q = request.GET.get("q", "").strip()
-    customers = (Customer.objects.exclude(status=CustomerStatus.DELETED)
-                 .select_related("account").order_by("-customer_id"))
-    if q:
-        customers = customers.filter(Q(full_name__icontains=q) | Q(phone__icontains=q)
-                                     | Q(account__email__icontains=q))
+    form = CustomerFilterForm(request.GET or None)
+    customers = customer_queryset()
+    if form.is_bound and form.is_valid():
+        customers = filter_customers(customers, form.cleaned_data)
     page = Paginator(customers, PAGE_SIZE).get_page(request.GET.get("page"))
-    return render(request, "customers/customer_list.html", {"page": page, "q": q})
+    query = request.GET.copy()
+    query.pop("page", None)
+    return render(request, "customers/customer_list.html", {"form": form, "page": page, "query": query.urlencode()})
 
 
 # tv4: 4.1.1 form thêm khách hàng mới, hiển thị mật khẩu tạm một lần sau khi lưu

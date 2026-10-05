@@ -53,12 +53,12 @@ Hôm nay 05/10/2026 = tuần 5. Code freeze cuối tuần 8 (01/11); chấm tu�
 
 ### Bước 0 – Chuẩn bị (T5)
 1. `git checkout develop && git pull`; tách nhánh nhỏ: `feature/tv4-customer-management`, `feature/tv4-feedback`, `feature/tv4-customer-report`. Xóa nhánh gõ nhầm `feature/tb4-models`.
-2. 🟡 Thêm `TextChoices` (`apps/customers/constants.py`, `apps/feedback/constants.py`) cho `Customer.status`, `playing_level`, `gender`, `Feedback.status` – chỉ thêm `choices`, không đổi cột. Chạy `makemigrations --check --dry-run`. *(Xong phần customers: `CustomerStatus`, `Gender`, `PlayingLevel`, `PreferenceType` + danh sách lối chơi/thương hiệu; còn `Feedback.status`.)*
+2. ✅ Thêm `TextChoices` (`apps/customers/constants.py`, `apps/feedback/constants.py`) cho `Customer.status`, `playing_level`, `gender`, `Feedback.status` – chỉ thêm `choices`, không đổi cột. Chạy `makemigrations --check --dry-run`. *(Xong phần customers: `CustomerStatus`, `Gender`, `PlayingLevel`, `PreferenceType` + danh sách lối chơi/thương hiệu; đã có `FeedbackStatus` trong `apps/feedback/constants.py`.)*
 3. Họp TV3, TV5 chốt tên chức năng / kho dữ liệu / bảng.
 
 ### Bước 1 – Quản lý khách hàng (T5)
 Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers/…`; thêm `path("crm/customers/", include("apps.customers.urls"))` vào `config/urls.py`.
-- 🟡 **Danh sách** `/crm/customers/`: tìm theo tên / SĐT / email; lọc theo nhóm tuổi, giới tính, trình độ, sở thích, trạng thái account; phân trang 10. Viết `filter_customers(qs, params)` trong `selectors.py` để **TV5 dùng lại**. *(Xong: tìm kiếm, phân trang, ẩn KH đã xóa, link menu. Còn: bộ lọc + `selectors.py`.)*
+- ✅ **Danh sách** `/crm/customers/`: tìm theo tên / SĐT / email; lọc theo nhóm tuổi, giới tính, trình độ, sở thích, trạng thái account; phân trang 10. Viết `filter_customers(qs, params)` trong `selectors.py` để **TV5 dùng lại**. *(Xong: tìm kiếm, bộ lọc, phân trang giữ điều kiện lọc, ẩn KH đã xóa, link menu. TV5 dùng: `from apps.customers.selectors import customer_queryset, filter_customers` – khóa `q, age_group, gender, playing_level, play_style, brand, account_status`; nhóm tuổi ở `constants.AGE_GROUPS`, dùng chung cho báo cáo 4.1.5.)*
 - ✅ **4.1.1 Thêm** `/crm/customers/new/`: `create_customer()` trong `transaction.atomic()` – kiểm tra trùng email / SĐT → tạo Account role `CUSTOMER` (mật khẩu tạm `secrets.token_urlsafe`, hiện 1 lần) → tạo Customer + CustomerPreference.
 - ✅ **4.1.2 Xóa** `/crm/customers/<id>/delete/`: GET = trang xác nhận kèm số phản hồi / khảo sát liên quan; POST = xóa mềm + khóa account. Nút xóa ẩn bằng `perms.customers.delete_customer`; view kiểm tra `has_perm` (CSKH không được xóa). *(Chặn CSKH bằng `@role_required("CRM_MANAGER")` vì TV3 chưa gán permission cho Group; khi có thể thêm `has_perm`.)*
 - ✅ **4.1.3 Khóa / mở** `/crm/customers/<id>/lock/`, `/unlock/` (POST): đổi `account.status`, không khóa KH đã xóa. KH bị khóa đăng nhập phải thấy "Tài khoản đã bị khóa" (phối hợp TV1). *(Xong phía TV4: khóa chặn đăng nhập + cắt phiên đang mở. Còn chờ TV1: câu báo "Tài khoản đã bị khóa" ở trang đăng nhập.)*
@@ -66,7 +66,7 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 
 ### Bước 2 – Phản hồi (T6)
 - **4.2.4 Phía KH** (`@role_required("CUSTOMER")`): `/feedbacks/new/?product=<id>` (sản phẩm, 1–5 sao, nội dung → `NEW`); `/feedbacks/mine/` (lịch sử + `manager_note` + trạng thái). TV1 đặt nút "Gửi phản hồi" ở trang chi tiết sản phẩm trỏ tới URL này.
-- **4.1.4 Phía quản lý** `/crm/feedbacks/` (`CRM_MANAGER`, `CUSTOMER_SERVICE`): lọc theo trạng thái, sản phẩm, số sao, khoảng ngày; xem chi tiết; cập nhật trạng thái + trả lời → `handled_by=request.user`, `resolved_at` khi `RESOLVED`.
+- ✅ **4.1.4 Phía quản lý** `/crm/feedbacks/` (`CRM_MANAGER`, `CUSTOMER_SERVICE`): lọc theo trạng thái, sản phẩm, số sao, khoảng ngày; xem chi tiết; cập nhật trạng thái + trả lời → `handled_by=request.user`, `resolved_at` khi `RESOLVED`. *(Xong: `selectors.filter_feedbacks`, `services.handle_feedback`, route `crm_feedbacks:list/detail` trong `apps/feedback/crm_urls.py`, link menu "Phản hồi". Quy tắc: chỉ chọn `IN_PROGRESS`/`RESOLVED`; `RESOLVED` bắt buộc có câu trả lời; sửa câu trả lời giữ nguyên `resolved_at`, mở lại → xóa `resolved_at`.)*
 - **Badge** phản hồi `NEW` trên menu: `apps/feedback/context_processors.py` (đăng ký trong settings – báo TV1) và gắn URL thật vào `base_crm.html`.
 
 ### Bước 3 – Báo cáo KH (T7)
@@ -101,13 +101,13 @@ Tạo `forms.py`, `services.py`, `selectors.py`, `urls.py`, `templates/customers
 - [x] 4.1.1 Thêm KH – 11 test `apps.customers` pass, toàn bộ 125 test dự án pass, smoke test trên server thật (`crm_dev`) ổn (05/10/2026)
 - [x] 4.1.2 Xóa KH – xóa mềm + khóa account, trang xác nhận có cảnh báo số phản hồi/khảo sát; test pass, smoke test `crm_dev` ổn (05/10/2026)
 - [x] 4.1.3 Khóa / mở KH – có lý do trong thông báo, khóa chặn đăng nhập và cắt phiên; 23 test `apps.customers` + 137 test toàn dự án pass (05/10/2026)
-- [ ] 4.1.4 Tiếp nhận phản hồi
+- [x] 4.1.4 Tiếp nhận phản hồi – lọc (từ khóa/trạng thái/sản phẩm/số sao/khoảng ngày), xem chi tiết, xử lý + trả lời; 13 test `apps.feedback` + 150 test toàn dự án pass (05/10/2026)
 - [ ] 4.2.4 KH gửi phản hồi
 - [ ] 4.1.5 Báo cáo KH (Chart.js offline, nút in)
 - [ ] Seed ≥ 40 KH, ≥ 30 phản hồi đủ 3 trạng thái
 - [ ] Test pass, PR được TV1 kiểm thử chéo
 - [ ] Đã kiểm thử chéo phần TV3
-- [ ] Bộ lọc KH đã bàn giao cho TV5
+- [ ] Bộ lọc KH đã bàn giao cho TV5 – code xong `apps/customers/selectors.py` + 7 test (05/10/2026), còn gửi TV5
 - [ ] Ch.2: mô tả bài toán, BFD, sơ đồ ngữ cảnh
 - [ ] Ảnh chụp, mô tả giao diện, HDSD các chức năng TV4
 - [ ] Bảng tự đánh giá của TV4
