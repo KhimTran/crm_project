@@ -1,0 +1,24 @@
+{% extends "layouts/base_crm.html" %}
+{% load static %}
+{% block page_title %}{{ heading }} — {{ survey.title }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
+{% block content %}
+<form method="post" class="sv-form">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="sv-btn">Lưu câu hỏi</button>
+  <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_detail' survey.survey_id %}">Hủy</a>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+  // Chỉ hiện ô "lựa chọn" khi loại câu hỏi là một/nhiều lựa chọn
+  (function () {
+    var type = document.getElementById('id_question_type'), box = document.getElementById('id_options_text');
+    if (!type || !box) return;
+    var wrap = box.closest('p') || box.parentElement;
+    function toggle() { wrap.style.display = type.value.indexOf('_CHOICE') > -1 ? '' : 'none'; }
+    type.addEventListener('change', toggle); toggle();
+  })();
+</script>
+{% endblock %}

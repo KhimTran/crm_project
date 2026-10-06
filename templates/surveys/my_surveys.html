@@ -1,0 +1,23 @@
+{% extends "layouts/base_customer.html" %}
+{% load static %}
+{% block title %}Khảo sát của tôi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
+{% block content %}
+<h1>Khảo sát của tôi</h1>
+<h2>Chưa làm ({{ todo|length }})</h2>
+<table class="sv-table">
+  {% for r in todo %}<tr><td>{{ r.survey.title }}<div class="sv-help">Hạn: {{ r.survey.end_at|date:"d/m/Y H:i" }}</div></td>
+    <td><a class="sv-btn sv-small" href="{% url 'surveys:take' r.recipient_id %}">Làm khảo sát</a></td></tr>
+  {% empty %}<tr><td>Bạn không có khảo sát nào cần làm.</td></tr>{% endfor %}
+</table>
+<h2>Đã làm ({{ done|length }})</h2>
+<table class="sv-table">
+  {% for r in done %}<tr><td>{{ r.survey.title }}</td><td>Hoàn thành {{ r.completed_at|date:"d/m/Y H:i" }}</td></tr>
+  {% empty %}<tr><td>Chưa có.</td></tr>{% endfor %}
+</table>
+<h2>Đã đóng / hết hạn ({{ closed|length }})</h2>
+<table class="sv-table">
+  {% for r in closed %}<tr><td>{{ r.survey.title }}</td><td><span class="sv-badge CLOSED">Không còn nhận trả lời</span></td></tr>
+  {% empty %}<tr><td>Chưa có.</td></tr>{% endfor %}
+</table>
+{% endblock %}

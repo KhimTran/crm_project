@@ -1,4 +1,7 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Trạng thái khảo sát</title></head><body>
-{% for message in messages %}<p>{{ message }}</p>{% endfor %}<h1>{{ recipient.survey.title }}</h1>
+{% extends "layouts/base_customer.html" %}
+{% block title %}Trạng thái khảo sát{% endblock %}
+{% block content %}
+<h1>{{ recipient.survey.title }}</h1>
 {% if recipient.completed_at %}<p>{{ completed_message }}</p>{% else %}<p>Khảo sát chưa hoàn thành.</p>{% endif %}
-</body></html>
+<p><a href="{% url 'surveys:my_surveys' %}">← Khảo sát của tôi</a></p>
+{% endblock %}
