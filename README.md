@@ -98,12 +98,15 @@ chỉ tùy biến lọc ACTIVE vì Account.is_active là property.
 
 Hồ sơ nhận `full_name`, `phone`, `date_of_birth`, `gender`, `address`,
 `playing_level`; các ID/account/email/role/status/groups/permissions không writable.
-Sở thích dùng formset `preferences`, nhận `preference_type`, `preference_value`
-và DELETE với kiểm tra quyền sở hữu ID ở service. Thêm một dòng sau mỗi lần lưu,
-tối đa 50 dòng trong một lần gửi; giới hạn này bảo vệ kích thước form, không sửa DB.
-Quy ước seed hiện có là `CATEGORY` / tên danh mục, ví dụ `Badminton rackets`.
-Model chưa chốt enum cho gender/playing_level/preference nên giữ văn bản theo độ
-dài schema, không đặt bộ giá trị mới. Điện thoại nhận 9–15 chữ số và dấu định dạng;
+Checkbox “Danh mục bạn quan tâm” nhận `categories` là danh sách Category ID ACTIVE;
+backend xác minh và lưu `CATEGORY` / `category_name` (tên, không lưu ID).
+Service chỉ đồng bộ các tên danh mục hiện tại của chính khách, tránh trùng lặp.
+Sở thích danh mục cũ không khớp vẫn giữ; `remove_preferences` chỉ nhận ID các dòng
+cũ của chính khách để xóa chủ động. BRAND/PLAY_STYLE và loại khác giữ nguyên.
+Dropdown theo TV4: gender MALE/FEMALE/OTHER; playing_level
+BEGINNER/RECREATIONAL/COMPETITIVE, nhãn tiếng Việt. Giá trị cũ ngoài danh sách chỉ
+được giữ cho hồ sơ đã lưu; giá trị mới không hợp lệ bị từ chối. Không đổi
+models/migrations/SQL hoặc chuyển dữ liệu hàng loạt. Điện thoại nhận 9–15 chữ số và dấu định dạng;
 ngày sinh phải hợp lệ và không ở tương lai.
 
 Cửa hàng chỉ đọc `Product.status=ACTIVE`, không suy ra trạng thái bán từ tồn kho
@@ -185,7 +188,8 @@ Không sao chép dữ liệu cá nhân từ DB chung vào demo.
 chủ máy cấp quyền và tạo `crm_tv1_demo` rỗng. Đã review migration plan, apply toàn
 bộ migrations hiện có và check 0 lỗi. MySQL 8.4.11, utf8mb4/utf8mb4_unicode_ci,
 23 bảng vật lý gồm 14 bảng nghiệp vụ và các bảng kỹ thuật Django.
-Demo lưu 5 Account giả lập, 2 Customer, 14 sản phẩm ACTIVE và 1 INACTIVE.
+Inventory gần nhất ghi nhận 7 Account, 4 Customer, 14 sản phẩm ACTIVE và 1 INACTIVE.
+Bước cải thiện hồ sơ chỉ bổ sung một Account/Customer giả lập; dữ liệu demo có sẵn được giữ nguyên.
 **42 kiểm tra HTTP pass**: đăng ký/trùng email, login khách hàng/CRM/admin,
 CSRF/quyền/LOCKED/session cũ, hồ sơ/sở thích/ownership, đổi/reset mật khẩu và token,
 cửa hàng/lọc/phân trang/404; account list/detail, catalog và Django admin render 200.
@@ -196,6 +200,12 @@ SMTP thật vẫn chưa kiểm chứng. `crm_db` legacy không bị migrate/rese
 
 PR bàn giao: [#3](https://github.com/KhimTran/crm_project/pull/3), vào `develop`.
 Không merge PR hoặc gộp nhánh TV2/TV4/TV5 trong task này.
+
+Cải thiện hồ sơ sau PR: **47/47 kiểm thử liên quan pass trong 50.937 giây** trên
+test_crm_db; **26 kiểm tra demo mới pass** trên crm_tv1_demo. Đã xác minh bộ lọc
+giá trị/trình độ của TV5 đọc được dữ liệu mới mà không merge nhánh TV5. Hồ sơ
+desktop/390px không tràn ngang; nút “Xem sản phẩm” có chữ trắng ở normal/hover/focus.
+Contract và khác biệt seed trình độ của TV5 được ghi trong docs/tv1_handoff.md.
 
 Trên DB phát triển đã khớp schema: mở `/`, lọc sản phẩm; đăng ký một khách hàng;
 đăng nhập, cập nhật hồ sơ/sở thích; đổi mật khẩu; đăng xuất bằng nút POST; yêu cầu

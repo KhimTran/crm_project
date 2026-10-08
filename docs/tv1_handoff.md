@@ -23,8 +23,9 @@ cho CUSTOMER chỉ vì được gán nhóm. Các trang quản trị vẫn cần 
 - Account/AccountManager chuẩn hóa email; password/last_login map cột SQL hiện có.
 - Customer.account OneToOne, status ACTIVE/DELETED; profile chỉ dùng ACTIVE và
   deleted_at NULL. Account LOCKED khác Customer DELETED.
-- CustomerPreference.customer là FK; service `update_own_profile` kiểm tra tất
-  cả preference_id dưới transaction/row lock và chỉ ghi profile của actor.
+- CustomerPreference.customer là FK; service `update_own_profile` chỉ ghi profile
+  của actor dưới transaction/row lock, kiểm tra Category ID ACTIVE và ID dòng cũ
+  được yêu cầu xóa. Không nhận customer_id để chọn hồ sơ.
 - `register_customer` không nhận role/status/groups/permission; profile whitelist
   full_name/phone/date_of_birth/gender/address/playing_level.
 - Không đổi FK/on_delete. Regression bao gồm rollback registration/profile và
@@ -32,11 +33,60 @@ cho CUSTOMER chỉ vì được gán nhóm. Các trang quản trị vẫn cần 
 - Product read-only cho TV1: ACTIVE; Category/Brand/Supplier giữ model TV2 hiện có.
   Không thêm field ảnh, giá trị tồn kho hoặc trạng thái bán khác.
 
-Gender/playing_level/preference hiện là văn bản với max_length; chưa có enum
-được chốt. TV1 không tạo bộ giá trị mới. Seed dùng CATEGORY / Badminton rackets;
-TV4 cần thống nhất convention và kế hoạch dữ liệu trước khi chuyển sang choices.
-Formset hiện cho cập nhật/thêm/xóa sở thích; giới hạn gửi tối đa 50 dòng, 100 form
-parse; nếu báo cáo cần taxonomy cố định thì phải bàn giao quyết định riêng.
+### Contract form hồ sơ sau đối chiếu TV4 / TV5
+
+Đọc bằng git show/grep, không merge/cherry-pick:
+TV4 feature/tv4-models `2f0b82e2a2f974e53454f5d27ae1046e26aa11ad`
+(constants/forms/services/tests); TV5 feature/tv5-surveys
+`ef45cb90e5090af59c188b5ade7c5b5371f89980` (audience filter/forms/seed/tests).
+
+| Field | Giá trị lưu / nhãn TV4 |
+| --- | --- |
+| gender | MALE / Nam; FEMALE / Nữ; OTHER / Khác |
+| playing_level | BEGINNER / Mới chơi; RECREATIONAL / Phong trào; COMPETITIVE / Thi đấu |
+| preference_type | CATEGORY, BRAND, PLAY_STYLE |
+| CATEGORY preference_value | category_name, ví dụ Badminton rackets; không lưu category_id |
+| BRAND preference_value | Yonex, Victor, Li-Ning, Mizuno, Kumpoo, Apacs, VNB (TV4 choices) |
+| PLAY_STYLE preference_value | Tấn công, Phòng thủ, Toàn diện, Đánh đơn, Đánh đôi (TV4 choices) |
+
+TV4 tạo BRAND/PLAY_STYLE từ chuỗi hiển thị. CATEGORY hiện được seed foundation/TV5
+lưu bằng tên. TV5 lấy distinct preference_value và playing_level từ DB rồi lọc
+trực tiếp theo giá trị; hiện bộ lọc sở thích không phân biệt preference_type.
+TV1 giữ nguyên cách lưu này, không tự sửa logic TV5.
+
+**Khác biệt thật:** TV5 seed dùng BEGINNER/INTERMEDIATE/ADVANCED; TV4 form dùng
+BEGINNER/RECREATIONAL/COMPETITIVE. Theo yêu cầu chủ task, TV1 áp dụng dropdown TV4,
+giữ INTERMEDIATE/ADVANCED hoặc giá trị cũ khác chỉ cho đúng hồ sơ đang lưu giá trị
+đó (option “Đã lưu: …”). Không ánh xạ hai bộ giá trị hoặc đổi dữ liệu hàng loạt.
+Trường bị bỏ khỏi payload được giữ; chọn trống rõ ràng lưu NULL. Đăng ký mới chỉ
+nhận các choices TV4 hoặc trống. Models vẫn là CharField, không thêm SQL enum/CHECK.
+TV5 cần cân chỉnh seed trong task riêng khi nhóm chốt tích hợp; đây là việc chờ,
+không phải một mapping đã được duyệt. Phone policy TV1 vẫn giữ nguyên phạm vi cũ.
+
+**POST hồ sơ mới:** categories là danh sách Category ID ACTIVE; remove_preferences
+là danh sách preference_id của riêng CATEGORY cũ không khớp tên ACTIVE thuộc actor.
+Không còn formset hay input preference_type/preference_value. Backend tự đặt CATEGORY.
+`update_own_profile(actor, profile_data=..., category_ids=...,
+remove_preference_ids=...)` thay signature TV1 formset cũ; không thay TV4 services.
+Chỉ đồng bộ tên danh mục ACTIVE: thêm lựa chọn mới, bỏ lựa chọn đã bỏ chọn, gộp
+dòng trùng cho cùng tên. Hai Category trùng tên vẫn chỉ lưu một preference_value.
+Việc đổi tên/tắt danh mục làm tên cũ thành dữ liệu giữ lại, không tự đổi sang tên mới.
+Không có Category ACTIVE thì hiển thị trạng thái trống và giữ dữ liệu cũ.
+BRAND/PLAY_STYLE/loại khác hiển thị chỉ đọc và không bị sửa/xóa bởi flow này.
+Mọi validation và sync/profile save chạy atomic, khóa actor/profile/preferences
+và Category ACTIVE; service revalidate khi danh mục bị tắt sau khi form đã được kiểm tra.
+
+TV1 dùng adapter self_service_choices.py theo đúng giá trị TV4 để tránh ghi đè
+constants.py thuộc TV4. Khi tích hợp, đề xuất thống nhất import từ một nguồn choices
+cùng nhóm; không tự merge/cherry-pick nhánh hoặc thay đổi contract trong task này.
+
+Xác minh revision cải thiện: check 0 lỗi, No changes detected;
+47/47 tests liên quan pass trong 50.937 giây trên MySQL test_crm_db.
+26 kiểm tra HTTP/demo pass trên crm_tv1_demo, gồm gọi các hàm lọc audience TV5
+đọc từ đúng ref trên dữ liệu TV1 mới (không chạy/merge toàn bộ module TV5).
+Browser lưu hồ sơ thành công, desktop/390px không tràn ngang, checkbox chuyển từ
+hai cột sang một cột. CTA shop có computed color trắng ở normal/hover/focus-visible.
+Admin login/accounts/catalog vẫn hoạt động; không đổi template/CSS/logic admin TV3.
 
 ## Vị trí nối menu
 

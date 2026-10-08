@@ -920,3 +920,46 @@ was used without printing credentials.
   PR https://github.com/KhimTran/crm_project/pull/3 targets develop from
   feature/tv1-auth-customer; draft initially, ready for review after demo resolution.
   No PR merge, auto-merge or TV2/TV4/TV5 branch integration performed.
+
+### TV1 customer profile usability and cross-branch contract — 2026-10-08
+
+- Owner authorized direct implementation, commit/push and PR #3 update; no merge.
+  Working tree initially clean on feature/tv1-auth-customer. Read AGENTS, current
+  forms/models/services/tests, fetched refs and inspected TV4 constants/forms/
+  services/tests at 2f0b82e and TV5 audience filters/forms/seed/tests at ef45cb9.
+  No branch merge/cherry-pick or schema/model/migration/SQL change performed.
+- Existing compatible convention: CATEGORY stores the category_name string;
+  TV4 BRAND/PLAY_STYLE store display strings and TV5 filters raw preference values.
+  TV4 gender MALE/FEMALE/OTHER; level BEGINNER/RECREATIONAL/COMPETITIVE.
+  TV5 seed level INTERMEDIATE/ADVANCED differs; used the owner's requested TV4
+  choices for new input and preserved legacy values without inventing a mapping.
+  Future TV5 seed alignment and a single shared choices import are documented
+  integration work, not implicitly approved data conversion.
+- Replaced technical preference formset with dynamic ACTIVE Category checkboxes.
+  Backend validates IDs, stores names, syncs only own CATEGORY rows atomically
+  under row locks, removes deselected current names and prevents duplicates.
+  Unmatched/inactive old category values are preserved unless explicitly selected
+  for deletion by their owner. Other preference types are displayed read-only.
+  Empty active-category state retains data. Revalidation handles a category being
+  disabled after view form validation, returning an error without partial save.
+- TV4-aligned dropdowns also apply to registration via the shared profile form.
+  Existing unknown gender/level is an owner-specific choice; missing fields keep
+  saved values, explicit blank clears to NULL, unknown new values are rejected.
+- Fixed CTA text using only .customer-layout .shop-hero selectors; no admin style
+  changes. Browser measured rgb(255,255,255) for normal, actual mouse hover and
+  keyboard focus-visible. Profile saved through browser; checked default desktop
+  and 390px with no horizontal overflow, two/one-column checkbox layout. Temporary
+  viewport reset; screenshots outside repo.
+- Verification: check 0 issues; makemigrations --check --dry-run No changes detected.
+  `python manage.py test apps.customers apps.accounts.tests.test_customer_auth
+  apps.shop apps.admin_portal --settings=config.test_settings --keepdb --noinput`
+  passed **47/47 in 50.937 seconds** on MySQL test_crm_db. Includes multiple/uncheck/
+  repeat/legacy/other-type/fake and inactive ID/ownership/rollback/dropdown cases.
+- Demo: **26 checks passed** on crm_tv1_demo, including HTTP writes, profile data
+  preservation and admin login/accounts/catalog. Ran only the read TV5 filter
+  function definitions against the new demo values: exact preference and level
+  filtering finds the customer, preference choices still contain category names.
+  Local script's first preselection assertion incorrectly assumed an option index;
+  corrected it to match by Category ID and reran successfully; no source defect.
+  Added only synthetic profile fixture/category rows; no legacy/shared DB or bulk
+  data conversion. Credentials, scripts/results/logs/images remain outside repo.

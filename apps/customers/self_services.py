@@ -7,14 +7,16 @@ from django.db import IntegrityError, transaction
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.managers import AccountManager
 from apps.accounts.models import Account
+from apps.catalog.models import Category, Status
 from .models import Customer, CustomerPreference
-from .self_service_forms import CustomerPreferenceForm, CustomerProfileForm
+from .self_service_choices import CATEGORY_PREFERENCE_TYPE
+from .self_service_forms import CustomerCategoryPreferencesForm, CustomerProfileForm
 
 logger = logging.getLogger(__name__)
 
 
-def _profile_data(data):
-    form = CustomerProfileForm(data)
+def _profile_data(data, *, instance=None):
+    form = CustomerProfileForm(data, instance=instance)
     if not form.is_valid():
         raise ValidationError(form.errors)
     return form.cleaned_data
@@ -60,28 +62,36 @@ def own_customer(actor, *, for_update=False):
 
 
 @transaction.atomic
-def update_own_profile(actor, *, profile_data, preferences):
+def update_own_profile(actor, *, profile_data, category_ids=(), remove_preference_ids=()):
+    """Sync only own CATEGORY names; preserve unmatched rows unless explicitly removed."""
     customer = own_customer(actor, for_update=True)
-    profile = _profile_data(profile_data)
-    existing = {item.pk: item for item in CustomerPreference.objects.select_for_update().filter(customer=customer)}
-    seen = set()
-    for data in preferences:
-        preference_id = data.get("preference_id")
-        if preference_id is not None:
-            if preference_id not in existing or preference_id in seen:
-                raise PermissionDenied("Sở thích không thuộc hồ sơ của bạn.")
-            seen.add(preference_id)
-        if data.get("DELETE"):
-            if preference_id is not None:
-                existing[preference_id].delete()
-            continue
-        form = CustomerPreferenceForm(data)
-        if not form.is_valid():
-            raise ValidationError(form.errors)
-        preference = existing.get(preference_id) or CustomerPreference(customer=customer)
-        for field, value in form.cleaned_data.items():
-            setattr(preference, field, value)
-        preference.save()
+    profile = _profile_data(profile_data, instance=customer)
+    existing = list(CustomerPreference.objects.select_for_update().filter(
+        customer=customer, preference_type=CATEGORY_PREFERENCE_TYPE,
+    ).order_by("preference_id"))
+    # Validate again under locks: a category may have been disabled since GET/POST validation.
+    active_categories = list(Category.objects.select_for_update().filter(status=Status.ACTIVE).order_by("category_id"))
+    form = CustomerCategoryPreferencesForm(customer, {
+        "categories": category_ids, "remove_preferences": remove_preference_ids,
+    }, active_categories=active_categories, preferences=existing)
+    if not form.is_valid():
+        raise ValidationError(form.errors)
+    selected_ids = set(form.cleaned_data["categories"])
+    selected_names = {category.category_name for category in active_categories if category.pk in selected_ids}
+    active_names = {category.category_name for category in active_categories}
+    removed_ids = set(form.cleaned_data["remove_preferences"])
+    retained_names = set()
+    for preference in existing:
+        value = preference.preference_value
+        if preference.pk in removed_ids or (value in active_names and (
+                value not in selected_names or value in retained_names)):
+            preference.delete()
+        elif value in selected_names:
+            retained_names.add(value)
+    CustomerPreference.objects.bulk_create([
+        CustomerPreference(customer=customer, preference_type=CATEGORY_PREFERENCE_TYPE, preference_value=value)
+        for value in sorted(selected_names - retained_names)
+    ])
     for field, value in profile.items():
         setattr(customer, field, value)
     customer.save(update_fields=[*profile, "updated_at"])

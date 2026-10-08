@@ -1,13 +1,39 @@
 import re
 
 from django import forms
-from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils import timezone
 
-from .models import Customer, CustomerPreference
+from apps.catalog.models import Category, Status
+from .models import Customer
+from .self_service_choices import CATEGORY_PREFERENCE_TYPE, GENDER_CHOICES, PLAYING_LEVEL_CHOICES
 
 
 class CustomerProfileForm(forms.ModelForm):
+    gender = forms.ChoiceField(label="Giới tính", required=False)
+    playing_level = forms.ChoiceField(label="Trình độ chơi", required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field, choices in (("gender", GENDER_CHOICES), ("playing_level", PLAYING_LEVEL_CHOICES)):
+            options = [("", "Chưa chọn"), *choices]
+            saved = getattr(self.instance, field, None)
+            if saved and saved not in dict(options):
+                options.append((saved, f"Đã lưu: {saved}"))
+            self.fields[field].choices = options
+            self.fields[field].help_text = "Bạn có thể giữ lựa chọn đã lưu hoặc chọn lại."
+
+    def _optional_choice(self, field):
+        # An omitted field is not an explicit request to clear saved information.
+        if field not in self.data:
+            return getattr(self.instance, field, None)
+        return self.cleaned_data[field] or None
+
+    def clean_gender(self):
+        return self._optional_choice("gender")
+
+    def clean_playing_level(self):
+        return self._optional_choice("playing_level")
+
     class Meta:
         model = Customer
         fields = ("full_name", "phone", "date_of_birth", "gender", "address", "playing_level")
@@ -17,8 +43,6 @@ class CustomerProfileForm(forms.ModelForm):
         }
         widgets = {"date_of_birth": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"})}
         help_texts = {
-            "gender": "Thông tin tùy chọn; hiện chưa có danh sách lựa chọn cố định.",
-            "playing_level": "Mô tả trình độ của bạn (tùy chọn).",
             "phone": "Nhập 9–15 chữ số, có thể có dấu +, khoảng trắng hoặc dấu gạch nối.",
         }
 
@@ -36,24 +60,27 @@ class CustomerProfileForm(forms.ModelForm):
         return date
 
 
-class CustomerPreferenceForm(forms.ModelForm):
-    class Meta:
-        model = CustomerPreference
-        fields = ("preference_type", "preference_value")
-        labels = {"preference_type": "Loại sở thích", "preference_value": "Nội dung sở thích"}
-        help_texts = {
-            "preference_type": "Quy ước hiện có: CATEGORY cho sở thích về danh mục.",
-            "preference_value": "Với CATEGORY, nhập tên danh mục, ví dụ Badminton rackets.",
-        }
+class CustomerCategoryPreferencesForm(forms.Form):
+    categories = forms.TypedMultipleChoiceField(
+        label="Danh mục bạn quan tâm", required=False, coerce=int, widget=forms.CheckboxSelectMultiple,
+    )
+    remove_preferences = forms.TypedMultipleChoiceField(
+        label="Sở thích đã lưu khác", required=False, coerce=int, widget=forms.CheckboxSelectMultiple,
+    )
 
-
-class CustomerPreferenceBaseFormSet(BaseModelFormSet):
-    def add_fields(self, form, index):
-        super().add_fields(form, index)
-        form.fields["DELETE"].label = "Xóa sở thích này"
-
-
-CustomerPreferenceFormSet = modelformset_factory(
-    CustomerPreference, form=CustomerPreferenceForm, formset=CustomerPreferenceBaseFormSet, extra=1, can_delete=True,
-    max_num=50, validate_max=True, absolute_max=100,
-)
+    def __init__(self, customer, *args, active_categories=None, preferences=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if active_categories is None:
+            active_categories = Category.objects.filter(status=Status.ACTIVE).order_by("category_name", "category_id")
+        self.active_categories = list(active_categories)
+        if preferences is None:
+            preferences = customer.customerpreference_set.filter(preference_type=CATEGORY_PREFERENCE_TYPE)
+        preferences = list(preferences)
+        active_names = {category.category_name for category in self.active_categories}
+        saved_names = {preference.preference_value for preference in preferences}
+        self.fields["categories"].choices = [(category.pk, category.category_name) for category in self.active_categories]
+        self.fields["remove_preferences"].choices = [
+            (preference.pk, preference.preference_value) for preference in preferences
+            if preference.preference_value not in active_names
+        ]
+        self.initial["categories"] = [category.pk for category in self.active_categories if category.category_name in saved_names]

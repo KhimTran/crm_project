@@ -49,10 +49,11 @@ lỗi email; lỗi tạo hồ sơ rollback tài khoản. Role/status/groups khô
 
 **Hồ sơ và sở thích.** `/account/profile/` chỉ nhận Customer ACTIVE gắn với
 Account CUSTOMER đang hoạt động. ID không quyết định chủ thể sửa; account/email/
-role/status/quyền không writable. Formset sở thích kiểm tra mọi ID tại service,
-ghi hồ sơ và sở thích cùng transaction. Điện thoại, ngày sinh và độ dài được
-kiểm tra ở backend. Gender/playing_level/preference chưa có enum chính thức nên
-giữ văn bản; CATEGORY/tên danh mục giữ quy ước seed hiện có.
+role/status/quyền không writable. Checkbox lấy Category ACTIVE, gửi ID để backend
+xác minh và lưu CATEGORY/tên danh mục. Lưu atomic riêng sở thích danh mục, không
+tạo trùng; dữ liệu cũ không khớp chỉ xóa khi khách chọn rõ ràng. BRAND/PLAY_STYLE
+giữ nguyên. Giới tính/trình độ dùng dropdown nhãn tiếng Việt theo TV4; dữ liệu cũ
+ngoài choices được giữ trong option riêng, không chuyển đổi hàng loạt.
 
 **Mật khẩu.** Đổi mật khẩu yêu cầu mật khẩu cũ; giữ phiên đang thao tác bằng
 update_session_auth_hash và vô hiệu phiên khác. Reset dùng PasswordResetView,
@@ -86,7 +87,7 @@ python manage.py test --settings=config.test_settings --keepdb --noinput
 | --- | --- |
 | Registration | Normalize/hash, duplicate, mật khẩu yếu, rollback, không nâng quyền |
 | Authorization | Role/group routing, CRM guard, revoke group, khóa session cũ, admin regression |
-| Profile | Ownership, ID sở thích giả, whitelist, formset và rollback khi dữ liệu sai |
+| Profile | Ownership, ID giả/INACTIVE, whitelist, checkbox, bảo toàn dữ liệu cũ và rollback |
 | Password | Mật khẩu cũ/mới, xác nhận, giữ/vô hiệu session, reset token hết hạn/đã dùng/bị khóa |
 | CSRF | Login/register/logout/profile/change/reset và reset confirm |
 | Shop | ACTIVE, lọc kết hợp, giá sai, phân trang giữ query, 404, static cục bộ |
@@ -104,7 +105,8 @@ ghi lệnh, lỗi test ban đầu đã sửa và giới hạn live DB/SMTP.
 1. Kiểm tra DB đã khớp models; khởi động server và mở cửa hàng.
 2. Lọc sản phẩm theo category/brand/price, chuyển trang và mở chi tiết.
 3. Đăng ký email mới, thử email trùng và mật khẩu sai chính sách.
-4. Đăng nhập, sửa hồ sơ, thêm/xóa sở thích và kiểm tra email chỉ đọc.
+4. Đăng nhập, sửa hồ sơ, chọn/bỏ chọn nhiều danh mục, kiểm tra dữ liệu cũ được giữ
+   và chỉ xóa khi đánh dấu; email chỉ đọc, giới tính/trình độ có dropdown.
 5. Đổi mật khẩu; dùng phiên thứ hai xác minh bị yêu cầu đăng nhập lại.
 6. Đăng xuất; yêu cầu reset, lấy console link, đặt mật khẩu mới và thử lại token cũ.
 7. Đăng nhập Account có nhóm CRM được cấp sẵn; quan sát menu “Sắp có”.
@@ -152,3 +154,21 @@ Lần regression trước PR: 144/144 tests passed trong 175.004 giây trên MyS
 source check 0 lỗi, migration dry-run No changes detected.
 PR [#3](https://github.com/KhimTran/crm_project/pull/3) được tạo draft khi thiếu quyền;
 sau khi hoàn tất demo, chuyển sang sẵn sàng review. Chưa merge PR.
+
+## 4.8. Cải thiện giao diện hồ sơ và contract TV4/TV5
+
+Đối chiếu TV4 2f0b82e và TV5 ef45cb9 bằng git show/grep. TV4 gender:
+MALE/FEMALE/OTHER; playing_level: BEGINNER/RECREATIONAL/COMPETITIVE. TV5 seed còn
+INTERMEDIATE/ADVANCED; không coi chúng tương đương bộ TV4. Form mới dùng TV4 theo
+yêu cầu, giữ giá trị cũ và chỉ đổi khi khách chọn lại. CATEGORY lưu category_name,
+không đổi sang ID; TV5 vẫn lọc được bằng preference_value và playing_level.
+Chi tiết giá trị và signature service trong docs/tv1_handoff.md.
+
+47/47 tests liên quan pass trong 50.937 giây trên test_crm_db. Check 0 lỗi,
+không có migration mới. 26 kiểm tra HTTP/demo mới pass trên crm_tv1_demo:
+nhiều danh mục/bỏ chọn/lưu lặp, dữ liệu cũ/BRAND/PLAY_STYLE được giữ, xóa chủ động,
+category_id giả/INACTIVE/ownership bị từ chối, enum/dropdown cũ và admin regression.
+Đã chạy các hàm lọc TV5 trên dữ liệu demo vừa lưu; đây là kiểm chứng contract có
+phạm vi, không phải test toàn bộ nhánh TV5. Browser xác minh desktop/390px,
+không tràn ngang, CTA chữ trắng ở normal/hover/focus. Ảnh và credentials chỉ lưu
+cục bộ ngoài repo; không đổi schema, crm_db legacy hoặc UI quản trị TV3.
