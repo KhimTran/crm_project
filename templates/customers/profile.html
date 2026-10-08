@@ -1,0 +1,20 @@
+{% extends "layouts/base_customer.html" %}
+{% block title %}Hồ sơ cá nhân{% endblock %}
+{% block content %}
+<section class="form-panel">
+  <h1>Hồ sơ cá nhân</h1>
+  <p>Email: <strong>{{ request.user.email }}</strong> (không thể thay đổi).</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_div }}
+    <h2>Sở thích</h2>
+    <p>Để thêm sở thích, điền dòng trống rồi lưu. Có thể thêm tiếp sau mỗi lần lưu.</p>
+    {{ preferences.management_form }}
+    {{ preferences.non_form_errors }}
+    {% for preference_form in preferences %}
+      <fieldset class="preference-panel"><legend>Sở thích {{ forloop.counter }}</legend>{{ preference_form.as_div }}</fieldset>
+    {% endfor %}
+    <button class="btn btn-success" type="submit">Lưu hồ sơ</button>
+  </form>
+</section>
+{% endblock %}

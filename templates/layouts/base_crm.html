@@ -15,11 +15,11 @@
       <p class="crm-brand">CRM</p>
       <p class="crm-sidebar-caption">Quan hệ khách hàng</p>
       <nav class="crm-nav" aria-label="Chức năng CRM">
-        {% comment %}TODO: Gắn URL landing và module CRM sau khi TV4/TV5 hoàn thành các route.{% endcomment %}
-        <a href="#" aria-disabled="true">Tổng quan</a>
-        <a href="#" aria-disabled="true">Khách hàng</a>
-        <a href="#" aria-disabled="true">Phản hồi</a>
-        <a href="#" aria-disabled="true">Khảo sát</a>
+        <a href="{% url 'customer_auth:crm_home' %}">Tổng quan</a>
+        <span>Khách hàng · Sắp có</span>
+        <span>Phản hồi · Sắp có</span>
+        <span>Khảo sát · Sắp có</span>
+        <a href="{% url 'shop:home' %}">Cửa hàng</a>
       </nav>
     </aside>
     <div class="crm-workspace">
@@ -30,6 +30,8 @@
         </div>
         {% if request.user.is_authenticated %}
           <span class="crm-user">{{ request.user.email }}</span>
+          <a href="{% url 'customer_auth:password_change' %}">Đổi mật khẩu</a>
+          <form method="post" action="{% url 'customer_auth:logout' %}">{% csrf_token %}<button type="submit">Đăng xuất</button></form>
         {% endif %}
       </header>
       <main id="main-content" class="crm-main" tabindex="-1">

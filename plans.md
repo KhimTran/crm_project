@@ -1,5 +1,11 @@
 # Living plan — CRM cầu lông
 
+**Latest verification — TV1, 2026-10-08:** source develop uses Account English;
+live `crm_db` on the current machine still has legacy auth tables. Do not treat
+older live alignment notes below as evidence for this machine. TV1 changes and
+144-test MySQL verification are recorded in the final dated section. Live DB
+alignment remains a separate owner-reviewed task; no live mutation was made.
+
 **CURRENT ACTIVE ACCOUNT STATE (2026-09-29):** `TaiKhoan` / `tai_khoan` = **REMOVED LEGACY IMPLEMENTATION**. `Account` / `accounts` = **ONLY SUPPORTED ACCOUNT IMPLEMENTATION**. `AUTH_USER_MODEL='accounts.Account'`; live `crm_db.accounts` has the eight official columns and zero rows; `accounts/0001_initial` is applied. Historical audit and migration proposals below are retained as dated evidence, not active instructions to restore or convert the removed model.
 
 Cập nhật khảo sát: **2026-09-28**. Baseline Git: `1d076ac`, nhánh `feature/admin-user-management`. Phạm vi lần lập kế hoạch này: chỉ `AGENTS.md`, `prompts.md`, `plans.md`; không implement feature, không đổi settings/models/migrations, không kết nối hay thay đổi DB.
@@ -744,3 +750,140 @@ For curl diagnostics, `X-CSRFToken` alone does not authenticate. Use curl's `-c 
 - Supplier list now displays ID, code, name, address, phone, email, status, creation and update times, and actions; NULL contact/address values show an em dash. Supplier search (`q`) across code/name/email/phone, status filtering, combination and pagination query preservation remain in place.
 - Product list now displays ID, name, readable Category/Brand/Supplier names, complete wrapping description, locale-formatted price, status, creation and update times, and actions. Existing `select_related("category", "brand", "supplier")` avoids related-object N+1 queries; Product search and Supplier filter remain unchanged.
 - Both tables retain the Bootstrap responsive scroll wrapper and text Edit/Delete buttons with `d-flex gap-2 flex-wrap`. Focused Catalog and Admin Portal regression tests cover list columns, nullable display, form coverage, filter behavior and actions: `python manage.py test apps.catalog apps.admin_portal --keepdb --noinput` passed **21/21**. `python manage.py check`: 0 issues. `python manage.py makemigrations --check --dry-run`: `No changes detected`. Browser visual inspection at desktop/mobile sizes remains pending.
+
+### TV1 auth, customer self-service and shop — 2026-10-08
+
+- [x] Surveyed AGENTS.md, repository SKILL.md, plans.md, README, runtime, settings,
+  auth backend, permission decorators, API, routes, models/migrations, layouts,
+  tests and seed conventions. Working tree was clean; HEAD and freshly fetched
+  origin/develop both `ee13e427854faaa2ccb3086f90c43f6f84bf2b97`. Created
+  `feature/tv1-auth-customer` in the existing clean worktree. No merge/cherry-pick,
+  commit, push, PR or GitHub mutation.
+- [x] Common login/register/logout routes, safe permission-aware `next`, default
+  role/group destinations, public shop home and protected CRM home. Kept named
+  admin login/logout and all admin templates/services/API intact. LOGIN_URL now
+  names customer_auth:login; admin guard still explicitly reverses admin login.
+  LOCKED cannot use protected pages with old sessions; locked login message
+  requires a verified password.
+- [x] Registration normalizes via AccountManager, validates/hashes via Django,
+  always creates CUSTOMER/ACTIVE and Customer ACTIVE atomically. Duplicate email
+  and unique-constraint races map to email errors; unrelated DB failures are not
+  swallowed. No caller-supplied security fields are writable.
+- [x] Own-profile service/formset for existing Customer/CustomerPreference fields;
+  fresh ACTIVE actor/profile lookup, Account row locks and preference ownership
+  checks on every submitted ID. Email/role/status/groups/permissions untouched.
+  Phone/date/length validation; future birth dates rejected. Profile and preference
+  writes roll back together on error. No change to customer-management logic.
+- [x] Current-password change with Django validators and session hash update;
+  token reset through Django views/forms/token generator, 1-hour timeout,
+  single-use behavior, stale-session invalidation and status/token recheck under
+  row lock at write. Reset does not log in or unlock. AccountPasswordResetForm
+  filters status=ACTIVE because is_active is a property, not a physical column.
+  Reset-request response is identical for missing/locked email. Console mail in
+  DEBUG and SMTP env settings; credentials/password/hash are not logged.
+- [x] Shop read selectors on current Product ACTIVE status; name/category/brand/
+  Decimal price filters, stable product_id order, 12 products per page and query
+  preservation. Invalid filters return field errors/400; missing or INACTIVE
+  detail is 404. Local Bootstrap 5.3.3 CSS with MIT license, local SVG placeholder
+  and responsive CSS; no new frontend framework or model fields.
+- [x] README run/demo/email/test instructions; docs/15_week_plan.md proposal with
+  blank group/student identifiers; docs/chapter4.md reflecting actual TV1 scope;
+  docs/tv1_handoff.md URL/permission/model/menu contracts for TV3/TV4/TV5.
+
+**Schema and cross-module contract.** No model/migration/SQL changes. Reused
+Customer.account OneToOne and CustomerPreference.customer FK; no FK/on_delete
+change. TV1 adds self-service files/views under customers and read-only shop
+queries against catalog. TV3 admin UI and TV2/TV4/TV5 business code not edited;
+only pre-existing tests expecting root 404 and old default LOGIN_URL were updated
+for the newly authorized routes. API and separate admin-auth regressions passed.
+Gender, playing_level and preferences are currently free-text schema fields with
+no approved enum. TV1 keeps this contract, documents CATEGORY/name seed convention
+and does not introduce a new fixed taxonomy. Formset permits add/edit/delete of
+owned preferences and caps one submitted formset at 50 rows (100 parsed forms).
+
+**Verification Log — current run.** Python 3.12.10, Django 5.2.17,
+mysqlclient 2.3.0, MySQL 8.4.11. Global Python has all pinned requirements needed;
+the existing external venv lacks Ninja and was not modified. Local ignored .env
+was used without printing credentials.
+
+- `python manage.py check`: 0 issues.
+- `python manage.py makemigrations --check --dry-run`: No changes detected.
+- `python manage.py test apps.customers.test_self_services --settings=config.test_settings --keepdb --noinput`:
+  **7/7 passed**, backend/service before UI.
+- Initial focused HTTP/shop/profile run: 29/30 passed; expiry test mixed UTC with
+  Django's local naive token clock. Fixed the test clock, without changing expiry
+  policy. It passes in the full run below.
+- `python manage.py test --settings=config.test_settings --keepdb --noinput`:
+  **144/144 passed in 186.899 seconds** on separate MySQL test_crm_db, including
+  existing Account API/auth/admin/catalog/survey tests and 30 new TV1 cases.
+  Existing migrations applied normally on DB test; no SQLite, fake or disabled
+  migrations. The seed command's output in full regression comes from existing
+  tests on test_crm_db, not a live seed action.
+- Browser verified common login, registration form, products and product detail,
+  logged-in profile, CRM group landing and POST logout on a temporary server
+  pointed only to test_crm_db. Desktop and 390px product/CRM layout checked;
+  DOM confirmed no horizontal overflow. Local CSS/placeholder requests succeeded.
+  Browser preview fixtures were removed, server stopped, temporary ignored preview
+  settings removed and browser closed. CRM screenshot saved outside the repo.
+- Final source check and migration dry-run again succeeded; git diff --check has
+  no whitespace errors. No real SMTP delivery test.
+
+**Runtime findings / remaining dependencies.**
+
+- [!] BLOCKED — live demo on this machine's crm_db: read-only table inventory
+  found only technical tables and legacy tai_khoan/tai_khoan_groups/
+  tai_khoan_user_permissions, with no current accounts/catalog/customers tables.
+  showmigrations marks accounts initial and framework migrations applied, but
+  current catalog/customers/feedback/surveys initials not applied; migrate --plan
+  lists them. This conflicts with historical database-build notes. Do not blindly
+  migrate/reset/restore; owner/TV3 needs a separate backup-and-reviewed-alignment
+  task. TV1 did not add legacy compatibility code or mutate live crm_db.
+- Initial proposed test_crm_tv1_auth_customer was denied with MySQL 1044. Read-only
+  grant inspection showed crm_user has ALL only on test_crm_db; changed dedicated
+  test settings to that already-authorized test database. No grants changed.
+- [ ] TV4 customer/feedback/report landing and backend permissions to enable CRM
+  menu; feedback submit route absent on develop, so product action remains Sắp có.
+- [ ] TV5 personal survey list and CRM survey landing before enabling shared menu.
+  Existing recipient-specific survey routes are preserved; no invented list,
+  guessed recipient link or replacement survey implementation.
+- [ ] SMTP provider/configuration and actual mail-delivery verification.
+- [ ] Names/MSSVs, dates, actual individual contributions and report screenshots
+  to be filled/approved by the team; 15-week plan is a proposal.
+
+### TV1 pre-publication review and isolated demo request — 2026-10-08
+
+- Owner explicitly authorized commit, push of feature/tv1-auth-customer and a PR
+  into develop, without merging it or integrating TV2/TV4/TV5 branches.
+- Reviewed all 49 changed/new TV1 files: auth/forms/services/routes, profile
+  ownership/transactions, shop selectors, templates/static/CSS, tests and docs.
+  Vendored Bootstrap retained its upstream CSS and MIT license. No material TV1
+  code defect found; no model/migration/SQL/API/admin UI changes introduced.
+  The admin test change only replaces root 404 with the new shop homepage 200.
+- Pre-stage audit passed: actual SECRET_KEY/DB_PASSWORD/EMAIL_HOST_PASSWORD values
+  from local .env do not appear in candidate files; no private-key/GitHub-token
+  patterns, unexpected scope files or trailing whitespace. .env and
+  config/local_settings.py are ignored and not tracked. Local review scripts,
+  manifests and prior screenshots are outside the repo; no backups/private data
+  are included in the commit. Stage uses an explicit reviewed-file manifest.
+- Fresh verification: `python manage.py check` reports 0 issues;
+  `python manage.py makemigrations --check --dry-run` reports No changes detected;
+  `python manage.py test --settings=config.test_settings --keepdb --noinput`
+  passed **144/144 in 175.004 seconds** on MySQL test_crm_db. This database is only
+  used for automated tests in this follow-up, not for new demo setup.
+- [!] BLOCKED — new demo DB **crm_tv1_demo**: CREATE DATABASE returned MySQL 1044.
+  Read-only grants show crm_user has schema privileges only on crm_db and
+  test_crm_db, not the requested demo DB. No grants changed, no fallback to a
+  legacy/test DB for demo, no existing DB dropped/reset. A question for the owner
+  to grant demo-only privileges or provide local admin configuration remains open.
+  Migration and HTTP/browser smoke tests on the new demo DB have not run.
+- Machine-local `config/local_settings.py` prepared: deep-copies DB config and
+  overrides NAME=crm_tv1_demo, localhost hosts and console email. It is ignored,
+  contains no hard-coded credential and does not change group .env/default DB.
+  README/handoff/Chapter 4 document exact setup/run commands, the blocked result,
+  URLs and the distinction from automated regression evidence.
+- GitHub authentication/repository push permission verified; fetch shows develop
+  still ee13e42, push dry-run for this feature branch succeeded. Publish as a draft
+  while the separate demo validation is blocked; no merge/auto-merge is requested.
+- TV4/TV5 post-merge steps documented in docs/tv1_handoff.md: preserve WIP, update
+  develop with --ff-only, integrate origin/develop into their own feature branches,
+  review shared-route/layout conflicts and run full regression before enabling menus.
