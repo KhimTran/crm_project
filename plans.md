@@ -870,16 +870,15 @@ was used without printing credentials.
   `python manage.py test --settings=config.test_settings --keepdb --noinput`
   passed **144/144 in 175.004 seconds** on MySQL test_crm_db. This database is only
   used for automated tests in this follow-up, not for new demo setup.
-- [!] BLOCKED — new demo DB **crm_tv1_demo**: CREATE DATABASE returned MySQL 1044.
-  Read-only grants show crm_user has schema privileges only on crm_db and
-  test_crm_db, not the requested demo DB. No grants changed, no fallback to a
-  legacy/test DB for demo, no existing DB dropped/reset. A question for the owner
-  to grant demo-only privileges or provide local admin configuration remains open.
-  Migration and HTTP/browser smoke tests on the new demo DB have not run.
+- [x] RESOLVED (see verification below) — initial CREATE of **crm_tv1_demo**
+  returned MySQL 1044; grants initially covered only crm_db and test_crm_db.
+  Asked the owner for demo-only privileges or local admin configuration. No
+  fallback to a legacy/test DB for demo and no existing DB dropped/reset.
+  Migrations and HTTP/browser checks were pending at this initial review stage.
 - Machine-local `config/local_settings.py` prepared: deep-copies DB config and
   overrides NAME=crm_tv1_demo, localhost hosts and console email. It is ignored,
   contains no hard-coded credential and does not change group .env/default DB.
-  README/handoff/Chapter 4 document exact setup/run commands, the blocked result,
+  README/handoff/Chapter 4 document exact setup/run commands, the initial blocker,
   URLs and the distinction from automated regression evidence.
 - GitHub authentication/repository push permission verified; fetch shows develop
   still ee13e42, push dry-run for this feature branch succeeded. Publish as a draft
@@ -887,3 +886,37 @@ was used without printing credentials.
 - TV4/TV5 post-merge steps documented in docs/tv1_handoff.md: preserve WIP, update
   develop with --ff-only, integrate origin/develop into their own feature branches,
   review shared-route/layout conflicts and run full regression before enabling menus.
+
+### TV1 isolated demo verification and publication — 2026-10-08
+
+- [x] RESOLVED — owner granted crm_user privileges on crm_tv1_demo and created
+  that database. Inspection found it empty before any application operation.
+  Reviewed migrate --plan, Account SQL and the existing MySQL schema-contract
+  operation; applied all current migrations only to this fresh demo database.
+  showmigrations marks all applied and check reports 0 issues. No existing
+  database was dropped/reset; live crm_db still has its legacy table inventory.
+- Demo: MySQL 8.4.11, utf8mb4/utf8mb4_unicode_ci, 23 physical tables including
+  14 business tables. Local settings remains ignored; group .env/default settings
+  retain their original configuration. No model/migration/SQL change was needed.
+- Created only synthetic demo fixtures on crm_tv1_demo: 5 Accounts (ADMIN,
+  CRM_MANAGER, CUSTOMER_SERVICE and customers), 2 Customer profiles, 1 category,
+  1 brand, 1 supplier, 14 ACTIVE products and 1 INACTIVE product. Did not run the
+  seed_data management command or import shared/private data. Fixtures retained.
+- HTTP server at http://127.0.0.1:8000 using config.local_settings. **42 smoke
+  checks passed**: registration/duplicate/privilege whitelist, customer/CRM/admin
+  login and last_login/safe next, CSRF, profile/preference ownership and immutable
+  account fields, password change session behavior, reset console link/token
+  single-use/session invalidation, LOCKED login/session, catalog filters/pages/404,
+  admin account list/detail/catalog and Django built-in admin.
+- Windows console email initially raised UnicodeEncodeError when redirected
+  to a local log. Restarted the demo process with PYTHONIOENCODING=utf-8 and
+  reran the reset and remaining checks successfully. README and handoff document
+  this runtime setting. No application source fix was necessary; SMTP unverified.
+- Browser verified shop, customer login/profile, CRM_MANAGER login/landing,
+  dedicated admin login/account list and admin catalog. Screenshots, smoke scripts,
+  results and randomly generated demo credentials are local outside the repository.
+  Never put passwords/reset tokens in source, PR description or report screenshots.
+- Implementation commit cd9503273be84019d390e3bb72b766f457711296 was pushed.
+  PR https://github.com/KhimTran/crm_project/pull/3 targets develop from
+  feature/tv1-auth-customer; draft initially, ready for review after demo resolution.
+  No PR merge, auto-merge or TV2/TV4/TV5 branch integration performed.

@@ -73,15 +73,24 @@ cá nhân và CRM survey landing; TV3 hoặc chủ DB căn chỉnh live crm_db b
 Demo riêng: `crm_tv1_demo`, settings máy `config/local_settings.py` (ignored),
 không dùng `crm_db` legacy và không dùng `test_crm_db` cho demo mới.
 Lệnh chạy sau khi quản trị MySQL cấp quyền/tạo DB và migrations đã được áp dụng:
+đặt `$env:PYTHONIOENCODING='utf-8'` trên Windows trước lệnh
 `python manage.py runserver 127.0.0.1:8000 --settings=config.local_settings`.
 Các URLs TV1/admin giữ nguyên như bảng README. Console email chỉ dành cho local.
 
-Lần review này MySQL CREATE DATABASE trả 1044; chưa có quyền tạo DB demo,
-nên migrate và smoke test HTTP/browser trên DB demo mới vẫn BLOCKED. Source check,
-migration dry-run và regression dùng DB test được ghi riêng ở plans.md; chúng không
-thay bằng chứng demo. Không thay quyền DB, không reset/drop DB hiện có.
+MySQL CREATE DATABASE ban đầu trả 1044. Chủ máy sau đó cấp quyền và tạo database
+rỗng; đã review plan, apply migrations và check thành công trên `crm_tv1_demo`.
+MySQL 8.4.11, utf8mb4/utf8mb4_unicode_ci; 23 bảng gồm 14 bảng nghiệp vụ.
+Fixtures giả lập được giữ lại: 5 Account, 2 Customer, 14 sản phẩm ACTIVE, 1 INACTIVE.
+Không sao chép dữ liệu từ DB chung và không reset/drop database hiện có.
 Regression trước PR: **144/144 passed trong 175.004 giây** trên MySQL 8.4.11,
-check 0 lỗi và No changes detected. Draft PR giữ bước demo DB còn chờ xác minh.
+check 0 lỗi và No changes detected. Demo riêng: **42 kiểm tra HTTP pass** cho
+auth, CSRF/quyền/LOCKED/session, profile/preferences/ownership, đổi/reset mật khẩu,
+shop/lọc/phân trang/404 và admin account/catalog/Django admin.
+Browser đã xác minh shop/profile/CRM và đăng nhập/admin account list/catalog.
+Console reset tiếng Việt cần UTF-8 trên Windows; đã sửa cấu hình tiến trình và
+chạy lại reset thành công. SMTP thật chưa kiểm chứng. Credentials/script/log/ảnh
+demo nằm ngoài repo; không chia sẻ password hoặc reset token trong báo cáo.
+PR [#3](https://github.com/KhimTran/crm_project/pull/3) vào develop; chưa merge.
 
 ## TV4 / TV5 cập nhật sau khi PR TV1 được merge
 

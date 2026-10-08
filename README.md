@@ -70,6 +70,8 @@ DEFAULT_FROM_EMAIL=noreply@example.test
 ```
 
 Yêu cầu reset và lấy liên kết trong console server ở môi trường phát triển.
+Trên Windows, đặt `$env:PYTHONIOENCODING='utf-8'` trước khi chạy server để
+console email tiếng Việt không lỗi mã hóa, kể cả khi chuyển output vào log.
 Liên kết có hiệu lực 1 giờ; không dùng lại sau khi đổi mật khẩu/login làm token mất
 hiệu lực. Reset không tự đăng nhập, không mở khóa và vô hiệu các session cũ.
 Đổi mật khẩu giữ session đang thao tác và vô hiệu các session khác.
@@ -131,7 +133,7 @@ Lệnh trên đã chạy bằng Python 3.12.10 / Django 5.2.17 / mysqlclient 2.3
 Kết quả và giới hạn môi trường ghi trong `plans.md`.
 Review trước PR chạy lại toàn bộ suite: **144/144 passed trong 175.004 giây**,
 check 0 lỗi và không có migration mới. Kết quả này bao gồm regression API/admin;
-chưa thay thế smoke test trên database demo mới đang thiếu quyền.
+demo riêng sau đó pass **42 kiểm tra HTTP**, cùng kiểm tra giao diện bằng browser.
 
 ## Demo và bàn giao
 
@@ -167,6 +169,7 @@ apply migrations hiện có và chạy server:
 python manage.py migrate --plan --settings=config.local_settings
 python manage.py migrate --settings=config.local_settings
 python manage.py check --settings=config.local_settings
+$env:PYTHONIOENCODING='utf-8'
 python manage.py runserver 127.0.0.1:8000 --settings=config.local_settings
 ```
 
@@ -178,10 +181,21 @@ CRM_MANAGER/CUSTOMER_SERVICE cho Account demo qua quy trình quản trị riêng
 không thêm role mới. Sản phẩm demo tạo bằng chức năng catalog hiện có trên DB demo.
 Không sao chép dữ liệu cá nhân từ DB chung vào demo.
 
-**Trạng thái lần review trước PR:** tạo `crm_tv1_demo` bị MySQL từ chối (1044)
-vì crm_user chỉ có quyền trên crm_db và test_crm_db. Cấu hình demo cục bộ đã sẵn
-sàng; chưa migrate hoặc chạy browser smoke test trên DB demo mới. Không lấy kết
-quả automated tests hay lần browser trên DB test trước đó làm kết quả demo.
+**Kết quả demo 2026-10-08:** lỗi quyền 1044 ban đầu đã được giải quyết sau khi
+chủ máy cấp quyền và tạo `crm_tv1_demo` rỗng. Đã review migration plan, apply toàn
+bộ migrations hiện có và check 0 lỗi. MySQL 8.4.11, utf8mb4/utf8mb4_unicode_ci,
+23 bảng vật lý gồm 14 bảng nghiệp vụ và các bảng kỹ thuật Django.
+Demo lưu 5 Account giả lập, 2 Customer, 14 sản phẩm ACTIVE và 1 INACTIVE.
+**42 kiểm tra HTTP pass**: đăng ký/trùng email, login khách hàng/CRM/admin,
+CSRF/quyền/LOCKED/session cũ, hồ sơ/sở thích/ownership, đổi/reset mật khẩu và token,
+cửa hàng/lọc/phân trang/404; account list/detail, catalog và Django admin render 200.
+Browser đã xác minh shop, profile, CRM, đăng nhập admin và catalog admin.
+Console reset ban đầu lỗi encoding Windows; bật UTF-8 và chạy lại reset thành công.
+Mật khẩu ngẫu nhiên, credentials, script, log và ảnh demo chỉ lưu cục bộ ngoài repo.
+SMTP thật vẫn chưa kiểm chứng. `crm_db` legacy không bị migrate/reset/thay đổi.
+
+PR bàn giao: [#3](https://github.com/KhimTran/crm_project/pull/3), vào `develop`.
+Không merge PR hoặc gộp nhánh TV2/TV4/TV5 trong task này.
 
 Trên DB phát triển đã khớp schema: mở `/`, lọc sản phẩm; đăng ký một khách hàng;
 đăng nhập, cập nhật hồ sơ/sở thích; đổi mật khẩu; đăng xuất bằng nút POST; yêu cầu

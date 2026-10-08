@@ -131,13 +131,24 @@ tests và tài liệu hợp lệ được đưa vào commit. .env/config/local_s
 backup, ảnh/log/script review cục bộ nằm ngoài commit.
 
 Database demo được chỉ định là `crm_tv1_demo`; cấu hình local_settings không commit.
-MySQL user hiện không có quyền CREATE trên database này (1044), nên việc tạo/migrate
-và demo browser trên DB riêng chưa hoàn tất. Regression trên test_crm_db và browser
-ở lần triển khai trước được phân biệt với bước demo đang bị chặn. README có các
-lệnh tạo/migrate/runserver sau khi quản trị MySQL bổ sung quyền.
+Lỗi quyền 1044 ban đầu được giải quyết sau khi chủ máy cấp quyền và tạo DB rỗng.
+Đã review plan, apply migrations hiện có và check 0 lỗi trên DB riêng này:
+MySQL 8.4.11, utf8mb4/utf8mb4_unicode_ci, 23 bảng vật lý (14 bảng nghiệp vụ).
+Fixtures giả lập: 5 Account, 2 Customer, 14 sản phẩm ACTIVE và 1 INACTIVE.
+Server demo dùng `http://127.0.0.1:8000`; các URLs theo bảng README.
+
+**42 kiểm tra HTTP đã pass**: đăng ký/trùng email/login khách hàng/CRM/admin,
+CSRF/whitelist/ownership/LOCKED/session, cập nhật hồ sơ/sở thích, đổi/reset mật khẩu
+và token, shop/lọc/phân trang/404, account list/detail/catalog và Django admin.
+Browser đã xác minh giao diện shop, profile, CRM, login/admin accounts và catalog.
+Console email ban đầu lỗi mã hóa tiếng Việt khi ghi log Windows; thiết lập
+PYTHONIOENCODING=utf-8 cho tiến trình demo và chạy lại reset thành công.
+README/handoff đã ghi bước này. SMTP thật chưa kiểm chứng; credentials/log/token/
+ảnh/script cục bộ nằm ngoài commit. Không thay đổi crm_db legacy.
 
 PR vào develop được người dùng cho phép; không merge PR, không gộp nhánh TV2/TV4/TV5.
 Thông tin commit/PR và kết quả test cuối cùng ghi trong Verification Log/PR.
 Lần regression trước PR: 144/144 tests passed trong 175.004 giây trên MySQL 8.4.11;
-source check 0 lỗi, migration dry-run No changes detected. PR để draft trong khi
-chưa tạo/kiểm thử được database demo riêng.
+source check 0 lỗi, migration dry-run No changes detected.
+PR [#3](https://github.com/KhimTran/crm_project/pull/3) được tạo draft khi thiếu quyền;
+sau khi hoàn tất demo, chuyển sang sẵn sàng review. Chưa merge PR.
