@@ -9,8 +9,20 @@ from apps.accounts.permissions import account_admin_required
 from django.urls import reverse
 from .forms import BrandForm, CategoryForm, ProductForm, SupplierForm
 from .models import Brand, Category, Product, Status, Supplier
-from .selectors import list_brand_page, list_category_page, list_supplier_page
+from .selectors import list_brand_page, list_category_page, list_product_page, list_supplier_page
 
+def _sort_params(request):
+    sort = request.GET.get("sort", "").strip()
+    direction = request.GET.get("dir", "").strip().lower()
+    if direction not in ("asc", "desc"):
+        direction = "asc"
+    return sort, direction
+
+
+def _query_strings(filters, sort, direction):
+    base = urlencode({k: v for k, v in filters.items() if v})
+    full = urlencode({k: v for k, v in {**filters, "sort": sort, "dir": direction if sort else ""}.items() if v})
+    return base, full
 
 @account_admin_required
 @require_GET
@@ -19,11 +31,15 @@ def supplier_list(request):
     status = request.GET.get("status", "").strip().upper()
     if status not in Status.values:
         status = ""
-    page_obj = list_supplier_page(page=request.GET.get("page", 1), q=query, status=status)
-    filter_query = urlencode({key: value for key, value in {"q": query, "status": status}.items() if value})
+    sort, direction = _sort_params(request)
+    page_obj = list_supplier_page(page=request.GET.get("page", 1), q=query, status=status,
+                                  sort=sort, direction=direction)
+    base_query, filter_query = _query_strings({"q": query, "status": status}, sort, direction)
     return render(request, "catalog/admin/list.html", {
         "items": page_obj.object_list, "kind": "supplier", "query": query,
-        "status_filter": status, "page_obj": page_obj, "filter_query": filter_query,
+        "status_filter": status, "page_obj": page_obj,
+        "sort": sort, "direction": direction,
+        "base_query": base_query, "filter_query": filter_query,
     })
 
 
@@ -74,16 +90,37 @@ def supplier_delete(request, supplier_id):
 @account_admin_required
 @require_GET
 def product_list(request):
-    products = Product.objects.select_related("category", "brand", "supplier").order_by("product_id")
-    supplier_id = request.GET.get("supplier")
-    if supplier_id:
-        if not supplier_id.isdecimal():
-            return HttpResponseForbidden("Invalid supplier")
-        products = products.filter(supplier_id=supplier_id)
     query = request.GET.get("q", "").strip()
-    if query:
-        products = products.filter(Q(product_name__icontains=query) | Q(supplier__supplier_name__icontains=query))
-    return render(request, "catalog/admin/list.html", {"items": products, "kind": "product", "suppliers": Supplier.objects.all(), "query": query, "supplier_id": supplier_id})
+    status = request.GET.get("status", "").strip().upper()
+    if status not in Status.values:
+        status = ""
+
+    def _id_param(name):
+        value = request.GET.get(name, "").strip()
+        return value if value.isdecimal() else ""
+
+    supplier_id = _id_param("supplier")
+    category_id = _id_param("category")
+    brand_id = _id_param("brand")
+    sort, direction = _sort_params(request)
+    page_obj = list_product_page(
+        page=request.GET.get("page", 1), q=query, status=status, supplier_id=supplier_id,
+        category_id=category_id, brand_id=brand_id, sort=sort, direction=direction,
+    )
+    base_query, filter_query = _query_strings({
+        "q": query, "status": status, "supplier": supplier_id,
+        "category": category_id, "brand": brand_id,
+    }, sort, direction)
+    return render(request, "catalog/admin/list.html", {
+        "items": page_obj.object_list, "kind": "product", "page_obj": page_obj,
+        "query": query, "status_filter": status, "supplier_id": supplier_id,
+        "category_id": category_id, "brand_id": brand_id,
+        "suppliers": Supplier.objects.order_by("supplier_name"),
+        "categories": Category.objects.order_by("category_name"),
+        "brands": Brand.objects.order_by("brand_name"),
+        "sort": sort, "direction": direction,
+        "base_query": base_query, "filter_query": filter_query,
+    })
 
 
 @account_admin_required
@@ -127,11 +164,14 @@ def _simple_list(request, *, page_func, **context):
     status = request.GET.get("status", "").strip().upper()
     if status not in Status.values:
         status = ""
-    page_obj = page_func(page=request.GET.get("page", 1), q=query, status=status)
-    filter_query = urlencode({k: v for k, v in {"q": query, "status": status}.items() if v})
+    sort, direction = _sort_params(request)
+    page_obj = page_func(page=request.GET.get("page", 1), q=query, status=status,
+                         sort=sort, direction=direction)
+    base_query, filter_query = _query_strings({"q": query, "status": status}, sort, direction)
     return render(request, "catalog/admin/simple_list.html", {
         "page_obj": page_obj, "items": page_obj.object_list, "query": query,
-        "status_filter": status, "filter_query": filter_query, **context,
+        "status_filter": status, "sort": sort, "direction": direction,
+        "base_query": base_query, "filter_query": filter_query, **context,
     })
 
 
