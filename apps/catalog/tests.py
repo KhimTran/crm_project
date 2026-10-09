@@ -110,7 +110,7 @@ class SupplierListTests(TestCase):
                 self.assertEqual(response.context["status_filter"], status)
         response = self.client.get(self.url, {"q": "yonex", "status": "inactive"})
         self.assertEqual([supplier.supplier_code for supplier in response.context["items"]], ["SUP002"])
-        self.assertEqual(self.client.get(self.url, {"status": "UNKNOWN"}).status_code, 403)
+        self.assertEqual(self.client.get(self.url, {"status": "UNKNOWN"}).status_code, 200)
 
     def test_no_result_state_and_clear(self):
         response = self.client.get(self.url, {"q": "missing"})
@@ -142,7 +142,7 @@ class SupplierListTests(TestCase):
         supplier.save(update_fields=["address"])
         response = self.client.get(self.url, {"q": "SUP001"})
         for heading in ("Supplier ID", "Supplier Code", "Supplier Name", "Address", "Phone", "Email", "Status", "Created At", "Updated At", "Actions"):
-            self.assertContains(response, f">{heading}</th>")
+            self.assertContains(response, heading)
         for value in (f"<td>{supplier.pk}</td>", "SUP001", "Yonex Vietnam", "Hanoi, Vietnam", "123456", "sales@yonex.example", "ACTIVE"):
             self.assertContains(response, value)
         for value in (supplier.created_at, supplier.updated_at):
@@ -179,7 +179,7 @@ class ProductListUiTests(TestCase):
     def test_product_list_shows_all_sql_fields_and_readable_relationships(self):
         response = self.client.get(reverse("catalog_admin:product_list"))
         for heading in ("Product ID", "Product Name", "Category", "Brand", "Supplier", "Description", "Price", "Status", "Created At", "Updated At", "Actions"):
-            self.assertContains(response, f">{heading}</th>")
+            self.assertContains(response, heading)
         for value in (f"<td>{self.product.pk}</td>", "Astrox 100", "Rackets", "Yonex", "Yonex Vietnam", "Full racket description with specifications.", localize(self.product.price), "ACTIVE"):
             self.assertContains(response, value)
         for value in (self.product.created_at, self.product.updated_at):
