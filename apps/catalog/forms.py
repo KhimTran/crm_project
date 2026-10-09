@@ -1,6 +1,7 @@
 import re
 from django import forms
-from .models import Brand, Category, Product, Supplier
+from django.db.models import Q
+from .models import Brand, Category, Product, Status, Supplier
 
 
 class SupplierForm(forms.ModelForm):
@@ -35,11 +36,29 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = ("category", "brand", "supplier", "product_name", "description", "price", "status")
 
-    def clean_supplier(self):
-        supplier = self.cleaned_data["supplier"]
-        if supplier.status != "ACTIVE":
-            raise forms.ValidationError("Nhà cung cấp phải đang hoạt động.")
-        return supplier
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, model in (("category", Category), ("brand", Brand), ("supplier", Supplier)):
+            active = Q(status=Status.ACTIVE)
+            if self.instance.pk:
+                # Khi sửa, vẫn giữ mục hiện tại dù nó đã INACTIVE để không mất dữ liệu
+                active |= Q(pk=getattr(self.instance, f"{field_name}_id"))
+            self.fields[field_name].queryset = model.objects.filter(active).order_by(
+                {"category": "category_name", "brand": "brand_name", "supplier": "supplier_name"}[field_name]
+            )
+            self.fields[field_name].empty_label = "-- Chọn --"
+
+    def clean_product_name(self):
+        name = self.cleaned_data["product_name"].strip()
+        if not name:
+            raise forms.ValidationError("Tên sản phẩm không được để trống.")
+        return name
+
+    def clean_price(self):
+        price = self.cleaned_data["price"]
+        if price <= 0:
+            raise forms.ValidationError("Giá phải lớn hơn 0.")
+        return price
 
 
 class CategoryForm(forms.ModelForm):

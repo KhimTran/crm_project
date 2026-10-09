@@ -94,8 +94,8 @@ def product_create(request):
         form.save()
         messages.success(request, "Đã tạo sản phẩm.")
         return redirect("catalog_admin:product_list")
-    return render(request, "catalog/admin/form.html", {"form": form, "title": "Sản phẩm"})
-
+    return render(request, "catalog/admin/form.html", {
+        "form": form, "title": "Sản phẩm", "back_url": reverse("catalog_admin:product_list")})
 
 @account_admin_required
 @require_http_methods(["GET", "POST"])
@@ -106,7 +106,8 @@ def product_edit(request, product_id):
         form.save()
         messages.success(request, "Đã cập nhật sản phẩm.")
         return redirect("catalog_admin:product_list")
-    return render(request, "catalog/admin/form.html", {"form": form, "title": "Sản phẩm"})
+    return render(request, "catalog/admin/form.html", {
+        "form": form, "title": "Sản phẩm", "back_url": reverse("catalog_admin:product_list")})
 
 
 @account_admin_required
