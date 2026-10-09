@@ -17,8 +17,8 @@ from .selectors import list_brand_page, list_category_page, list_supplier_page
 def supplier_list(request):
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip().upper()
-    if status and status not in Status.values:
-        return HttpResponseForbidden("Invalid status")
+    if status not in Status.values:
+        status = ""
     page_obj = list_supplier_page(page=request.GET.get("page", 1), q=query, status=status)
     filter_query = urlencode({key: value for key, value in {"q": query, "status": status}.items() if value})
     return render(request, "catalog/admin/list.html", {
@@ -35,7 +35,9 @@ def supplier_create(request):
         form.save()
         messages.success(request, "Đã tạo nhà cung cấp.")
         return redirect("catalog_admin:supplier_list")
-    return render(request, "catalog/admin/form.html", {"form": form, "title": "Nhà cung cấp"})
+    return render(request, "catalog/admin/form.html", {
+        "form": form, "title": "Nhà cung cấp", "back_url": reverse("catalog_admin:supplier_list")})
+
 
 
 @account_admin_required
@@ -47,7 +49,8 @@ def supplier_edit(request, supplier_id):
         form.save()
         messages.success(request, "Đã cập nhật nhà cung cấp.")
         return redirect("catalog_admin:supplier_list")
-    return render(request, "catalog/admin/form.html", {"form": form, "title": "Nhà cung cấp"})
+    return render(request, "catalog/admin/form.html", {
+        "form": form, "title": "Nhà cung cấp", "back_url": reverse("catalog_admin:supplier_list")})
 
 
 @account_admin_required
@@ -57,7 +60,12 @@ def supplier_delete(request, supplier_id):
     try:
         supplier.delete()
     except ProtectedError:
-        messages.error(request, "Không thể xóa nhà cung cấp đang được sản phẩm sử dụng.")
+        count = Product.objects.filter(supplier=supplier).count()
+        messages.error(
+            request,
+            f"Không thể xóa nhà cung cấp '{supplier.supplier_name}' vì đang có {count} sản phẩm. "
+            "Hãy chuyển trạng thái sang INACTIVE nếu không dùng nữa.",
+        )
     else:
         messages.success(request, "Đã xóa nhà cung cấp.")
     return redirect("catalog_admin:supplier_list")
