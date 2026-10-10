@@ -1,0 +1,43 @@
+{% extends "layouts/base_customer.html" %}
+{% block title %}Hồ sơ cá nhân{% endblock %}
+{% block content %}
+<section class="form-panel">
+  <h1>Hồ sơ cá nhân</h1>
+  <p>Email: <strong>{{ request.user.email }}</strong> (không thể thay đổi).</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_div }}
+    {{ preferences.non_field_errors }}
+    <fieldset class="preference-panel">
+      <legend>Danh mục bạn quan tâm</legend>
+      <p>Chọn những sản phẩm bạn muốn tìm hiểu. Bạn có thể chọn nhiều danh mục.</p>
+      {{ preferences.categories.errors }}
+      <div class="choice-grid">
+        {% for checkbox in preferences.categories %}
+          <label class="preference-choice">{{ checkbox.tag }}<span>{{ checkbox.choice_label }}</span></label>
+        {% empty %}<p>Hiện chưa có danh mục để chọn. Các sở thích đã lưu của bạn vẫn được giữ lại.</p>{% endfor %}
+      </div>
+    </fieldset>
+    {% if preferences.remove_preferences.field.choices %}
+      <fieldset class="preference-panel">
+        <legend>Sở thích đã lưu khác</legend>
+        <p>Những lựa chọn cũ này vẫn được giữ lại. Chỉ đánh dấu lựa chọn bạn muốn xóa.</p>
+        {{ preferences.remove_preferences.errors }}
+        <div class="choice-grid">
+          {% for checkbox in preferences.remove_preferences %}
+            <label class="preference-choice">{{ checkbox.tag }}<span>Xóa: {{ checkbox.choice_label }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% else %}{{ preferences.remove_preferences.errors }}{% endif %}
+    {% if other_preferences %}
+      <section class="preference-panel" aria-labelledby="other-preferences-title">
+        <h2 id="other-preferences-title">Lựa chọn khác đã lưu</h2>
+        <ul>{% for preference in other_preferences %}<li>{{ preference.preference_value }}</li>{% endfor %}</ul>
+        <p>Các lựa chọn này được giữ nguyên khi bạn lưu hồ sơ.</p>
+      </section>
+    {% endif %}
+    <button class="btn btn-success" type="submit">Lưu hồ sơ</button>
+  </form>
+</section>
+{% endblock %}
