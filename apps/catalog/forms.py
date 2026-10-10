@@ -26,9 +26,15 @@ class SupplierForm(forms.ModelForm):
 
     def clean_phone(self):
         phone = (self.cleaned_data.get("phone") or "").strip()
-        if phone and not re.fullmatch(r"[0-9+\-\s().]{8,20}", phone):
-            raise forms.ValidationError("Số điện thoại không hợp lệ (8-20 ký tự số, + - . ( ) hoặc khoảng trắng).")
-        return phone or None
+        if not phone:
+            return None
+        digits = len(re.findall(r"[0-9]", phone))
+        if not re.fullmatch(r"\+?[0-9\-\s().]+", phone) or not 9 <= digits <= 15:
+            raise forms.ValidationError(
+                "Số điện thoại phải có 9–15 chữ số; dấu + chỉ được ở đầu. "
+                "Có thể dùng khoảng trắng, dấu gạch, dấu chấm hoặc ngoặc."
+            )
+        return phone
 
 
 class ProductForm(forms.ModelForm):

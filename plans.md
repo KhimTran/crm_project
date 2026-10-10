@@ -738,6 +738,47 @@ For curl diagnostics, `X-CSRFToken` alone does not authenticate. Use curl's `-c 
 - The Account page now places a text search control beside role/status filters, retains the validated `q`, role and status values in pagination links, and offers a Clear link. A valid search with zero matches shows `No accounts found.` while Create Account remains available.
 - Added focused HTML tests for exact/partial/case-insensitive search, whitespace and no-result behavior, combined role/status filters, and pagination query preservation. Full `python manage.py test --keepdb --noinput`: **75/75 passed**. `python manage.py check`: 0 issues. `python manage.py makemigrations --check --dry-run`: `No changes detected`. No API or database schema change.
 
+### PR #4 TV2 catalog review and integration — 2026-10-10
+
+
+- Initial owner request authorized local review/fix/tests only. Initial
+  checkout clean; preserved all existing work, including uncommitted PR #2 review.
+  TV2 head: **2cc11b1ff0afeaad2ae00fe0bb1bd0cac0d1a167**; latest develop:
+  **89a884b005961234b010ab7bdeb5414fc26adc99**. Used separate `pr4-tv2-fix`
+  and `pr4-tv2-integration` worktrees, never testing old local develop by mistake.
+- Reproduced Supplier phone bug: original character-count regex accepts
+  punctuation-only, wrong digit counts and misplaced/repeated plus signs. RED:
+  four test methods with 12 failed subtests. Fixed optional phone to NULL;
+  nonblank input needs 9–15 ASCII digits, optional single leading plus, with
+  spaces/hyphens/dots/parentheses retained. Existing max_length=20 unchanged.
+- Added 28 test methods in `apps/catalog/test_pr4_catalog.py`: Category/Brand
+  CRUD/duplicate/protected delete; Supplier duplicate code/phone; positive price;
+  active-only create choices and preservation of current inactive edit relations;
+  forged inactive selections rejected; combined filters, asc/desc sort, stable
+  ties and paging links preserving filters/sort; all catalog admin permissions,
+  stale locked/demoted sessions, POST-only delete and enforced CSRF.
+- Targeted MySQL TV2 `test apps.catalog --settings=config.test_settings --keepdb
+  --noinput`: **41/41 passed in 8.656s**. Then ghép thử latest develop + TV2
+  without commit/conflict, applied the same two-file fix. Code tree:
+  **2dc261d8c1a8f1ff2864758cb58ca60f1e7a4996** (tree object, not commit).
+  Cleared temporary merge metadata with `git merge --quit`, preserving source.
+- Integration `check`: zero issues; `makemigrations --check --dry-run`: No
+  changes detected; full `test --settings=config.test_settings --keepdb --noinput`:
+  **204/204 passed in 227.264s**, zero failures/errors, exit 0. Includes unchanged
+  develop admin/auth/API/shop/TV1 profile/preferences and TV4 regressions.
+- Runtime isolated venv: Python 3.12.10/Django 5.2.17/mysqlclient 2.3.0/Ninja
+  1.7.1, MySQL 8.4.11. Check/dry-run connect to existing crm_tv1_demo; automated
+  tests use separate test_crm_db, with only one runner active at a time. No
+  credentials printed; no legacy DB/schema/migration/reset/drop/flush operation.
+- Owner subsequently authorized commit/push to feature/tv2-catalog and update
+  of existing PR #4. Refetched TV2/develop still match the tested SHAs above;
+  application/tests unchanged since validation. Commit scope is forms.py,
+  test_pr4_catalog.py, docs/pr4_tv2_review.md and this PR #4 entry only. Local
+  credentials/settings/venv/temp artifacts excluded; normal push only, no push
+  to develop and no approve/merge. Technical verification is complete.
+  Evidence and handoff: `docs/pr4_tv2_review.md`. Patch/logs stored outside repo;
+  no remaining code/environment blocker within the requested scope.
+
 ### Products and Suppliers SQL field UI alignment — 2026-10-02
 
 - Compared `database/crm_db.sql` with current `Supplier` and `Product` models and forms. All nine Supplier and ten Product SQL columns are represented by existing model fields; both forms already include exactly the editable business fields and omit generated IDs/timestamps. Product category, brand and supplier use required ForeignKeys and readable select options. No model field/schema mismatch or migration is needed.
