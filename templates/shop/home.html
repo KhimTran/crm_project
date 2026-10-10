@@ -1,0 +1,10 @@
+{% extends "layouts/base_customer.html" %}
+{% block content %}
+<section class="shop-hero">
+  <p class="product-meta">CỬA HÀNG CẦU LÔNG</p>
+  <h1>Khám phá sản phẩm dành cho bạn</h1>
+  <p>Tìm vợt và dụng cụ theo danh mục, thương hiệu và mức giá.</p>
+  <a class="btn btn-success" href="{% url 'shop:products' %}">Xem sản phẩm</a>
+</section>
+<section aria-labelledby="featured-title"><h2 id="featured-title">Sản phẩm đang bán</h2>{% include "shop/_product_cards.html" %}</section>
+{% endblock %}

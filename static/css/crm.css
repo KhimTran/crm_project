@@ -18,6 +18,10 @@
 .crm-nav a { padding: .7rem .9rem; border-radius: .4rem; color: #e5edf7; text-decoration: none; }
 .crm-nav a:hover { background: #294765; }
 .crm-nav a[aria-disabled="true"] { cursor: default; }
+.crm-nav span { padding: .7rem .9rem; color: #c4d4e8; }
+.crm-card { padding: 1.5rem; background: #fff; border: 1px solid #d8e0eb; border-radius: .5rem; }
+.crm-header form { margin: 0; }
+.crm-header button { border: 1px solid #294765; border-radius: .3rem; padding: .5rem .75rem; color: #18304e; background: #fff; cursor: pointer; }
 .crm-workspace { min-width: 0; }
 .crm-header {
   padding: 1.5rem 2rem;

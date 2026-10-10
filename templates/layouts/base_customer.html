@@ -5,7 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Cửa hàng cầu lông{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/customer.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tv1.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
 <body class="customer-layout">
@@ -15,13 +17,19 @@
       <a class="customer-brand" href="/">Cửa hàng cầu lông</a>
       <nav class="customer-nav" aria-label="Điều hướng cửa hàng">
         <a href="/">Trang chủ</a>
-        {% comment %}TODO: Gắn URL shop, khảo sát cá nhân và tài khoản khi TV1 hoàn thành các route.{% endcomment %}
-        <a href="#" aria-disabled="true">Sản phẩm</a>
-        <a href="#" aria-disabled="true">Khảo sát của tôi</a>
-        <a href="#" aria-disabled="true">Tài khoản</a>
+        <a href="{% url 'shop:products' %}">Sản phẩm</a>
+        <span class="unavailable">Khảo sát của tôi · Sắp có</span>
+        {% if request.user.is_authenticated %}
+          {% if request.user.role == 'CUSTOMER' %}<a href="{% url 'customers:profile' %}">Tài khoản</a>{% endif %}
+          <a href="{% url 'customer_auth:password_change' %}">Đổi mật khẩu</a>
+        {% else %}
+          <a href="{% url 'customer_auth:login' %}">Tài khoản / Đăng nhập</a>
+          <a href="{% url 'customer_auth:register' %}">Đăng ký</a>
+        {% endif %}
       </nav>
       {% if request.user.is_authenticated %}
         <span class="customer-user">{{ request.user.email }}</span>
+        <form method="post" action="{% url 'customer_auth:logout' %}" class="inline-form">{% csrf_token %}<button class="text-button" type="submit">Đăng xuất</button></form>
       {% endif %}
     </div>
   </header>

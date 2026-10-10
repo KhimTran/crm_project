@@ -1,0 +1,16 @@
+{% extends "layouts/base_customer.html" %}
+{% load static %}
+{% block title %}{{ product.product_name }}{% endblock %}
+{% block content %}
+<a href="{% url 'shop:products' %}">Về danh sách sản phẩm</a>
+<article class="product-detail">
+  <img src="{% static 'images/product-placeholder.svg' %}" alt="Ảnh minh họa sản phẩm cầu lông" width="480" height="330">
+  <div><h1>{{ product.product_name }}</h1>
+    <p>{{ product.category.category_name }} · {{ product.brand.brand_name }}</p>
+    <p class="product-price">{{ product.price|floatformat:"0g" }} ₫</p>
+    <div class="product-description">{{ product.description|default:"Chưa có mô tả."|linebreaks }}</div>
+    <p class="unavailable">Gửi phản hồi: Sắp có</p>
+    <p class="unavailable">Khảo sát của tôi: Sắp có</p>
+  </div>
+</article>
+{% endblock %}
