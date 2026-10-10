@@ -19,6 +19,11 @@ class Customer(models.Model):
     class Meta:
         db_table = "customers"
 
+    # tv4: mã khách hàng hiển thị dạng KH0001 (tính từ customer_id, không có cột riêng)
+    @property
+    def customer_code(self):
+        return f"KH{self.customer_id:04d}"
+
 
 class CustomerPreference(models.Model):
     preference_id = models.AutoField(primary_key=True)

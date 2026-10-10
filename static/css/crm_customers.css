@@ -1,0 +1,32 @@
+.crm-toolbar { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.crm-toolbar form { display: flex; gap: .5rem; flex-wrap: wrap; }
+.crm-input, .crm-layout select, .crm-layout input[type="text"], .crm-layout input[type="email"], .crm-layout input[type="date"] {
+  padding: .5rem .7rem; border: 1px solid #b9c6d8; border-radius: .35rem; background: #fff; font: inherit; max-width: 100%;
+}
+.crm-btn { display: inline-block; padding: .55rem 1rem; border: 0; border-radius: .35rem; background: #18304e; color: #fff; font: inherit; text-decoration: none; cursor: pointer; }
+.crm-btn:hover { background: #294765; }
+.crm-btn-secondary { background: #fff; color: #18304e; border: 1px solid #b9c6d8; }
+.crm-btn-secondary:hover { background: #eef2f7; }
+.crm-btn-danger { background: #bd4545; }
+.crm-btn-danger:hover { background: #9c3333; }
+.crm-row-actions { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.crm-row-actions form { display: flex; gap: .4rem; margin: 0; }
+.crm-row-actions input[type="text"] { width: 9rem; }
+.crm-row-actions .crm-btn { padding: .35rem .7rem; font-size: .875rem; }
+.crm-card { padding: 1.25rem; background: #fff; border: 1px solid #d8e0eb; border-radius: .5rem; overflow-x: auto; }
+.crm-table { width: 100%; border-collapse: collapse; }
+.crm-table th, .crm-table td { padding: .6rem .75rem; border-bottom: 1px solid #e3e9f1; text-align: left; vertical-align: top; }
+.crm-table th { color: #536984; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.crm-badge { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; background: #e3f3e9; color: #195c37; }
+.crm-badge.locked { background: #f9e1e1; color: #8c2525; }
+.crm-pagination { display: flex; gap: .75rem; align-items: center; margin-top: 1rem; }
+.crm-form { display: grid; gap: 1rem; max-width: 720px; }
+.crm-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.crm-field { display: grid; gap: .3rem; }
+.crm-field label, .crm-field legend { font-weight: 600; }
+.crm-field input[type="text"], .crm-field input[type="email"], .crm-field input[type="date"], .crm-field select { width: 100%; }
+.crm-field ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
+.crm-field fieldset { margin: 0; padding: 0; border: 0; }
+.crm-errorlist { margin: 0; padding: 0; list-style: none; color: #8c2525; font-size: .875rem; }
+.crm-actions { display: flex; gap: .75rem; }
+@media (max-width: 760px) { .crm-form-grid { grid-template-columns: minmax(0, 1fr); } }
