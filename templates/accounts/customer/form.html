@@ -1,0 +1,8 @@
+{% extends "layouts/base_customer.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<section class="form-panel">
+  <h1>{{ title }}</h1>
+  <form method="post">{% csrf_token %}{{ form.as_div }}<button class="btn btn-success" type="submit">{{ submit_label }}</button></form>
+</section>
+{% endblock %}

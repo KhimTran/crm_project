@@ -2,41 +2,175 @@
 {% block title %}{% if kind == 'supplier' %}Suppliers{% else %}Products{% endif %} · CRM Admin Portal{% endblock %}
 {% block page_title %}{% if kind == 'supplier' %}Suppliers{% else %}Products{% endif %}{% endblock %}
 {% block content %}
+
 <div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
   <p class="text-muted mb-0">Catalog records in the CRM.</p>
-  {% if kind == 'supplier' %}<a class="btn btn-primary" href="{% url 'catalog_admin:supplier_create' %}">Create Supplier</a>
-  {% else %}<a class="btn btn-primary" href="{% url 'catalog_admin:product_create' %}">Create Product</a>{% endif %}
+  {% if kind == 'supplier' %}
+    <a class="btn btn-primary" href="{% url 'catalog_admin:supplier_create' %}">Create Supplier</a>
+  {% else %}
+    <a class="btn btn-primary" href="{% url 'catalog_admin:product_create' %}">Create Product</a>
+  {% endif %}
 </div>
-{% if kind == 'supplier' %}<section class="portal-panel"><form method="get" class="row g-3 align-items-end">
-  <div class="col-12 col-md-6 col-lg-5"><label class="form-label" for="supplier-query">Search suppliers</label><input class="form-control" id="supplier-query" name="q" value="{{ query }}" placeholder="Search suppliers..."></div>
-  <div class="col-12 col-md-4 col-lg-3"><label class="form-label" for="supplier-status">Status</label><select class="form-select" id="supplier-status" name="status"><option value="">All statuses</option><option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>ACTIVE</option><option value="INACTIVE" {% if status_filter == 'INACTIVE' %}selected{% endif %}>INACTIVE</option></select></div>
-  <div class="col-12 col-md-auto d-flex align-items-center gap-2 flex-wrap"><button class="btn btn-outline-primary" type="submit">Search</button><a class="btn btn-link" href="{% url 'catalog_admin:supplier_list' %}">Clear</a></div>
-</form></section>
-{% else %}<section class="portal-panel"><form method="get" class="row g-3 align-items-end">
-  <div class="col-12 col-md-5"><label class="form-label" for="catalog-query">Search products</label><input class="form-control" id="catalog-query" name="q" value="{{ query }}"></div>
-  <div class="col-12 col-md-4"><label class="form-label" for="supplier-filter">Supplier</label><select class="form-select" id="supplier-filter" name="supplier"><option value="">All suppliers</option>{% for supplier in suppliers %}<option value="{{ supplier.pk }}" {% if supplier_id == supplier.pk|stringformat:'s' %}selected{% endif %}>{{ supplier.supplier_name }}</option>{% endfor %}</select></div>
-  <div class="col-12 col-md-auto"><button class="btn btn-outline-primary" type="submit">Filter</button></div>
-</form></section>{% endif %}
+
+{% if kind == 'supplier' %}
+<section class="portal-panel">
+  <form method="get" class="row g-3 align-items-end">
+    <div class="col-12 col-md-6 col-lg-5">
+      <label class="form-label" for="supplier-query">Search suppliers</label>
+      <input class="form-control" id="supplier-query" name="q" value="{{ query }}" placeholder="Search by code, name, email or phone...">
+    </div>
+    <div class="col-12 col-md-4 col-lg-3">
+      <label class="form-label" for="supplier-status">Status</label>
+      <select class="form-select" id="supplier-status" name="status">
+        <option value="">All statuses</option>
+        <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
+        <option value="INACTIVE" {% if status_filter == 'INACTIVE' %}selected{% endif %}>INACTIVE</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-auto d-flex align-items-center gap-2 flex-wrap">
+      <button class="btn btn-outline-primary" type="submit">Search</button>
+      <a class="btn btn-link" href="{% url 'catalog_admin:supplier_list' %}">Clear</a>
+    </div>
+  </form>
+</section>
+{% else %}
+<section class="portal-panel">
+  <form method="get" class="row g-3 align-items-end">
+    <div class="col-12 col-lg-4">
+      <label class="form-label" for="catalog-query">Search products</label>
+      <input class="form-control" id="catalog-query" name="q" value="{{ query }}" placeholder="Search by product, category, brand or supplier...">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="category-filter">Category</label>
+      <select class="form-select" id="category-filter" name="category">
+        <option value="">All</option>
+        {% for c in categories %}<option value="{{ c.pk }}" {% if category_id == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.category_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="brand-filter">Brand</label>
+      <select class="form-select" id="brand-filter" name="brand">
+        <option value="">All</option>
+        {% for b in brands %}<option value="{{ b.pk }}" {% if brand_id == b.pk|stringformat:'s' %}selected{% endif %}>{{ b.brand_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="supplier-filter">Supplier</label>
+      <select class="form-select" id="supplier-filter" name="supplier">
+        <option value="">All</option>
+        {% for supplier in suppliers %}<option value="{{ supplier.pk }}" {% if supplier_id == supplier.pk|stringformat:'s' %}selected{% endif %}>{{ supplier.supplier_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="product-status">Status</label>
+      <select class="form-select" id="product-status" name="status">
+        <option value="">All</option>
+        <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
+        <option value="INACTIVE" {% if status_filter == 'INACTIVE' %}selected{% endif %}>INACTIVE</option>
+      </select>
+    </div>
+    <div class="col-12 d-flex align-items-center gap-2 flex-wrap">
+      <button class="btn btn-outline-primary" type="submit">Filter</button>
+      <a class="btn btn-link" href="{% url 'catalog_admin:product_list' %}">Clear</a>
+    </div>
+  </form>
+</section>
+{% endif %}
+
 {% if kind == 'supplier' and not items %}
 <section class="portal-panel"><p class="mb-0">No suppliers found.</p></section>
 {% else %}
-<section class="portal-panel p-0"><div class="table-responsive"><table class="table portal-table align-middle mb-0">
-  <thead><tr>{% if kind == 'supplier' %}<th scope="col">Supplier ID</th><th scope="col">Supplier Code</th><th scope="col">Supplier Name</th><th scope="col">Address</th><th scope="col">Phone</th><th scope="col">Email</th><th scope="col">Status</th><th scope="col">Created At</th><th scope="col">Updated At</th>{% else %}<th scope="col">Product ID</th><th scope="col">Product Name</th><th scope="col">Category</th><th scope="col">Brand</th><th scope="col">Supplier</th><th scope="col">Description</th><th scope="col">Price</th><th scope="col">Status</th><th scope="col">Created At</th><th scope="col">Updated At</th>{% endif %}<th scope="col">Actions</th></tr></thead>
-  <tbody>{% for item in items %}<tr>
-    {% if kind == 'supplier' %}<td>{{ item.supplier_id }}</td><td>{{ item.supplier_code }}</td><td>{{ item.supplier_name }}</td><td>{{ item.address|default:'—' }}</td><td>{{ item.phone|default:'—' }}</td><td>{{ item.email|default:'—' }}</td><td>{{ item.status }}</td><td>{{ item.created_at|date:"Y-m-d H:i" }}</td><td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>
-    <td><div class="d-flex gap-2 flex-wrap align-items-center"><a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:supplier_edit' item.pk %}">Edit</a><form method="post" action="{% url 'catalog_admin:supplier_delete' item.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button></form></div></td>
-    {% else %}<td>{{ item.product_id }}</td><td>{{ item.product_name }}</td><td>{{ item.category.category_name }}</td><td>{{ item.brand.brand_name }}</td><td>{{ item.supplier.supplier_name }}</td><td class="portal-description">{{ item.description|default:'—' }}</td><td>{{ item.price }}</td><td>{{ item.status }}</td><td>{{ item.created_at|date:"Y-m-d H:i" }}</td><td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>
-    <td><div class="d-flex gap-2 flex-wrap align-items-center"><a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:product_edit' item.pk %}">Edit</a><form method="post" action="{% url 'catalog_admin:product_delete' item.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button></form></div></td>{% endif %}
-  </tr>{% empty %}<tr><td colspan="11">No records found.</td></tr>{% endfor %}</tbody>
-</table></div></section>
+<section class="portal-panel p-0">
+  <div class="table-responsive">
+    <table class="table portal-table align-middle mb-0">
+            <thead>
+        <tr>
+          {% if kind == 'supplier' %}
+          {% include 'catalog/admin/_th_sort.html' with key='id' label='Supplier ID' %}
+          {% include 'catalog/admin/_th_sort.html' with key='code' label='Supplier Code' %}
+          {% include 'catalog/admin/_th_sort.html' with key='name' label='Supplier Name' %}
+          <th scope="col">Address</th>
+          <th scope="col">Phone</th>
+          <th scope="col">Email</th>
+          {% include 'catalog/admin/_th_sort.html' with key='status' label='Status' %}
+          {% include 'catalog/admin/_th_sort.html' with key='created' label='Created At' %}
+          <th scope="col">Updated At</th>
+          {% else %}
+          {% include 'catalog/admin/_th_sort.html' with key='id' label='Product ID' %}
+          {% include 'catalog/admin/_th_sort.html' with key='name' label='Product Name' %}
+          {% include 'catalog/admin/_th_sort.html' with key='category' label='Category' %}
+          {% include 'catalog/admin/_th_sort.html' with key='brand' label='Brand' %}
+          {% include 'catalog/admin/_th_sort.html' with key='supplier' label='Supplier' %}
+          <th scope="col">Description</th>
+          {% include 'catalog/admin/_th_sort.html' with key='price' label='Price' %}
+          {% include 'catalog/admin/_th_sort.html' with key='status' label='Status' %}
+          {% include 'catalog/admin/_th_sort.html' with key='created' label='Created At' %}
+          <th scope="col">Updated At</th>
+          {% endif %}
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          {% if kind == 'supplier' %}
+          <td>{{ item.supplier_id }}</td>
+          <td>{{ item.supplier_code }}</td>
+          <td>{{ item.supplier_name }}</td>
+          <td>{{ item.address|default:'—' }}</td>
+          <td>{{ item.phone|default:'—' }}</td>
+          <td>{{ item.email|default:'—' }}</td>
+          <td>{{ item.status }}</td>
+          <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>
+          <td>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:supplier_edit' item.pk %}">Edit</a>
+              <form method="post" action="{% url 'catalog_admin:supplier_delete' item.pk %}" onsubmit="return confirm('Bạn có chắc muốn xóa nhà cung cấp này?');">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+          {% else %}
+          <td>{{ item.product_id }}</td>
+          <td>{{ item.product_name }}</td>
+          <td>{{ item.category.category_name }}</td>
+          <td>{{ item.brand.brand_name }}</td>
+          <td>{{ item.supplier.supplier_name }}</td>
+          <td class="portal-description">{{ item.description|default:'—' }}</td>
+          <td>{{ item.price }}</td>
+          <td>{{ item.status }}</td>
+          <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>
+          <td>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:product_edit' item.pk %}">Edit</a>
+              <form method="post" action="{% url 'catalog_admin:product_delete' item.pk %}" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="{% if kind == 'supplier' %}10{% else %}11{% endif %}">No records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endif %}
-{% if kind == 'supplier' and page_obj.paginator.num_pages > 1 %}
-<nav class="portal-pagination" aria-label="Supplier pages">
-  <span class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} suppliers</span>
+
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav class="portal-pagination" aria-label="{% if kind == 'supplier' %}Supplier{% else %}Product{% endif %} pages">
+  <span class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} {% if kind == 'supplier' %}suppliers{% else %}products{% endif %}</span>
   <div class="d-flex gap-2 flex-wrap">
     {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}{% if filter_query %}&amp;{{ filter_query }}{% endif %}">Previous</a>{% endif %}
     {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}{% if filter_query %}&amp;{{ filter_query }}{% endif %}">Next</a>{% endif %}
   </div>
 </nav>
 {% endif %}
+
 {% endblock %}

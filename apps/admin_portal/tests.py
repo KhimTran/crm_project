@@ -16,7 +16,7 @@ class AdminPortalUiTests(TestCase):
         self.customer = get_user_model().objects.create_user("customer@example.test", self.password)
 
     def test_login_root_and_safe_next(self):
-        self.assertEqual(self.client.get("/").status_code, 404)
+        self.assertEqual(self.client.get("/").status_code, 200)
         response = self.client.get("/admin-portal/login/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Email")

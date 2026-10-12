@@ -20,6 +20,9 @@ from .api import api
 from apps.admin_portal import views as portal_views
 
 urlpatterns = [
+    path('', include('apps.accounts.urls_customer')),
+    path('', include('apps.customers.urls')),
+    path('', include('apps.shop.urls')),
     # Admin Portal
     path('admin-portal/', portal_views.home, name='admin_portal_home'),
     path('admin-portal/login/', portal_views.portal_login, name='login'),
@@ -33,7 +36,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # CRM – khách hàng (TV4)
-    path('crm/customers/', include('apps.customers.urls')),
     path('crm/feedbacks/', include('apps.feedback.crm_urls')),
     path('crm/reports/customers/', include('apps.customers.report_urls')),
 

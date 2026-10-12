@@ -1,0 +1,13 @@
+{% load static %}
+<div class="product-grid">
+{% for product in products %}
+  <article class="product-card">
+    <img src="{% static 'images/product-placeholder.svg' %}" alt="Ảnh minh họa sản phẩm cầu lông" width="320" height="220" loading="lazy">
+    <div class="product-card-body">
+      <p class="product-meta">{{ product.category.category_name }} · {{ product.brand.brand_name }}</p>
+      <h2><a href="{% url 'shop:product_detail' product.product_id %}">{{ product.product_name }}</a></h2>
+      <p class="product-price">{{ product.price|floatformat:"0g" }} ₫</p>
+    </div>
+  </article>
+{% empty %}<p>Chưa có sản phẩm phù hợp.</p>{% endfor %}
+</div>

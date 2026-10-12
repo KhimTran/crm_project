@@ -7,7 +7,7 @@ from django.contrib.staticfiles import finders
 from django.template import engines
 from django.template.loader import render_to_string
 from django.test import RequestFactory, SimpleTestCase
-from django.urls import Resolver404, resolve
+from django.urls import resolve
 
 
 class SharedLayoutTests(SimpleTestCase):
@@ -84,7 +84,7 @@ class SharedLayoutTests(SimpleTestCase):
         self.assertTrue(finders.find('css/customer.css'))
         self.assertTrue(finders.find('css/crm.css'))
 
-    def test_shared_foundation_does_not_register_shop_or_crm_home(self):
-        for path in ('/', '/crm/'):
-            with self.subTest(path=path), self.assertRaises(Resolver404):
-                resolve(path)
+    def test_tv1_registers_shop_and_crm_home_without_admin_route_changes(self):
+        self.assertEqual(resolve('/').view_name, 'shop:home')
+        self.assertEqual(resolve('/crm/').view_name, 'customer_auth:crm_home')
+        self.assertEqual(resolve('/admin-portal/login/').view_name, 'login')

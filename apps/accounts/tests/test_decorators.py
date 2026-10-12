@@ -42,7 +42,7 @@ class RoleRequiredTests(TestCase):
         response = role_required("ADMIN")(self.view)(request)
         self.assertEqual(response.status_code, 302)
         url = urlsplit(response.url)
-        self.assertEqual(url.path, "/admin-portal/login/")
+        self.assertEqual(url.path, "/login/")
         self.assertEqual(parse_qs(url.query)["next"], [request.get_full_path()])
         self.view.assert_not_called()
 

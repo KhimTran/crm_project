@@ -6,6 +6,8 @@
   <span class="portal-nav-link disabled" aria-disabled="true">Customers <small>Planned</small></span>
   <a class="portal-nav-link {% if '/catalog/products/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:product_list' %}" {% if '/catalog/products/' in request.path %}aria-current="page"{% endif %}>Products</a>
   <a class="portal-nav-link {% if '/catalog/suppliers/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:supplier_list' %}" {% if '/catalog/suppliers/' in request.path %}aria-current="page"{% endif %}>Suppliers</a>
+  <a class="portal-nav-link {% if '/catalog/categories/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:category_list' %}" {% if '/catalog/categories/' in request.path %}aria-current="page"{% endif %}>Categories</a>
+  <a class="portal-nav-link {% if '/catalog/brands/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:brand_list' %}" {% if '/catalog/brands/' in request.path %}aria-current="page"{% endif %}>Brands</a>
   <span class="portal-nav-link disabled" aria-disabled="true">Feedback <small>Planned</small></span>
   <span class="portal-nav-link disabled" aria-disabled="true">Surveys <small>Planned</small></span>
   <p class="portal-nav-heading">System</p>
