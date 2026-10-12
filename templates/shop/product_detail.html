@@ -9,7 +9,7 @@
     <p>{{ product.category.category_name }} · {{ product.brand.brand_name }}</p>
     <p class="product-price">{{ product.price|floatformat:"0g" }} ₫</p>
     <div class="product-description">{{ product.description|default:"Chưa có mô tả."|linebreaks }}</div>
-    <p class="unavailable">Gửi phản hồi: Sắp có</p>
+    <p><a href="{% url 'feedbacks:create' %}?product={{ product.product_id }}">Gửi phản hồi</a></p>
     <p class="unavailable">Khảo sát của tôi: Sắp có</p>
   </div>
 </article>

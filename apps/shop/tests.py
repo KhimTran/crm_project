@@ -60,7 +60,9 @@ class ShopTests(TestCase):
     def test_detail_missing_inactive_and_unavailable_modules(self):
         response = self.client.get(f"/products/{self.products[0].pk}/")
         self.assertContains(response, self.products[0].product_name)
-        self.assertContains(response, "Sắp có")
+        self.assertContains(response, "Sắp có")  # Khảo sát vẫn chưa có
+        self.assertContains(response, f'href="/feedbacks/new/?product={self.products[0].pk}"')
+        self.assertNotContains(response, "Gửi phản hồi: Sắp có")
         self.assertNotContains(response, 'href="#"')
         self.assertEqual(self.client.get("/products/999999/").status_code, 404)
         self.assertEqual(self.client.get(f"/products/{self.inactive.pk}/").status_code, 404)
