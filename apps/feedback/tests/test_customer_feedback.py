@@ -11,6 +11,7 @@ from apps.feedback.models import Feedback
 from apps.feedback.services import create_feedback, handle_feedback
 
 
+# tv4: test 4.2.4 khách hàng gửi và xem phản hồi của mình
 class CustomerFeedbackTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -83,6 +84,7 @@ class CustomerFeedbackTests(TestCase):
         self.assertRedirects(response, "/", fetch_redirect_response=False)
 
 
+# tv4: test badge số phản hồi NEW trên menu CRM
 class FeedbackBadgeTests(TestCase):
     @classmethod
     def setUpTestData(cls):

@@ -1,6 +1,7 @@
 from django.db import models
 
 
+# tv4: trạng thái phản hồi NEW → IN_PROGRESS → RESOLVED
 class FeedbackStatus(models.TextChoices):
     NEW = "NEW", "Mới"
     IN_PROGRESS = "IN_PROGRESS", "Đang xử lý"

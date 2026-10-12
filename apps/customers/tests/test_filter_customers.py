@@ -11,6 +11,7 @@ from apps.customers.services import create_customer, delete_customer, lock_custo
 TODAY = date(2026, 10, 5)
 
 
+# tv4: test bộ lọc filter_customers dùng chung cho TV5
 class FilterCustomersTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -61,6 +62,7 @@ class FilterCustomersTests(TestCase):
         self.assertIsNone(age_group_of(None, TODAY))
 
 
+# tv4: test bộ lọc trên trang danh sách khách hàng
 class CustomerListFilterViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):

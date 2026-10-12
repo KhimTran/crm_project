@@ -6,6 +6,7 @@ from .constants import RATING_CHOICES, FeedbackStatus
 from .models import Feedback
 
 
+# tv4: 4.1.4 form lọc phản hồi theo từ khóa, trạng thái, sản phẩm, số sao, khoảng ngày
 class FeedbackFilterForm(forms.Form):
     q = forms.CharField(label="Từ khóa", required=False, max_length=100, strip=True)
     status = forms.ChoiceField(label="Trạng thái", required=False,
@@ -34,6 +35,7 @@ class FeedbackFilterForm(forms.Form):
         return cleaned
 
 
+# tv4: 4.1.4 form cập nhật trạng thái và trả lời phản hồi
 class FeedbackHandleForm(forms.Form):
     status = forms.ChoiceField(label="Trạng thái xử lý",
                                choices=[(FeedbackStatus.IN_PROGRESS, FeedbackStatus.IN_PROGRESS.label),
@@ -49,6 +51,7 @@ class FeedbackHandleForm(forms.Form):
         return cleaned
 
 
+# tv4: 4.2.4 form khách hàng gửi phản hồi sản phẩm (1–5 sao + nội dung)
 class FeedbackCreateForm(forms.Form):
     product = forms.ModelChoiceField(label="Sản phẩm", queryset=Product.objects.none(),
                                      empty_label="-- Chọn sản phẩm --")

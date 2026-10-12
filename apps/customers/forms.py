@@ -14,6 +14,7 @@ from .models import Customer
 PHONE_PATTERN = re.compile(r"^(0|\+84)\d{9}$")
 
 
+# tv4: 4.1.1 form thêm khách hàng, kiểm tra SĐT / ngày sinh
 class CustomerCreateForm(forms.Form):
     full_name = forms.CharField(label="Họ tên", max_length=150, strip=True)
     email = forms.EmailField(label="Email", max_length=255)
@@ -53,11 +54,13 @@ class CustomerCreateForm(forms.Form):
         return dob
 
 
+# tv4: 4.1.3 form nhập lý do khóa tài khoản
 class CustomerLockForm(forms.Form):
     # Schema không có cột lý do khóa nên lý do chỉ hiển thị trong thông báo, không lưu DB.
     reason = forms.CharField(label="Lý do khóa", required=False, max_length=255, strip=True)
 
 
+# tv4: form tìm kiếm / lọc danh sách khách hàng
 class CustomerFilterForm(forms.Form):
     q = forms.CharField(label="Từ khóa", required=False, max_length=100, strip=True,
                         widget=forms.TextInput(attrs={"placeholder": "Tên, SĐT, email"}))

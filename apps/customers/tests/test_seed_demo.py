@@ -12,6 +12,7 @@ from apps.feedback.constants import FeedbackStatus
 from apps.feedback.models import Feedback
 
 
+# tv4: test seed 40 khách hàng + phản hồi demo, chạy lại không trùng
 class SeedDemoDataTests(TestCase):
     # tv4: chạy seed_data hai lần để kiểm tra idempotent
     def seed_twice(self):

@@ -44,6 +44,7 @@ class FeedbackTestData(TestCase):
         return feedback
 
 
+# tv4: test 4.1.4 service xử lý: handled_by, resolved_at, trạng thái
 class HandleFeedbackServiceTests(FeedbackTestData):
     def test_in_progress_sets_handler_without_resolved_at(self):
         feedback = self.make_feedback()
@@ -94,6 +95,7 @@ class HandleFeedbackServiceTests(FeedbackTestData):
         self.assertIsNone(feedback.handled_by)
 
 
+# tv4: test 4.1.4 bộ lọc phản hồi
 class FilterFeedbackTests(FeedbackTestData):
     def setUp(self):
         self.recent = self.make_feedback(rating=5, content="Vợt nhẹ, dễ đánh")
@@ -119,6 +121,7 @@ class FilterFeedbackTests(FeedbackTestData):
         self.assertEqual(self.ids(date_from=old_day, date_to=today), {self.recent.pk, self.old.pk})
 
 
+# tv4: test 4.1.4 trang danh sách / chi tiết phản hồi và phân quyền
 class FeedbackViewTests(FeedbackTestData):
     def setUp(self):
         self.feedback = self.make_feedback(content="Cước căng bị lệch")

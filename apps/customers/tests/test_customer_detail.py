@@ -11,6 +11,7 @@ from apps.customers.services import create_customer, delete_customer
 from apps.feedback.models import Feedback
 
 
+# tv4: test trang chi tiết khách hàng và ẩn nút theo vai trò
 class CustomerDetailViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):

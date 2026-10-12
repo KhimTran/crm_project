@@ -20,6 +20,7 @@ def counts(rows):
     return {r["label"]: r["count"] for r in rows}
 
 
+# tv4: test 4.1.5 số liệu báo cáo khách hàng và trang biểu đồ
 class CustomerReportTests(TestCase):
     @classmethod
     def setUpTestData(cls):
