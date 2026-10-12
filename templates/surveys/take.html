@@ -1,10 +1,55 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>{{ response.recipient.survey.title }}</title></head><body>
+{% extends "layouts/base_customer.html" %}
+{% load static %}
+{% block title %}{{ response.recipient.survey.title }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
+{% block content %}
 <h1>{{ response.recipient.survey.title }}</h1>
-<form method="post" action="{% url 'surveys:submit' response.recipient_id %}">{% csrf_token %}
-{% for question in questions %}<fieldset><legend>{{ question.question_text }}</legend>
-{% for option in question.surveyoption_set.all %}<label><input type="radio" data-question="{{ question.pk }}" name="question_{{ question.pk }}" value="{{ option.pk }}">{{ option.option_text }}</label>{% endfor %}
-{% if not question.surveyoption_set.all %}<textarea name="question_{{ question.pk }}" data-question="{{ question.pk }}"></textarea>{% endif %}
-</fieldset>{% endfor %}
-<input type="hidden" name="answers" id="answers"><button type="submit">Gửi khảo sát</button></form>
-<script>document.querySelector('form').addEventListener('submit', function () { const answers = []; document.querySelectorAll('[data-question]').forEach(function (input) { if ((input.type === 'radio' && input.checked) || (input.type !== 'radio' && input.value.trim())) { const item = {question_id: Number(input.dataset.question)}; if (input.type === 'radio') item.option_id = Number(input.value); else item.answer_text = input.value; answers.push(item); } }); document.getElementById('answers').value = JSON.stringify(answers); });</script>
-</body></html>
+{% if response.recipient.survey.description %}<p>{{ response.recipient.survey.description|linebreaksbr }}</p>{% endif %}
+<form method="post" id="sv-form" action="{% url 'surveys:submit' response.recipient_id %}">
+  {% csrf_token %}
+  {% for question in questions %}
+  <fieldset class="sv-question" data-qid="{{ question.pk }}" data-type="{{ question.question_type }}"
+            data-required="{% if question.is_required %}1{% endif %}">
+    <legend>{{ forloop.counter }}. {{ question.question_text }}{% if question.is_required %} <span class="sv-error">*</span>{% endif %}</legend>
+    {% if question.question_type == 'SINGLE_CHOICE' %}
+      {% for o in question.surveyoption_set.all %}<label><input type="radio" name="q{{ question.pk }}" value="{{ o.pk }}"> {{ o.option_text }}</label>{% endfor %}
+    {% elif question.question_type == 'MULTI_CHOICE' %}
+      {% for o in question.surveyoption_set.all %}<label><input type="checkbox" name="q{{ question.pk }}" value="{{ o.pk }}"> {{ o.option_text }}</label>{% endfor %}
+    {% elif question.question_type == 'RATING' %}
+      <div class="sv-rating">{% for n in "12345" %}<label><input type="radio" name="q{{ question.pk }}" value="{{ n }}"> {{ n }}</label>{% endfor %}</div>
+      <span class="sv-help">1 = rất không hài lòng, 5 = rất hài lòng</span>
+    {% else %}
+      <textarea name="q{{ question.pk }}" rows="3" maxlength="2000" style="width:100%"></textarea>
+    {% endif %}
+  </fieldset>
+  {% endfor %}
+  <input type="hidden" name="answers" id="sv-answers">
+  <button class="sv-btn" type="submit">Nộp khảo sát</button>
+  <a class="sv-btn sv-ghost" href="{% url 'surveys:my_surveys' %}">Để sau</a>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+  // Gom câu trả lời thành JSON theo contract hiện có của view submit.
+  document.getElementById('sv-form').addEventListener('submit', function (e) {
+    var answers = [], missing = null;
+    document.querySelectorAll('fieldset[data-qid]').forEach(function (box) {
+      var qid = Number(box.dataset.qid), type = box.dataset.type, found = false;
+      if (type === 'TEXT' || (type !== 'SINGLE_CHOICE' && type !== 'MULTI_CHOICE' && type !== 'RATING')) {
+        var t = box.querySelector('textarea');
+        if (t && t.value.trim()) { answers.push({question_id: qid, answer_text: t.value.trim()}); found = true; }
+      } else {
+        box.querySelectorAll('input:checked').forEach(function (i) {
+          var item = {question_id: qid};
+          if (type === 'RATING') item.rating_value = Number(i.value); else item.option_id = Number(i.value);
+          answers.push(item); found = true;
+        });
+      }
+      if (!found && box.dataset.required && !missing) missing = box;
+    });
+    if (missing) { e.preventDefault(); alert('Vui lòng trả lời các câu hỏi bắt buộc (*).'); missing.scrollIntoView(); return; }
+    if (!confirm('Sau khi nộp bạn không thể sửa hoặc làm lại. Nộp bài?')) { e.preventDefault(); return; }
+    document.getElementById('sv-answers').value = JSON.stringify(answers);
+  });
+</script>
+{% endblock %}

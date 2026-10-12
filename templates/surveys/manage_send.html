@@ -1,0 +1,33 @@
+{% extends "layouts/base_crm.html" %}
+{% load static %}
+{% block page_title %}Gửi khảo sát — {{ survey.title }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
+{% block content %}
+{% if errors %}<div class="sv-card"><strong class="sv-error">Chưa thể gửi:</strong>
+  <ul>{% for e in errors %}<li class="sv-error">{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" class="sv-form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <p><label>{{ form.audience.label }}</label>{{ form.audience }}</p>
+  <div id="sv-filters" class="sv-card">
+    <p><label>{{ form.age_groups.label }}</label>{{ form.age_groups }}</p>
+    <p><label>{{ form.playing_levels.label }}</label>{{ form.playing_levels }}{% if not form.playing_levels.field.choices %}<span class="sv-help">Chưa có dữ liệu.</span>{% endif %}</p>
+    <p><label>{{ form.preferences.label }}</label>{{ form.preferences }}{% if not form.preferences.field.choices %}<span class="sv-help">Chưa có dữ liệu.</span>{% endif %}</p>
+    <p class="sv-help">Các nhóm điều kiện kết hợp bằng "VÀ"; nhiều mục trong cùng một nhóm là "HOẶC".</p>
+  </div>
+  {% if preview is not None %}<p class="sv-card">Có <b>{{ preview }}</b> khách hàng phù hợp. Khách đã nhận trước đó sẽ được bỏ qua.</p>{% endif %}
+  <button class="sv-btn sv-ghost" name="action" value="preview">Xem số người nhận</button>
+  <button class="sv-btn" name="action" value="send" {% if errors %}disabled{% endif %}
+          onclick="return confirm('Gửi khảo sát đến các khách hàng đã chọn?')">Gửi ngay</button>
+  <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_detail' survey.survey_id %}">Quay lại</a>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+  (function () {
+    var radios = document.querySelectorAll('input[name=audience]'), box = document.getElementById('sv-filters');
+    function t() { var v = document.querySelector('input[name=audience]:checked'); box.style.display = (v && v.value === 'filter') ? '' : 'none'; }
+    radios.forEach(function (r) { r.addEventListener('change', t); }); t();
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+/* TV5 – survey screens (shared by CRM and customer layouts) */
+.sv-toolbar{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.sv-actions{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.sv-btn{display:inline-block;padding:.45rem .9rem;border:1px solid #1d4ed8;border-radius:6px;background:#1d4ed8;color:#fff;
+  font:inherit;cursor:pointer;text-decoration:none}
+.sv-btn.sv-ghost{background:#fff;color:#1d4ed8}
+.sv-btn.sv-danger{background:#fff;color:#b91c1c;border-color:#b91c1c}
+.sv-btn.sv-small{padding:.2rem .55rem;font-size:.85rem}
+.sv-table{width:100%;border-collapse:collapse;background:#fff}
+.sv-table th,.sv-table td{padding:.55rem .7rem;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
+.sv-badge{display:inline-block;padding:.1rem .55rem;border-radius:999px;font-size:.8rem;background:#e5e7eb}
+.sv-badge.ACTIVE{background:#dcfce7;color:#166534}.sv-badge.DRAFT{background:#fef3c7;color:#92400e}
+.sv-badge.CLOSED{background:#e5e7eb;color:#374151}
+.sv-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:1rem;margin-bottom:1rem;break-inside:avoid}
+.sv-card h3{margin:.0 0 .6rem;font-size:1rem}
+.sv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.75rem;margin-bottom:1rem}
+.sv-kpi{text-align:center}.sv-kpi b{display:block;font-size:1.8rem}
+.sv-form p{margin:0 0 1rem}.sv-form label{display:block;font-weight:600;margin-bottom:.25rem}
+.sv-form input[type=text],.sv-form input[type=datetime-local],.sv-form textarea,.sv-form select{width:100%;max-width:560px;
+  padding:.45rem;border:1px solid #cbd5e1;border-radius:6px;font:inherit}
+.sv-form ul{list-style:none;padding:0;margin:0}.sv-form li label{font-weight:400;display:inline}
+.sv-error,.errorlist{color:#b91c1c;font-size:.9rem;list-style:none;padding:0;margin:.2rem 0}
+.sv-help{color:#6b7280;font-size:.85rem}
+.sv-bar{background:#e5e7eb;border-radius:4px;height:14px;min-width:120px}
+.sv-bar>span{display:block;height:100%;background:#1d4ed8;border-radius:4px}
+.sv-question{border:1px solid #e5e7eb;border-radius:8px;padding:1rem;margin-bottom:1rem;background:#fff}
+.sv-question legend{font-weight:600;padding:0 .3rem}.sv-question label{display:block;margin:.3rem 0}
+.sv-rating{display:flex;gap:1rem;flex-wrap:wrap}.sv-rating label{display:inline-block}
+.sv-inline{display:inline}
+@media print{.sv-noprint,.crm-sidebar,.crm-header{display:none!important}}

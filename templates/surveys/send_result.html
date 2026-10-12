@@ -1,3 +1,6 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Gửi khảo sát</title></head><body>
-<h1>{{ survey.title }}</h1>{% for message in messages %}<p>{{ message }}</p>{% endfor %}
-</body></html>
+{% extends "layouts/base_crm.html" %}
+{% block page_title %}Gửi khảo sát{% endblock %}
+{% block content %}
+<h2>{{ survey.title }}</h2>
+<p><a href="{% url 'surveys:manage_detail' survey.survey_id %}">Xem khảo sát</a></p>
+{% endblock %}
