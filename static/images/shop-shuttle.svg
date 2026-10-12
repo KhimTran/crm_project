@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 400" role="img" aria-labelledby="title">
+  <title id="title">Minh họa loại sản phẩm: quả cầu lông</title>
+  <rect width="480" height="400" fill="#fffaf4"/>
+  <circle cx="245" cy="199" r="144" fill="#fff0df"/>
+  <ellipse cx="242" cy="347" rx="95" ry="9" fill="#e9dccf"/>
+  <g transform="rotate(-16 240 205)">
+    <path d="M133 78 164 246l42 49h66l42-49 33-168-35 14-20-26-33 21-24-27-26 27-26-22-20 26Z" fill="#fff" stroke="#212b31" stroke-width="3" stroke-linejoin="round"/>
+    <path d="m133 78 73 210m-43-197 54 202m-34-227 45 230m-19-209 25 211m1-239 12 240m12-211-1 210m34-231-21 230m41-205-29 202m62-216-51 212" fill="none" stroke="#cfbaa7" stroke-width="2.5"/>
+    <path d="M144 130q91 20 190 0m-181 49q86 17 171-1m-162 50q75 14 150-1m-131 38q58 14 112 0" fill="none" stroke="#e4d4c5" stroke-width="3"/>
+    <path d="M204 277q36-13 68 0v31q0 32-34 32-34 0-34-32Z" fill="#212b31"/>
+    <path d="M205 285q32-10 66 0v13q-32-9-66 0Z" fill="#ef6b2e"/>
+    <path d="M215 315q8 14 21 15" fill="none" stroke="#6c7b83" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

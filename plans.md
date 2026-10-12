@@ -1004,3 +1004,33 @@ was used without printing credentials.
   corrected it to match by Category ID and reran successfully; no source defect.
   Added only synthetic profile fixture/category rows; no legacy/shared DB or bulk
   data conversion. Credentials, scripts/results/logs/images remain outside repo.
+
+### TV1 experimental shop redesign — 2026-10-12
+
+- Owner authorized customer-storefront redesign on feature/tv1-shop-redesign,
+  fetched/branched from origin/develop at 6dc4372. Initial tree clean; existing
+  managed worktree used. Primary D:/Desktop/crm_project remains clean on develop.
+  Local commit only; no push/PR/merge/auto-merge.
+- Scoped customer layout/CSS, shop templates/presentation tags, customer auth/
+  profile templates, original local SVG assets and meaningful shop/layout tests.
+  No model/migration/SQL/URL/API/permission/service or Admin/CRM implementation
+  changes. ACTIVE Category navigation separate from Brand, real header GET search,
+  existing Decimal filters/pagination, desktop/mobile grids and detail layout.
+- Inspected crm_tv1_demo read-only; migrations all applied. No demo data changed,
+  no seed/reset/restore/migrate. Ignored local settings/.env copied from main
+  checkout, no credential added to tracked files. All required assets local.
+- Check 0 issues; migration dry-run No changes detected; full suite 211/211 pass
+  in 205.067s on test_crm_db. Final shop/layout 20/20 pass after added inactive-
+  category link regression and no-JS filter fallback; full suite was before these
+  final presentation changes. Initial 60/61 focused run had outdated survey-menu
+  text assertion, corrected before full run.
+- Browser verified desktop/mobile search/filter/page2/detail/empty/error, login/
+  register/menu, profile success/save, keyboard focus/Escape. Home widths
+  320/390/768/1024/1280 have no horizontal overflow. Account/profile/Admin browser
+  writes only to temporary fixtures on test_crm_db via server8002; those fixtures,
+  sessions/server/settings/credentials were removed. Admin implementation untouched.
+  Screenshots outside repo; no physical-device/SMTP/all-browser claim.
+- Read-only review found ACTIVE Product may have INACTIVE Category under existing
+  selector. Detail now renders inactive category as text and links to full catalog,
+  without changing visibility policy. Existing long/demo labels preserved.
+- Run/rollback guidance and precise validation: docs/tv1_shop_redesign.md.

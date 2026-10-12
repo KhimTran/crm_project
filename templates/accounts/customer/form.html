@@ -1,8 +1,35 @@
 {% extends "layouts/base_customer.html" %}
+{% load static %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<section class="form-panel">
-  <h1>{{ title }}</h1>
-  <form method="post">{% csrf_token %}{{ form.as_div }}<button class="btn btn-success" type="submit">{{ submit_label }}</button></form>
+<section class="customer-auth-layout" aria-labelledby="account-form-title">
+  <div class="customer-auth-intro">
+    <p class="eyebrow">Tài khoản của bạn</p>
+    {% if request.resolver_match.url_name == 'register' %}
+      <h2>Bắt đầu từ đam mê cầu lông.</h2>
+      <p>Tạo tài khoản để cập nhật hồ sơ và chọn những danh mục sản phẩm bạn quan tâm.</p>
+    {% else %}
+      <h2>An tâm cho mỗi lần đăng nhập.</h2>
+      <p>Cập nhật mật khẩu để bảo vệ tài khoản và thông tin cá nhân của bạn.</p>
+    {% endif %}
+    <img class="auth-illustration" src="{% static 'images/shop-court.svg' %}" alt="" width="900" height="620">
+    <a href="{% url 'shop:products' %}">Khám phá sản phẩm <span aria-hidden="true">→</span></a>
+  </div>
+  <div class="customer-auth-card form-panel">
+    <p class="eyebrow">{% if request.resolver_match.url_name == 'register' %}Tham gia cùng chúng tôi{% else %}Bảo mật tài khoản{% endif %}</p>
+    <h1 id="account-form-title">{{ title }}</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_div }}
+      <button class="shop-button" type="submit">{{ submit_label }}</button>
+    </form>
+    <div class="auth-links">
+      {% if request.resolver_match.url_name == 'register' %}
+        <p>Đã có tài khoản? <a href="{% url 'customer_auth:login' %}">Đăng nhập</a></p>
+      {% else %}
+        <a href="{% url 'shop:home' %}">Về cửa hàng</a>
+      {% endif %}
+    </div>
+  </div>
 </section>
 {% endblock %}
