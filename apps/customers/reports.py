@@ -80,11 +80,16 @@ def new_customers_by_month(months=12, today=None):
     return [{"label": f"{m:02d}/{y}", "count": counter.get((y, m), 0)} for y, m in keys]
 
 
-# tv4: 4.1.5 điểm hài lòng trung bình (rating) và số phản hồi theo sản phẩm, điểm thấp lên trước để dễ chú ý
+# tv4: 4.1.5 phản hồi của khách hàng chưa bị xóa (báo cáo không tính phản hồi của KH đã xóa)
+def _active_feedbacks():
+    return Feedback.objects.filter(customer__in=customer_queryset().values("pk"))
+
+
+# tv4: 4.1.5 điểm hài lòng trung bình (rating) và số phản hồi theo sản phẩm (nhóm theo ID sản phẩm, không theo tên), điểm thấp lên trước
 def satisfaction_by_product():
-    rows = (Feedback.objects.values("product__product_name")
+    rows = (_active_feedbacks().values("product_id", "product__product_name")
             .annotate(avg_rating=Avg("rating"), count=Count("feedback_id"))
-            .order_by("avg_rating", "-count", "product__product_name"))
+            .order_by("avg_rating", "-count", "product__product_name", "product_id"))
     return [{"label": r["product__product_name"], "avg": round(float(r["avg_rating"]), 2), "count": r["count"]}
             for r in rows]
 
@@ -94,11 +99,12 @@ def summary(today=None):
     today = today or timezone.localdate()
     customers = customer_queryset()
     month_start = timezone.make_aware(datetime(today.year, today.month, 1))
-    rating = Feedback.objects.aggregate(avg=Avg("rating"))["avg"]
+    feedbacks = _active_feedbacks()
+    rating = feedbacks.aggregate(avg=Avg("rating"))["avg"]
     return {
         "total": customers.count(),
         "new_this_month": customers.filter(created_at__gte=month_start).count(),
         "locked": customers.filter(account__status=AccountStatus.LOCKED).count(),
-        "feedbacks": Feedback.objects.count(),
+        "feedbacks": feedbacks.count(),
         "avg_rating": round(float(rating), 2) if rating is not None else None,
     }

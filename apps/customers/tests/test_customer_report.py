@@ -85,6 +85,24 @@ class CustomerReportTests(TestCase):
         self.assertEqual((summary["total"], summary["locked"], summary["feedbacks"], summary["avg_rating"]),
                          (3, 1, 3, 3.67))
 
+    # tv4: KH đã xóa chấm 1 sao không được tính vào điểm hài lòng và tổng phản hồi
+    def test_deleted_customer_feedback_is_excluded(self):
+        racket = Product.objects.get(product_name="Astrox 88D")
+        Feedback.objects.create(customer=self.deleted, product=racket, rating=1, content="x", status="NEW")
+        rows = {r["label"]: (r["avg"], r["count"]) for r in reports.satisfaction_by_product()}
+        self.assertEqual(rows["Astrox 88D"], (4.5, 2))
+        summary = reports.summary()
+        self.assertEqual((summary["feedbacks"], summary["avg_rating"]), (3, 3.67))
+
+    # tv4: hai sản phẩm trùng tên vẫn là hai dòng riêng (nhóm theo ID sản phẩm)
+    def test_same_name_products_are_not_merged(self):
+        racket = Product.objects.get(product_name="Astrox 88D")
+        twin = Product.objects.create(category=racket.category, brand=racket.brand, supplier=racket.supplier,
+                                      product_name="Astrox 88D", price=3600000)
+        Feedback.objects.create(customer=self.an, product=twin, rating=3, content="x", status="NEW")
+        rows = [(r["label"], r["avg"], r["count"]) for r in reports.satisfaction_by_product()]
+        self.assertEqual(sorted(rows), sorted([("Giày SHB", 2.0, 1), ("Astrox 88D", 4.5, 2), ("Astrox 88D", 3.0, 1)]))
+
     def test_report_page_renders_charts_data_and_print_button(self):
         self.client.force_login(self.manager)
         response = self.client.get(reverse("customer_reports:customers"))

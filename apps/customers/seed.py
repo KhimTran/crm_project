@@ -1,6 +1,6 @@
 """Dữ liệu demo khách hàng (TV4) – được gọi từ `python manage.py seed_data`.
 
-Idempotent: khách hàng đã có (theo email) thì bỏ qua, không đổi mật khẩu/hồ sơ; riêng kh40 luôn ở trạng thái khóa.
+Idempotent: khách hàng đã có (theo email) thì bỏ qua, không đổi mật khẩu/hồ sơ; kh40 chỉ bị khóa khi mới tạo (mở khóa rồi seed lại thì giữ nguyên).
 """
 
 import random
@@ -73,7 +73,9 @@ def seed_customers(count=DEMO_CUSTOMER_COUNT, password=DEMO_CUSTOMER_PASSWORD):
         email = demo_email(index)
         account = Account.objects.filter(email=email).first()
         if account is None:
-            account = Account(email=email, role=AccountRole.CUSTOMER, status=AccountStatus.ACTIVE)
+            # Chỉ đặt trạng thái khóa khi tạo mới, để mở khóa kh40 rồi seed lại không bị khóa lại.
+            status = AccountStatus.LOCKED if index == LOCKED_DEMO_INDEX else AccountStatus.ACTIVE
+            account = Account(email=email, role=AccountRole.CUSTOMER, status=status)
             if password_hash is None:
                 # Băm một lần bằng Django hasher rồi dùng chung cho các tài khoản demo (cùng mật khẩu demo).
                 validate_password(password, account)
@@ -94,8 +96,6 @@ def seed_customers(count=DEMO_CUSTOMER_COUNT, password=DEMO_CUSTOMER_PASSWORD):
             )
             Customer.objects.filter(pk=customer.pk).update(created_at=now - timedelta(days=profile["days_ago"]))
             created += 1
-        if index == LOCKED_DEMO_INDEX and account.status != AccountStatus.LOCKED:
-            Account.objects.filter(pk=account.pk).update(status=AccountStatus.LOCKED, updated_at=now)
     return created
 
 

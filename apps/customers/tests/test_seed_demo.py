@@ -46,6 +46,14 @@ class SeedDemoDataTests(TestCase):
         self.assertEqual(Account.objects.get(email=demo_email(40)).status, AccountStatus.LOCKED)
         self.assertFalse(self.client.login(email=demo_email(40), password=DEMO_CUSTOMER_PASSWORD))
 
+    # tv4: mở khóa kh40 rồi seed lại thì không bị khóa lại
+    def test_reseed_does_not_relock_kh40(self):
+        self.seed_twice()
+        Account.objects.filter(email=demo_email(40)).update(status=AccountStatus.ACTIVE)
+        with patch.dict("os.environ", {"CRM_DEMO_PASSWORD": "DemoPass!2026"}):
+            call_command("seed_data", verbosity=0)
+        self.assertEqual(Account.objects.get(email=demo_email(40)).status, AccountStatus.ACTIVE)
+
     def test_seed_covers_every_age_group_and_spreads_months(self):
         self.seed_twice()
         age_rows = reports.age_group_report()
