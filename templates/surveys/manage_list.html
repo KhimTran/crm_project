@@ -1,33 +1,33 @@
-{% extends "layouts/base_crm.html" %}
-{% load static %}
-{% block title %}Khảo sát{% endblock %}
-{% block page_title %}Khảo sát khách hàng{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{% t "Khảo sát" "Surveys" %}{% endblock %}
+{% block page_title %}{% t "Khảo sát khách hàng" "Surveys" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 {% block content %}
 <div class="sv-toolbar">
   <form method="get" class="sv-actions">
-    <input type="text" name="q" value="{{ q }}" placeholder="Tìm theo tiêu đề">
+    <input type="text" name="q" value="{{ q }}" placeholder="{% t 'Tìm theo tiêu đề' 'Search by title...' %}">
     <select name="status">
-      <option value="">Tất cả trạng thái</option>
+      <option value="">{% t "Tất cả trạng thái" "All statuses" %}</option>
       {% for value, label in statuses %}<option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
-    <button class="sv-btn sv-ghost">Lọc</button>
+    <button class="sv-btn sv-ghost">{% t "Lọc" "Search" %}</button>
   </form>
-  <a class="sv-btn" href="{% url 'surveys:manage_create' %}">+ Tạo khảo sát</a>
+  <a class="sv-btn" href="{% url 'surveys:manage_create' %}">{% t "+ Tạo khảo sát" "Create Survey" %}</a>
 </div>
-<div class="sv-table-scroll" role="region" aria-label="Danh sách khảo sát" tabindex="0">
+<div class="sv-table-scroll" role="region" aria-label="{% t 'Danh sách khảo sát' 'Survey list' %}" tabindex="0">
 <table class="sv-table sv-survey-list">
-  <thead><tr><th>Tiêu đề</th><th>Thời gian</th><th>Trạng thái</th><th>Đã làm / Đã gửi</th><th></th></tr></thead>
+  <thead><tr><th>{% t "Tiêu đề" "Title" %}</th><th>{% t "Thời gian" "Schedule" %}</th><th>{% t "Trạng thái" "Status" %}</th><th>{% t "Đã làm / Đã gửi" "Completed / Sent" %}</th><th>{% if in_admin_portal %}Actions{% endif %}</th></tr></thead>
   <tbody>
   {% for s in surveys %}
     <tr>
       <td><a href="{% url 'surveys:manage_detail' s.survey_id %}">{{ s.title }}</a></td>
-      <td>{{ s.start_at|date:"d/m/Y H:i"|default:"—" }} → {{ s.end_at|date:"d/m/Y H:i"|default:"—" }}</td>
+      <td>{{ s.start_at|date:datetime_fmt|default:"—" }} → {{ s.end_at|date:datetime_fmt|default:"—" }}</td>
       <td><span class="sv-badge {{ s.status }}">{{ s.get_status_display|default:s.status }}</span></td>
       <td>{{ s.done }} / {{ s.sent }}</td>
-      <td><a class="sv-btn sv-ghost sv-small" href="{% url 'surveys:manage_stats' s.survey_id %}">Thống kê</a></td>
+      <td><a class="sv-btn sv-ghost sv-small" href="{% url 'surveys:manage_stats' s.survey_id %}">{% t "Thống kê" "Statistics" %}</a></td>
     </tr>
-  {% empty %}<tr><td colspan="5">Chưa có khảo sát nào.</td></tr>
+  {% empty %}<tr><td colspan="5">{% t "Chưa có khảo sát nào." "No surveys found." %}</td></tr>
   {% endfor %}
   </tbody>
 </table>

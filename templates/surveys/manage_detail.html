@@ -1,29 +1,30 @@
-{% extends "layouts/base_crm.html" %}
-{% load static %}
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{{ survey.title }}{% endblock %}
 {% block page_title %}{{ survey.title }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 {% block content %}
 <div class="sv-toolbar">
   <div>
     <span class="sv-badge {{ survey.status }}">{{ survey.status }}</span>
-    {{ survey.start_at|date:"d/m/Y H:i" }} → {{ survey.end_at|date:"d/m/Y H:i" }} · Đã làm {{ done }}/{{ sent }}
+    {{ survey.start_at|date:datetime_fmt }} → {{ survey.end_at|date:datetime_fmt }} · {% t "Đã làm" "Completed" %} {{ done }}/{{ sent }}
     {% if survey.description %}<p>{{ survey.description|linebreaksbr }}</p>{% endif %}
   </div>
   <div class="sv-actions">
-    {% if is_draft %}<a class="sv-btn sv-ghost" href="{% url 'surveys:manage_edit' survey.survey_id %}">Sửa thông tin</a>{% endif %}
-    {% if survey.status != 'CLOSED' %}<a class="sv-btn" href="{% url 'surveys:manage_send' survey.survey_id %}">Gửi khảo sát</a>{% endif %}
-    <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_stats' survey.survey_id %}">Thống kê</a>
+    {% if is_draft %}<a class="sv-btn sv-ghost" href="{% url 'surveys:manage_edit' survey.survey_id %}">{% t "Sửa thông tin" "Edit Survey" %}</a>{% endif %}
+    {% if survey.status != 'CLOSED' %}<a class="sv-btn" href="{% url 'surveys:manage_send' survey.survey_id %}">{% t "Gửi khảo sát" "Send Survey" %}</a>{% endif %}
+    <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_stats' survey.survey_id %}">{% t "Thống kê" "Statistics" %}</a>
     {% if survey.status == 'ACTIVE' %}
     <form method="post" action="{% url 'surveys:manage_close' survey.survey_id %}" class="sv-inline"
-          onsubmit="return confirm('Đóng khảo sát? Khách hàng sẽ không làm được nữa.')">{% csrf_token %}
-      <button class="sv-btn sv-danger">Đóng khảo sát</button></form>
+          onsubmit="return confirm('{% t "Đóng khảo sát? Khách hàng sẽ không làm được nữa." "Close this survey? Customers will no longer be able to answer it." %}')">{% csrf_token %}
+      <button class="sv-btn sv-danger">{% t "Đóng khảo sát" "Close Survey" %}</button></form>
     {% endif %}
   </div>
 </div>
 
-<div class="sv-toolbar"><h2>Câu hỏi ({{ questions|length }})</h2>
-  {% if is_draft %}<a class="sv-btn sv-small" href="{% url 'surveys:question_add' survey.survey_id %}">+ Thêm câu hỏi</a>
-  {% else %}<span class="sv-help">Chỉ khảo sát Nháp mới sửa được câu hỏi.</span>{% endif %}
+<div class="sv-toolbar"><h2>{% t "Câu hỏi" "Questions" %} ({{ questions|length }})</h2>
+  {% if is_draft %}<a class="sv-btn sv-small" href="{% url 'surveys:question_add' survey.survey_id %}">{% t "+ Thêm câu hỏi" "Add Question" %}</a>
+  {% else %}<span class="sv-help">{% t "Chỉ khảo sát Nháp mới sửa được câu hỏi." "Questions can only be edited while the survey is a Draft." %}</span>{% endif %}
 </div>
 {% for q in questions %}
   <div class="sv-card">
@@ -32,16 +33,16 @@
       {% if q.surveyoption_set.all %} · {% for o in q.surveyoption_set.all %}{{ o.option_text }}{% if not forloop.last %} | {% endif %}{% endfor %}{% endif %}</div>
     {% if is_draft %}
     <div class="sv-actions" style="margin-top:.5rem">
-      <form method="post" class="sv-inline" action="{% url 'surveys:question_move' survey.survey_id q.question_id 'up' %}">{% csrf_token %}<button class="sv-btn sv-ghost sv-small">↑</button></form>
-      <form method="post" class="sv-inline" action="{% url 'surveys:question_move' survey.survey_id q.question_id 'down' %}">{% csrf_token %}<button class="sv-btn sv-ghost sv-small">↓</button></form>
-      <a class="sv-btn sv-ghost sv-small" href="{% url 'surveys:question_edit' survey.survey_id q.question_id %}">Sửa</a>
+      <form method="post" class="sv-inline" action="{% url 'surveys:question_move' survey.survey_id q.question_id 'up' %}">{% csrf_token %}<button class="sv-btn sv-ghost sv-small" aria-label="{% t 'Lên' 'Move up' %}">↑</button></form>
+      <form method="post" class="sv-inline" action="{% url 'surveys:question_move' survey.survey_id q.question_id 'down' %}">{% csrf_token %}<button class="sv-btn sv-ghost sv-small" aria-label="{% t 'Xuống' 'Move down' %}">↓</button></form>
+      <a class="sv-btn sv-ghost sv-small" href="{% url 'surveys:question_edit' survey.survey_id q.question_id %}">{% t "Sửa" "Edit" %}</a>
       <form method="post" class="sv-inline" action="{% url 'surveys:question_delete' survey.survey_id q.question_id %}"
-            onsubmit="return confirm('Xóa câu hỏi này?')">{% csrf_token %}<button class="sv-btn sv-danger sv-small">Xóa</button></form>
+            onsubmit="return confirm('{% t "Xóa câu hỏi này?" "Delete this question?" %}')">{% csrf_token %}<button class="sv-btn sv-danger sv-small">{% t "Xóa" "Delete" %}</button></form>
     </div>{% endif %}
   </div>
-{% empty %}<p>Chưa có câu hỏi.</p>{% endfor %}
+{% empty %}<p>{% t "Chưa có câu hỏi." "No questions yet." %}</p>{% endfor %}
 {% if is_draft and not sent %}
-<form method="post" action="{% url 'surveys:manage_delete' survey.survey_id %}" onsubmit="return confirm('Xóa khảo sát này?')">{% csrf_token %}
-  <button class="sv-btn sv-danger sv-small">Xóa khảo sát</button></form>
+<form method="post" action="{% url 'surveys:manage_delete' survey.survey_id %}" onsubmit="return confirm('{% t "Xóa khảo sát này?" "Delete this survey?" %}')">{% csrf_token %}
+  <button class="sv-btn sv-danger sv-small">{% t "Xóa khảo sát" "Delete Survey" %}</button></form>
 {% endif %}
 {% endblock %}

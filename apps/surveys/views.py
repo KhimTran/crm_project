@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -12,6 +13,7 @@ from apps.accounts.decorators import role_required
 from apps.accounts.errors import AccountPermissionDenied
 from apps.accounts.permissions import account_admin_required
 from apps.customers.models import Customer
+from apps.customers.portal_text import localize_form, localize_rows, portal_english, say, tr
 from .constants import RECIPIENT_COMPLETED, SurveyStatus
 from .forms import AudienceForm, QuestionForm, SurveyForm
 from .models import Survey, SurveyQuestion, SurveyRecipient
@@ -37,6 +39,7 @@ def send(request, survey_id):
 
 @account_admin_required
 @require_GET
+@portal_english
 def send_result(request, survey_id):
     return render(request, "surveys/send_result.html", {"survey": get_object_or_404(Survey, pk=survey_id)})
 
@@ -87,15 +90,31 @@ def result(request, recipient_id):
 
 
 # ───────────────────────── TV5: CRM – manage surveys (4.1.6, 4.1.7) ─────────────────────────
+# tv4: dịch lỗi "chưa thể gửi" sang tiếng Anh khi Admin xem trong Admin Portal (câu có tên câu hỏi xử lý riêng)
+def _send_error(message):
+    match = re.fullmatch(r'Câu "(.*)" cần ít nhất 2 lựa chọn\.', message, re.S)
+    if match:
+        return say(message, f'Question "{match.group(1)}" needs at least 2 options.')
+    return tr(message)
+
+
+# tv4: dịch nhãn thống kê (vd. "5 sao") khi Admin xem trong Admin Portal
+def _localized_stats(stats):
+    for item in stats["items"]:
+        item["rows"] = localize_rows(item["rows"])
+    return stats
+
+
 def _draft_or_redirect(request, survey):
     if survey.status != SurveyStatus.DRAFT:
-        messages.error(request, "Chỉ sửa được khảo sát ở trạng thái Nháp.")
+        messages.error(request, tr("Chỉ sửa được khảo sát ở trạng thái Nháp."))
         return redirect("surveys:manage_detail", survey_id=survey.pk)
     return None
 
 
 @manager_required
 @require_GET
+@portal_english
 def manage_list(request):
     close_expired()
     qs = Survey.objects.annotate(
@@ -109,49 +128,55 @@ def manage_list(request):
     if q:
         qs = qs.filter(title__icontains=q)
     return render(request, "surveys/manage_list.html",
-                  {"surveys": qs, "status": status, "q": q, "statuses": SurveyStatus.choices})
+                  {"surveys": qs, "status": status, "q": q,
+                   "statuses": [(value, tr(label)) for value, label in SurveyStatus.choices]})
 
 
 @manager_required
+@portal_english
 def manage_create(request):
-    form = SurveyForm(request.POST or None)
+    form = localize_form(SurveyForm(request.POST or None))
     if request.method == "POST" and form.is_valid():
         survey = form.save(commit=False)
         survey.created_by = request.user
         survey.status = SurveyStatus.DRAFT
         survey.save()
-        messages.success(request, "Đã tạo khảo sát. Hãy thêm câu hỏi.")
+        messages.success(request, say("Đã tạo khảo sát. Hãy thêm câu hỏi.", "Survey created. Now add questions."))
         return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return render(request, "surveys/manage_form.html", {"form": form, "heading": "Tạo khảo sát mới"})
+    return render(request, "surveys/manage_form.html", {"form": form, "heading": say("Tạo khảo sát mới", "Create Survey")})
 
 
 @manager_required
+@portal_english
 def manage_edit(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     if (blocked := _draft_or_redirect(request, survey)):
         return blocked
-    form = SurveyForm(request.POST or None, instance=survey)
+    form = localize_form(SurveyForm(request.POST or None, instance=survey))
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Đã cập nhật khảo sát.")
+        messages.success(request, say("Đã cập nhật khảo sát.", "Survey updated."))
         return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return render(request, "surveys/manage_form.html", {"form": form, "heading": "Sửa khảo sát"})
+    return render(request, "surveys/manage_form.html", {"form": form, "heading": say("Sửa khảo sát", "Edit Survey")})
 
 
 @manager_required
 @require_POST
+@portal_english
 def manage_delete(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     if survey.status != SurveyStatus.DRAFT or SurveyRecipient.objects.filter(survey=survey).exists():
-        messages.error(request, "Chỉ xóa được khảo sát Nháp chưa gửi cho ai. Hãy dùng \"Đóng khảo sát\".")
+        messages.error(request, say("Chỉ xóa được khảo sát Nháp chưa gửi cho ai. Hãy dùng \"Đóng khảo sát\".",
+                                    "Only Draft surveys that were never sent can be deleted. Use \"Close Survey\" instead."))
         return redirect("surveys:manage_detail", survey_id=survey.pk)
     survey.delete()
-    messages.success(request, "Đã xóa khảo sát.")
+    messages.success(request, say("Đã xóa khảo sát.", "Survey deleted."))
     return redirect("surveys:manage_list")
 
 
 @manager_required
 @require_GET
+@portal_english
 def manage_detail(request, survey_id):
     close_expired()
     survey = get_object_or_404(Survey, pk=survey_id)
@@ -164,45 +189,49 @@ def manage_detail(request, survey_id):
 
 
 @manager_required
+@portal_english
 def question_add(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     if (blocked := _draft_or_redirect(request, survey)):
         return blocked
-    form = QuestionForm(request.POST or None)
+    form = localize_form(QuestionForm(request.POST or None))
     if request.method == "POST" and form.is_valid():
         form.save_for(survey)
-        messages.success(request, "Đã thêm câu hỏi.")
+        messages.success(request, say("Đã thêm câu hỏi.", "Question added."))
         return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return render(request, "surveys/question_form.html", {"form": form, "survey": survey, "heading": "Thêm câu hỏi"})
+    return render(request, "surveys/question_form.html", {"form": form, "survey": survey, "heading": say("Thêm câu hỏi", "Add Question")})
 
 
 @manager_required
+@portal_english
 def question_edit(request, survey_id, question_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     if (blocked := _draft_or_redirect(request, survey)):
         return blocked
     question = get_object_or_404(SurveyQuestion, pk=question_id, survey=survey)
-    form = QuestionForm(request.POST or None, instance=question)
+    form = localize_form(QuestionForm(request.POST or None, instance=question))
     if request.method == "POST" and form.is_valid():
         form.save_for(survey)
-        messages.success(request, "Đã cập nhật câu hỏi.")
+        messages.success(request, say("Đã cập nhật câu hỏi.", "Question updated."))
         return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return render(request, "surveys/question_form.html", {"form": form, "survey": survey, "heading": "Sửa câu hỏi"})
+    return render(request, "surveys/question_form.html", {"form": form, "survey": survey, "heading": say("Sửa câu hỏi", "Edit Question")})
 
 
 @manager_required
 @require_POST
+@portal_english
 def question_delete(request, survey_id, question_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     if (blocked := _draft_or_redirect(request, survey)):
         return blocked
     get_object_or_404(SurveyQuestion, pk=question_id, survey=survey).delete()
-    messages.success(request, "Đã xóa câu hỏi.")
+    messages.success(request, say("Đã xóa câu hỏi.", "Question deleted."))
     return redirect("surveys:manage_detail", survey_id=survey.pk)
 
 
 @manager_required
 @require_POST
+@portal_english
 def question_move(request, survey_id, question_id, direction):
     survey = get_object_or_404(Survey, pk=survey_id)
     if (blocked := _draft_or_redirect(request, survey)):
@@ -221,10 +250,11 @@ def question_move(request, survey_id, question_id, direction):
 
 
 @manager_required
+@portal_english
 def manage_send(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
-    errors = check_ready_to_send(survey)
-    form = AudienceForm(request.POST or None)
+    errors = [_send_error(e) for e in check_ready_to_send(survey)]
+    form = localize_form(AudienceForm(request.POST or None))
     preview = None
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data
@@ -234,10 +264,12 @@ def manage_send(request, survey_id):
             try:
                 result = send_to_audience(request.user, survey, customers)
             except (AccountPermissionDenied, ValidationError) as exc:
-                messages.error(request, str(exc))
+                messages.error(request, tr(exc.messages[0] if isinstance(exc, ValidationError) else str(exc)))
                 return redirect("surveys:manage_detail", survey_id=survey.pk)
-            note = f" (bỏ qua {result['skipped']} người đã nhận trước đó)" if result["skipped"] else ""
-            messages.success(request, f"Đã gửi khảo sát cho {result['created']} khách hàng{note}.")
+            note = say(f" (bỏ qua {result['skipped']} người đã nhận trước đó)",
+                       f" ({result['skipped']} previous recipient(s) skipped)") if result["skipped"] else ""
+            messages.success(request, say(f"Đã gửi khảo sát cho {result['created']} khách hàng{note}.",
+                                          f"Survey sent to {result['created']} customer(s){note}."))
             return redirect("surveys:manage_detail", survey_id=survey.pk)
         preview = customers.count()
     return render(request, "surveys/manage_send.html",
@@ -246,19 +278,21 @@ def manage_send(request, survey_id):
 
 @manager_required
 @require_POST
+@portal_english
 def manage_close(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     close_survey(request.user, survey)
-    messages.success(request, "Đã đóng khảo sát.")
+    messages.success(request, say("Đã đóng khảo sát.", "Survey closed."))
     return redirect("surveys:manage_detail", survey_id=survey.pk)
 
 
 @manager_required
 @require_GET
+@portal_english
 def manage_stats(request, survey_id):
     close_expired()
     survey = get_object_or_404(Survey, pk=survey_id)
-    return render(request, "surveys/manage_stats.html", {"survey": survey, "stats": build_stats(survey)})
+    return render(request, "surveys/manage_stats.html", {"survey": survey, "stats": _localized_stats(build_stats(survey))})
 
 
 # ───────────────────────── TV5: customer – my surveys (4.2.5) ─────────────────────────

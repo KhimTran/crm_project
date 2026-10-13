@@ -49,6 +49,28 @@ EN = {
     "Tài khoản khách hàng đã bị khóa": "This customer account is already locked.",
     "Tài khoản khách hàng đang hoạt động": "This customer account is already active.",
     "Không tìm thấy phản hồi": "Feedback not found.",
+    # Khảo sát (TV5) – trạng thái, loại câu hỏi, nhãn form, lỗi
+    "Nháp": "Draft", "Đang mở": "Open", "Đã đóng": "Closed",
+    "Một lựa chọn": "Single choice", "Nhiều lựa chọn": "Multiple choice", "Thang điểm 1–5": "Rating 1–5",
+    "Trả lời tự do": "Free text",
+    "Mở từ": "Opens At", "Đóng lúc": "Closes At", "Tiêu đề": "Title", "Mô tả": "Description",
+    "Loại câu hỏi": "Question Type", "Các lựa chọn (mỗi dòng một lựa chọn)": "Options (one per line)",
+    "Chỉ cần cho câu hỏi một/nhiều lựa chọn.": "Only needed for single/multiple choice questions.",
+    "Nội dung câu hỏi": "Question Text", "Bắt buộc trả lời": "Required",
+    "Đối tượng nhận": "Recipients", "Tất cả khách hàng đang hoạt động": "All active customers",
+    "Lọc theo nhóm tuổi / trình độ / sở thích": "Filter by age group / playing level / preference",
+    "Sở thích": "Preferences",
+    "Thời điểm đóng phải sau thời điểm mở.": "The closing time must be after the opening time.",
+    "Cần nhập ít nhất 2 lựa chọn khác nhau.": "Enter at least 2 different options.",
+    "Mỗi lựa chọn tối đa 255 ký tự.": "Each option can be at most 255 characters.",
+    'Hãy chọn ít nhất một điều kiện lọc, hoặc chọn "Tất cả".':
+        'Choose at least one filter, or choose "All active customers".',
+    "Khảo sát chưa có câu hỏi nào.": "The survey has no questions yet.",
+    "Khảo sát đã đóng, không thể gửi.": "The survey is closed and cannot be sent.",
+    "Ngày đóng đã qua hoặc chưa đặt, hãy sửa lại thời gian.":
+        "The closing time has passed or is not set; please update the schedule.",
+    "Chỉ sửa được khảo sát ở trạng thái Nháp.": "Only Draft surveys can be edited.",
+    "Danh sách khách hàng có ID không hợp lệ hoặc đã bị xóa.": "The customer list contains invalid or deleted IDs.",
 }
 
 
@@ -95,10 +117,25 @@ def localize_form(form):
             field.empty_label = tr(field.empty_label)
         if hasattr(field, "choices") and not hasattr(field, "queryset"):
             field.choices = [(value, tr(label)) for value, label in field.choices]
+        if field.help_text:
+            field.help_text = tr(field.help_text)
         placeholder = field.widget.attrs.get("placeholder")
         if placeholder:
             field.widget.attrs["placeholder"] = tr(placeholder)
+    _translate_errors_after_clean(form)
     return form
+
+
+# tv4: sau khi form validate thì dịch luôn lỗi (form.as_p tự in lỗi nên không dịch trong template được)
+def _translate_errors_after_clean(form):
+    full_clean = form.full_clean
+
+    def translated_full_clean():
+        full_clean()
+        for errors in (form._errors or {}).values():
+            errors.data = [tr(message) for message in errors]
+
+    form.full_clean = translated_full_clean
 
 
 # tv4: dịch nhãn các dòng báo cáo [{label, ...}] khi đang ở Admin Portal
