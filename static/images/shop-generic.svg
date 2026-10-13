@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 400" role="img" aria-labelledby="title">
+  <title id="title">Minh họa dụng cụ thể thao — chưa có ảnh sản phẩm</title>
+  <rect width="480" height="400" fill="#fffaf4"/>
+  <circle cx="240" cy="199" r="144" fill="#fff0df"/>
+  <ellipse cx="240" cy="326" rx="122" ry="10" fill="#e9dccf"/>
+  <path d="m141 135 98-42 100 43-99 46Z" fill="#ff9a55" stroke="#212b31" stroke-width="4" stroke-linejoin="round"/>
+  <path d="m141 135 99 47v139l-99-49Z" fill="#ef6b2e" stroke="#212b31" stroke-width="4" stroke-linejoin="round"/>
+  <path d="m240 182 99-46v137l-99 48Z" fill="#fff" stroke="#212b31" stroke-width="4" stroke-linejoin="round"/>
+  <path d="m177 119 100 46 27-13-100-46Z" fill="#fff4e8"/>
+  <path d="m277 165 27-13v43l-27 13Z" fill="#ef6b2e"/>
+  <path d="m164 230 48 23m-48-6 31 15" stroke="#fff4e8" stroke-width="4" stroke-linecap="round"/>
+  <g transform="translate(290 250) rotate(24)">
+    <path d="m-17-32 5 30 10 10 11-10 8-30-8 4-7-5-6 5-7-5Z" fill="#fff4e8" stroke="#212b31" stroke-width="2"/>
+    <path d="M-6-27-2 5M5-27 2 5" stroke="#c4a991" stroke-width="1.5"/>
+    <path d="M-8 5H8v7q-8 12-16 0Z" fill="#ef6b2e" stroke="#212b31" stroke-width="2"/>
+  </g>
+</svg>

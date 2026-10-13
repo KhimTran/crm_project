@@ -28,8 +28,8 @@ class ShopTests(TestCase):
             self.assertTemplateUsed(response, "layouts/base_customer.html")
             self.assertNotContains(response, "Inactive product")
             self.assertNotContains(response, "https://cdn")
-            self.assertContains(response, "/static/images/product-placeholder.svg")
-        for asset in ("vendor/bootstrap.min.css", "css/tv1.css", "images/product-placeholder.svg"):
+            self.assertContains(response, "/static/" + "images/product-image-unavailable.svg")
+        for asset in ("vendor/bootstrap.min.css", "css/tv1.css", "images/product-image-unavailable.svg"):
             self.assertTrue(finders.find(asset))
 
     def test_combined_filters_use_decimal_price_and_match_category_brand(self):
@@ -57,10 +57,11 @@ class ShopTests(TestCase):
         self.assertEqual(self.client.get("/products/?page=bad").context["page"].number, 1)
         self.assertEqual(self.client.get("/products/?page=999").context["page"].number, 2)
 
-    def test_detail_missing_inactive_and_unavailable_modules(self):
+    def test_detail_is_read_only_and_hides_missing_or_inactive_products(self):
         response = self.client.get(f"/products/{self.products[0].pk}/")
         self.assertContains(response, self.products[0].product_name)
-        self.assertContains(response, "Sắp có")
+        self.assertContains(response, self.products[0].category.category_name)
+        self.assertContains(response, self.products[0].brand.brand_name)
         self.assertNotContains(response, 'href="#"')
         self.assertEqual(self.client.get("/products/999999/").status_code, 404)
         self.assertEqual(self.client.get(f"/products/{self.inactive.pk}/").status_code, 404)

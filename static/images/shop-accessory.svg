@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 400" role="img" aria-labelledby="title">
+  <title id="title">Minh họa loại sản phẩm: phụ kiện cầu lông</title>
+  <rect width="480" height="400" fill="#fffaf4"/>
+  <circle cx="240" cy="199" r="144" fill="#fff0df"/>
+  <ellipse cx="239" cy="335" rx="138" ry="10" fill="#e9dccf"/>
+  <g transform="rotate(-14 198 185)">
+    <rect x="117" y="86" width="164" height="195" rx="15" fill="#fff" stroke="#212b31" stroke-width="4"/>
+    <path d="M117 100q0-14 15-14h134q15 0 15 14v49H117Z" fill="#212b31"/>
+    <path d="M134 105h45m-45 16h86" stroke="#ef6b2e" stroke-width="5" stroke-linecap="round"/>
+    <g fill="none" stroke="#d2b899" stroke-width="2.5"><circle cx="199" cy="206" r="47"/><circle cx="199" cy="206" r="39"/><circle cx="199" cy="206" r="31"/><circle cx="199" cy="206" r="23"/><circle cx="199" cy="206" r="15"/></g>
+  </g>
+  <g transform="rotate(17 307 270)">
+    <path d="M269 223h77v68q0 32-39 32t-38-32Z" fill="#ef6b2e" stroke="#212b31" stroke-width="4"/>
+    <ellipse cx="307" cy="223" rx="39" ry="20" fill="#ff9a55" stroke="#212b31" stroke-width="4"/>
+    <ellipse cx="307" cy="223" rx="18" ry="9" fill="#fff4e8" stroke="#212b31" stroke-width="3"/>
+    <path d="M270 248q40 21 76 0m-76 22q40 21 76 0m-76 22q40 21 76 0" fill="none" stroke="#fff4e8" stroke-width="3"/>
+    <path d="M346 250q30 18 27 45" fill="none" stroke="#ef6b2e" stroke-width="14"/>
+  </g>
+</svg>

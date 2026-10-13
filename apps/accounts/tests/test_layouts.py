@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.contrib import messages
 from django.contrib.auth.models import AnonymousUser
@@ -13,6 +14,13 @@ from django.urls import resolve
 class SharedLayoutTests(SimpleTestCase):
     templates = ("layouts/base_customer.html", "layouts/base_crm.html")
 
+    def setUp(self):
+        # These tests cover layout contracts without querying business data.
+        # Category navigation is exercised against the test database by shop tests.
+        navigation = patch("apps.shop.templatetags.shop_ui.active_shop_categories", return_value=[])
+        navigation.start()
+        self.addCleanup(navigation.stop)
+
     def request(self, user=None):
         request = RequestFactory().get("/")
         request.user = user if user is not None else AnonymousUser()
@@ -24,7 +32,7 @@ class SharedLayoutTests(SimpleTestCase):
         html = render_to_string(self.templates[0], request=self.request())
         for text in ('<!doctype html>', 'lang="vi"', 'name="viewport"',
                      '/static/css/customer.css', '<header', '<footer',
-                     'Trang chủ', 'Sản phẩm', 'Khảo sát của tôi', 'Tài khoản'):
+                     'Trang chủ', 'Sản phẩm', 'Tìm tên sản phẩm', 'Tài khoản'):
             self.assertIn(text, html)
         self.assertNotIn('customer-user', html)
         self.assertNotIn('admin_portal.css', html)

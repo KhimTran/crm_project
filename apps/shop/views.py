@@ -4,11 +4,14 @@ from django.views.decorators.http import require_GET
 
 from .forms import ProductFilterForm
 from .selectors import filtered_products, visible_products
+from .templatetags.shop_ui import active_shop_categories
 
 
 @require_GET
 def home(request):
-    return render(request, "shop/home.html", {"products": visible_products()[:6]})
+    return render(request, "shop/home.html", {
+        "products": visible_products()[:8], "categories": active_shop_categories(request),
+    })
 
 
 @require_GET
