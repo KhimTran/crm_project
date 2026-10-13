@@ -2,10 +2,21 @@
 <div class="product-grid">
 {% for product in products %}
   <article class="product-card">
-    <a class="product-image" href="{% url 'shop:product_detail' product.product_id %}" tabindex="-1" aria-hidden="true"><img src="{% static product|product_art %}" alt="" width="480" height="400" loading="lazy"><span class="illustration-label">Ảnh minh họa</span></a>
-    <div class="product-card-body"><p class="product-meta">{{ product.brand.brand_name }}</p><h3><a href="{% url 'shop:product_detail' product.product_id %}">{{ product.product_name }}</a></h3><p class="product-category">{{ product.category.category_name }}</p><p class="product-price">{{ product.price|vnd_price }}</p><a class="product-detail-link" href="{% url 'shop:product_detail' product.product_id %}">Xem chi tiết <span aria-hidden="true">↗</span><span class="visually-hidden"> {{ product.product_name }}</span></a></div>
+    <a class="product-image" href="{% url 'shop:product_detail' product.product_id %}" tabindex="-1" aria-hidden="true">
+      <img src="{% static 'images/product-image-unavailable.svg' %}" alt="" width="64" height="64" loading="lazy"><span>Chưa có ảnh</span>
+    </a>
+    <div class="product-card-body">
+      <h3><a href="{% url 'shop:product_detail' product.product_id %}">{{ product.product_name }}</a></h3>
+      <p class="product-meta">{{ product.brand.brand_name }}</p>
+      <p class="product-price">{{ product.price|vnd_price }}</p>
+      <a class="product-detail-link" href="{% url 'shop:product_detail' product.product_id %}">Xem chi tiết<span class="visually-hidden"> {{ product.product_name }}</span></a>
+    </div>
   </article>
 {% empty %}
-  <div class="shop-empty"><span class="empty-symbol" aria-hidden="true">⌕</span><h2>{% if form.errors %}Bộ lọc chưa hợp lệ{% else %}Chưa có sản phẩm phù hợp{% endif %}</h2><p>{% if form.errors %}Kiểm tra các trường được đánh dấu rồi thử lại.{% else %}Thử từ khóa khác hoặc thay đổi bộ lọc để tiếp tục khám phá.{% endif %}</p><a class="shop-button shop-button-outline" href="{% url 'shop:products' %}">Xem tất cả sản phẩm</a></div>
+  <div class="shop-empty">
+    <h2>{% if form.errors %}Bộ lọc chưa hợp lệ{% else %}Chưa có sản phẩm phù hợp{% endif %}</h2>
+    <p>{% if form.errors %}Kiểm tra các trường được đánh dấu rồi thử lại.{% else %}Thử từ khóa khác hoặc thay đổi bộ lọc.{% endif %}</p>
+    <a class="shop-button shop-button-outline" href="{% url 'shop:products' %}">Xem tất cả sản phẩm</a>
+  </div>
 {% endfor %}
 </div>

@@ -1,6 +1,5 @@
 """Presentation helpers for the customer storefront only."""
 from decimal import Decimal, InvalidOperation
-import unicodedata
 
 from django import template
 
@@ -36,23 +35,3 @@ def vnd_price(value):
         return f"{grouped}{',' + fraction if fraction != '00' else ''} ₫"
     except (InvalidOperation, TypeError, ValueError):
         return ""
-
-
-@register.filter
-def category_art(category_name):
-    # Match category labels only; never pretend an illustration is a real model.
-    label = unicodedata.normalize("NFKD", str(category_name)).encode("ascii", "ignore").decode().strip().casefold()
-    kinds = {
-        "racket": "racket", "rackets": "racket", "demo rackets": "racket", "badminton rackets": "racket", "vot": "racket", "vot cau long": "racket",
-        "shoes": "shoes", "badminton shoes": "shoes", "giay": "shoes", "giay cau long": "shoes",
-        "shuttlecocks": "shuttle", "shuttlecock": "shuttle", "qua cau": "shuttle", "cau long": "shuttle",
-        "bags": "bag", "bag": "bag", "tui": "bag", "tui vot": "bag", "balo": "bag", "balo cau long": "bag",
-        "apparel": "apparel", "clothing": "apparel", "quan ao": "apparel", "quan ao cau long": "apparel",
-        "accessories": "accessory", "phu kien": "accessory", "phu kien cau long": "accessory",
-    }
-    return f"images/shop-{kinds.get(label, 'generic')}.svg"
-
-
-@register.filter
-def product_art(product):
-    return category_art(product.category.category_name)

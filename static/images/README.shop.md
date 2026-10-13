@@ -1,4 +1,8 @@
-# Customer storefront illustrations
+# Customer storefront image assets
+
+Current retail revision uses only `product-image-unavailable.svg`: an original neutral image icon, with an explicit missing-image label in templates. Product has no image storage contract. No category, brand, name or ID is mapped to a pretend product image. The artwork below is retained for history; current customer templates do not reference it.
+
+## Previous illustrations
 
 Created for this project on 2026-10-12. All `shop-*.svg` files in this directory are original SVG artwork authored for the customer storefront. They are local assets and require no remote image service, CDN, or font.
 

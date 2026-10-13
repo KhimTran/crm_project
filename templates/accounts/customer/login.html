@@ -1,19 +1,10 @@
 {% extends "layouts/base_customer.html" %}
-{% load static %}
 {% block title %}Đăng nhập{% endblock %}
 {% block content %}
 <section class="customer-auth-layout" aria-labelledby="login-title">
-  <div class="customer-auth-intro">
-    <p class="eyebrow">Cùng bạn ra sân</p>
-    <h2>Sẵn sàng cho trận cầu tiếp theo.</h2>
-    <p>Khám phá sản phẩm cầu lông và lưu những danh mục bạn quan tâm trong hồ sơ của mình.</p>
-    <img class="auth-illustration" src="{% static 'images/shop-court.svg' %}" alt="" width="900" height="620">
-    <a href="{% url 'shop:products' %}">Khám phá sản phẩm <span aria-hidden="true">→</span></a>
-  </div>
   <div class="customer-auth-card form-panel">
-    <p class="eyebrow">Chào mừng trở lại</p>
     <h1 id="login-title">Đăng nhập</h1>
-    <p>Dành cho khách hàng và người dùng CRM.</p>
+    <p>Đăng nhập để quản lý hồ sơ và tài khoản của bạn.</p>
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ next }}">

@@ -1,5 +1,7 @@
 # TV1 shop redesign — bản thử 2026-10-12
 
+> Bản đầu, lưu làm lịch sử. Bản đang dùng và kiểm chứng mới nhất: [compact retail revision](tv1_shop_retail_revision.md).
+
 Nhánh `feature/tv1-shop-redesign` tạo sau fetch từ `origin/develop` tại `6dc4372`.
 Working tree ban đầu sạch. Thực hiện trong worktree Codex hiện có; checkout chính
 `D:/Desktop/crm_project` vẫn sạch trên `develop`. Lưu commit cục bộ; không push,

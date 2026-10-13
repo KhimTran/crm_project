@@ -1,14 +1,18 @@
 {% extends "layouts/base_customer.html" %}
-{% load static shop_ui %}
 {% block content %}
-<section class="shop-hero" aria-labelledby="hero-title">
-  <div class="hero-copy"><p class="eyebrow">CHO MỖI LẦN RA SÂN</p><h1 id="hero-title">Đam mê cầu lông.<br><span>Bắt đầu từ đây.</span></h1><p>Khám phá vợt và dụng cụ phù hợp với phong cách chơi của bạn.</p><a class="shop-button" href="{% url 'shop:products' %}">Khám phá sản phẩm <span aria-hidden="true">↗</span></a><p class="hero-footnote">Tìm theo danh mục, thương hiệu và mức giá</p></div>
-  <div class="hero-art"><img src="{% static 'images/shop-court.svg' %}" alt="Minh họa sân cầu lông, vợt và quả cầu" width="900" height="620" fetchpriority="high"><span class="hero-art-caption">SẴN SÀNG CHO TRẬN ĐẤU TIẾP THEO</span></div>
+<section class="shop-banner" aria-labelledby="banner-title">
+  <div><h1 id="banner-title">Vợt và phụ kiện cầu lông</h1><p>Tìm sản phẩm theo danh mục, thương hiệu và mức giá.</p></div>
+  <a class="shop-button" href="{% url 'shop:products' %}">Xem sản phẩm</a>
 </section>
 <section class="category-section" aria-labelledby="categories-title">
-  <div class="section-heading"><div><p class="eyebrow">TÌM ĐÚNG DỤNG CỤ</p><h2 id="categories-title">Khám phá danh mục</h2></div><a class="section-link" href="{% url 'shop:products' %}">Tất cả sản phẩm <span aria-hidden="true">→</span></a></div>
-  <div class="category-grid">{% for category in categories %}<a class="category-tile" href="{% url 'shop:products' %}?category={{ category.category_id }}"><img src="{% static category.category_name|category_art %}" alt="" width="480" height="400" loading="lazy"><span>{{ category.category_name }} <span aria-hidden="true">↗</span></span></a>{% empty %}<p class="empty-inline">Danh mục đang được cập nhật.</p>{% endfor %}</div>
+  <div class="section-heading"><h2 id="categories-title">Danh mục sản phẩm</h2></div>
+  <div class="category-grid">
+    {% for category in categories %}<a class="category-tile" href="{% url 'shop:products' %}?category={{ category.category_id }}">{{ category.category_name }}</a>
+    {% empty %}<p>Danh mục đang được cập nhật.</p>{% endfor %}
+  </div>
 </section>
-<section aria-labelledby="featured-title"><div class="section-heading"><div><p class="eyebrow">LỰA CHỌN CHO BẠN</p><h2 id="featured-title">Sản phẩm đang bán</h2></div><a class="section-link" href="{% url 'shop:products' %}">Xem tất cả <span aria-hidden="true">→</span></a></div>{% include "shop/_product_cards.html" %}</section>
-<section class="shop-explore"><span class="explore-mark" aria-hidden="true">↗</span><div><h2>Mỗi người chơi, một lựa chọn.</h2><p>Dùng bộ lọc để tìm sản phẩm theo nhu cầu của bạn.</p></div><a class="shop-button shop-button-outline" href="{% url 'shop:products' %}">Tìm sản phẩm phù hợp</a></section>
+<section aria-labelledby="featured-title">
+  <div class="section-heading"><h2 id="featured-title">Sản phẩm đang bán</h2><a class="section-link" href="{% url 'shop:products' %}">Xem tất cả</a></div>
+  {% include "shop/_product_cards.html" %}
+</section>
 {% endblock %}

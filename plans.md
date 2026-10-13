@@ -1034,3 +1034,25 @@ was used without printing credentials.
   selector. Detail now renders inactive category as text and links to full catalog,
   without changing visibility policy. Existing long/demo labels preserved.
 - Run/rollback guidance and precise validation: docs/tv1_shop_redesign.md.
+
+### TV1 compact retail revision — 2026-10-12
+
+- Owner requested a complete retail-oriented revision on the same feature branch.
+  Clean HEAD d22c43f saved as local annotated tag
+  checkpoint/tv1-shop-before-retail-20261012 before edits and browser captures.
+  New revision remains uncommitted in the existing worktree; no push/merge/PR.
+- Reduced header to two rows, compact text banner, direct category/product headings,
+  full DB category labels, neutral missing-image asset, readable compact product cards,
+  responsive filters and simplified auth forms. Removed category-name illustration
+  guessing helpers. No domain schema/URL/service/permissions or Admin/CRM changes.
+- Demo DB unchanged. 62 related tests pass in 51.576s on test_crm_db; check 0 issues,
+  migration dry-run No changes detected. Regression preserves Demo/PR2 labels.
+- Browser 1440/1366/390 at 100%: home/list 4/2 columns and no overflow; search,
+  combined filters, pagination, detail, empty/error, menus, focus/Escape checked.
+  Login/profile/Admin QA used temporary test_crm_db fixtures/cookies on 8002 only;
+  all created business fixtures/authenticated sessions removed. No physical-device
+  or full-suite rerun claim. Main text palette contrast >=5.18:1.
+- Before/after captures at matching 1440 and 390 viewports outside repository.
+  Final browser connection interrupted; preview 8001 restarted. See precise results,
+  data TV1/TV2 must prepare, run commands and safe rollback in
+  docs/tv1_shop_retail_revision.md. Previous redesign evidence remains historical.

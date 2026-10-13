@@ -4,7 +4,6 @@ from django.contrib.staticfiles import finders
 from django.test import TestCase
 
 from apps.catalog.models import Brand, Category, Product, Supplier
-from .templatetags.shop_ui import product_art
 
 
 class ShopTests(TestCase):
@@ -29,8 +28,8 @@ class ShopTests(TestCase):
             self.assertTemplateUsed(response, "layouts/base_customer.html")
             self.assertNotContains(response, "Inactive product")
             self.assertNotContains(response, "https://cdn")
-            self.assertContains(response, "/static/" + product_art(self.products[0]))
-        for asset in ("vendor/bootstrap.min.css", "css/tv1.css", product_art(self.products[0])):
+            self.assertContains(response, "/static/" + "images/product-image-unavailable.svg")
+        for asset in ("vendor/bootstrap.min.css", "css/tv1.css", "images/product-image-unavailable.svg"):
             self.assertTrue(finders.find(asset))
 
     def test_combined_filters_use_decimal_price_and_match_category_brand(self):

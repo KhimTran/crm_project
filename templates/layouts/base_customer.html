@@ -14,9 +14,8 @@
 <body class="customer-layout">
   <a class="customer-skip-link" href="#main-content">Đến nội dung chính</a>
   <header class="customer-header">
-    <div class="shop-topline"><div>Dành cho niềm đam mê cầu lông <span>Khám phá · Lựa chọn · Ra sân</span></div></div>
     <div class="customer-header-inner">
-      <a class="customer-brand" href="{% url 'shop:home' %}" aria-label="Cửa hàng cầu lông — Trang chủ"><span class="brand-symbol" aria-hidden="true">B<span>.</span></span><span>CỬA HÀNG<small>CẦU LÔNG</small></span></a>
+      <a class="customer-brand" href="{% url 'shop:home' %}" aria-label="Cửa hàng cầu lông — Trang chủ">Cửa hàng <span>cầu lông</span></a>
       <form class="header-search" method="get" action="{% url 'shop:products' %}" role="search">
         <label class="visually-hidden" for="shop-search">Tìm tên sản phẩm</label>
         <input id="shop-search" type="search" name="q" maxlength="200" placeholder="Bạn đang tìm sản phẩm nào?" value="{{ request.GET.q|default:'' }}">
@@ -39,12 +38,11 @@
     </div>
     <div class="customer-navigation-row">
       <nav class="customer-nav" aria-label="Điều hướng cửa hàng">
+        {% shop_navigation %}
         <a href="{% url 'shop:home' %}"{% if request.resolver_match.view_name == 'shop:home' %} aria-current="page"{% endif %}>Trang chủ</a>
         <a href="{% url 'shop:products' %}"{% if request.resolver_match.view_name == 'shop:products' %} aria-current="page"{% endif %}>Sản phẩm</a>
-        {% if request.user.is_authenticated and request.user.role == 'CUSTOMER' %}<a href="{% url 'customers:profile' %}">Hồ sơ cá nhân <span aria-hidden="true">↗</span></a>{% else %}<a href="{% url 'customer_auth:login' %}">Không gian khách hàng <span aria-hidden="true">↗</span></a>{% endif %}
       </nav>
     </div>
-    {% shop_navigation %}
   </header>
   <main id="main-content" class="customer-main" tabindex="-1">
     {% if messages %}
@@ -56,8 +54,8 @@
   </main>
   <footer class="customer-footer">
     <div class="customer-footer-inner">
-      <div><p class="footer-brand">Cửa hàng cầu lông<span>.</span></p><p>Chọn dụng cụ. Tìm cảm hứng. Sẵn sàng ra sân.</p></div>
-      <nav aria-label="Liên kết cuối trang"><a href="{% url 'shop:products' %}">Khám phá sản phẩm</a><a href="{% url 'customer_auth:login' %}">Tài khoản khách hàng</a></nav>
+      <p class="footer-brand">Cửa hàng cầu lông</p>
+      <nav aria-label="Liên kết cuối trang"><a href="{% url 'shop:products' %}">Sản phẩm</a><a href="{% url 'customer_auth:login' %}">Tài khoản khách hàng</a></nav>
       <p class="footer-copyright">&copy; {% now "Y" %} Cửa hàng cầu lông</p>
     </div>
   </footer>

@@ -1,4 +1,4 @@
-// Progressive enhancement for customer controls. Filters still work without JS.
+// Native disclosures and GET forms remain usable without JavaScript.
 (() => {
   const disclosure = document.querySelector('.customer-layout .filter-disclosure');
   if (disclosure) {
@@ -7,16 +7,16 @@
     syncFilter();
     desktop.addEventListener('change', syncFilter);
   }
-  const account = document.querySelector('.customer-layout .account-menu');
-  if (account) {
+  const menus = document.querySelectorAll('.customer-layout .account-menu, .customer-layout .category-menu');
+  menus.forEach((menu) => {
     document.addEventListener('click', (event) => {
-      if (!account.contains(event.target)) account.open = false;
+      if (!menu.contains(event.target)) menu.open = false;
     });
-    account.addEventListener('keydown', (event) => {
+    menu.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
-        account.open = false;
-        account.querySelector('summary').focus();
+        menu.open = false;
+        menu.querySelector('summary').focus();
       }
     });
-  }
+  });
 })();

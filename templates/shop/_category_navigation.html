@@ -1,8 +1,9 @@
-<nav class="category-navigation" aria-label="Danh mục sản phẩm">
-  <div class="category-navigation-inner">
-    <a class="category-all" href="{% url 'shop:products' %}"><span aria-hidden="true">☰</span> Tất cả sản phẩm</a>
+<details class="category-menu">
+  <summary><span aria-hidden="true">☰</span> Danh mục <span aria-hidden="true">⌄</span></summary>
+  <div class="category-menu-panel" aria-label="Danh mục sản phẩm">
+    <a class="category-all" href="{% url 'shop:products' %}">Tất cả sản phẩm</a>
     {% for category in categories %}
       <a href="{% url 'shop:products' %}?category={{ category.category_id }}"{% if request.GET.category == category.category_id|stringformat:'s' %} aria-current="page"{% endif %}>{{ category.category_name }}</a>
     {% empty %}<span class="category-empty">Danh mục đang được cập nhật</span>{% endfor %}
   </div>
-</nav>
+</details>

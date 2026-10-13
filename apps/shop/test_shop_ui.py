@@ -2,15 +2,13 @@
 
 from decimal import Decimal
 from html.parser import HTMLParser
-from types import SimpleNamespace
 from urllib.parse import parse_qs, urlsplit
 
-from django.contrib.staticfiles import finders
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from apps.catalog.models import Brand, Category, Product, Supplier
-from .templatetags.shop_ui import category_art, product_art, vnd_price
+from .templatetags.shop_ui import vnd_price
 
 
 class StorefrontHTML(HTMLParser):
@@ -85,24 +83,6 @@ class ShopDisplayFilterTests(SimpleTestCase):
                     with self.subTest(language=language, value=value):
                         self.assertEqual(vnd_price(value), expected)
 
-    def test_product_illustration_uses_category_and_does_not_guess_a_specific_model(self):
-        racket_art = category_art("Rackets")
-        shoe_art = category_art("Shoes")
-        generic_art = category_art("Unrecognized category")
-        self.assertNotEqual(racket_art, shoe_art)
-        self.assertNotEqual(racket_art, generic_art)
-        self.assertEqual(category_art("  RACKETS  "), racket_art)
-        self.assertEqual(category_art("Vợt cầu lông"), racket_art)
-        self.assertEqual(category_art("My Rackets collection"), generic_art)
-        product = SimpleNamespace(
-            category=SimpleNamespace(category_name="Unrecognized category"),
-            brand=SimpleNamespace(brand_name="Rackets"),
-            product_name="Yonex Astrox badminton racket",
-        )
-        self.assertEqual(product_art(product), generic_art)
-        for asset in (racket_art, shoe_art, generic_art):
-            self.assertFalse(asset.startswith(("http:", "https:")))
-            self.assertTrue(finders.find(asset), asset)
 
 
 class ShopNavigationTests(TestCase):
@@ -157,13 +137,13 @@ class ShopNavigationTests(TestCase):
         response = self.client.get(reverse("shop:products"), {"q": "Decimal price"})
         self.assertEqual(list(response.context["page"].object_list), [self.product])
 
-    def test_price_and_category_illustration_match_on_cards_and_detail(self):
+    def test_price_and_honest_missing_image_label_match_on_cards_and_detail(self):
         for path in ("/", "/products/", reverse("shop:product_detail", args=[self.product.pk])):
             with self.subTest(path=path):
                 response = self.client.get(path)
                 self.assertContains(response, "1.250.000,50 ₫")
-                self.assertContains(response, "/static/" + product_art(self.product))
-                self.assertContains(response, "minh họa")
+                self.assertContains(response, "/static/images/product-image-unavailable.svg")
+                self.assertContains(response, "Chưa có ảnh")
 
     def test_active_product_with_inactive_category_does_not_link_to_invalid_filter(self):
         Category.objects.filter(pk=self.rackets.pk).update(status="INACTIVE")
@@ -174,6 +154,20 @@ class ShopNavigationTests(TestCase):
         self.assertIn(reverse("shop:products"), [href for href, _ in html.links])
         self.product.refresh_from_db()
         self.assertEqual(self.product.status, "ACTIVE")
+
+    def test_demo_labels_are_preserved_and_searchable(self):
+        self.rackets.category_name = "Demo Rackets"
+        self.rackets.save(update_fields=["category_name"])
+        self.brand.brand_name = "PR2 kiểm thử thương hiệu"
+        self.brand.save(update_fields=["brand_name"])
+        self.product.product_name = "Demo Racket 01"
+        self.product.save(update_fields=["product_name"])
+        for path in ("/", "/products/", reverse("shop:product_detail", args=[self.product.pk])):
+            response = self.client.get(path)
+            for label in (self.rackets.category_name, self.brand.brand_name, self.product.product_name):
+                self.assertContains(response, label)
+        response = self.client.get("/products/", {"q": "Demo Racket"})
+        self.assertEqual(list(response.context["page"].object_list), [self.product])
 
     def test_admin_login_remains_outside_customer_styles(self):
         response = self.client.get("/admin-portal/login/")

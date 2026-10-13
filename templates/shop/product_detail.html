@@ -2,12 +2,31 @@
 {% load static shop_ui %}
 {% block title %}{{ product.product_name }} · Cửa hàng cầu lông{% endblock %}
 {% block content %}
-<nav class="shop-breadcrumb" aria-label="Breadcrumb"><a href="{% url 'shop:home' %}">Trang chủ</a><span aria-hidden="true">/</span><a href="{% url 'shop:products' %}">Sản phẩm</a><span aria-hidden="true">/</span>{% if product.category.status == 'ACTIVE' %}<a href="{% url 'shop:products' %}?category={{ product.category_id }}">{{ product.category.category_name }}</a>{% else %}<span>{{ product.category.category_name }}</span>{% endif %}<span aria-hidden="true">/</span><span aria-current="page">{{ product.product_name }}</span></nav>
+<nav class="shop-breadcrumb" aria-label="Breadcrumb">
+  <a href="{% url 'shop:home' %}">Trang chủ</a><span aria-hidden="true">/</span>
+  <a href="{% url 'shop:products' %}">Sản phẩm</a><span aria-hidden="true">/</span>
+  {% if product.category.status == 'ACTIVE' %}<a href="{% url 'shop:products' %}?category={{ product.category_id }}">{{ product.category.category_name }}</a>{% else %}<span>{{ product.category.category_name }}</span>{% endif %}
+  <span aria-hidden="true">/</span><span aria-current="page">{{ product.product_name }}</span>
+</nav>
 <article>
   <div class="product-detail">
-    <figure class="detail-image"><img src="{% static product|product_art %}" alt="Minh họa loại sản phẩm: {{ product.category.category_name }}" width="480" height="400"><figcaption>Ảnh minh họa loại sản phẩm, không phải ảnh mẫu {{ product.product_name }}.</figcaption></figure>
-    <div class="detail-information"><p class="eyebrow">{{ product.brand.brand_name }}</p><h1>{{ product.product_name }}</h1><p class="detail-category">{{ product.category.category_name }}</p><p class="product-price">{{ product.price|vnd_price }}</p><dl class="product-facts"><div><dt>Thương hiệu</dt><dd>{{ product.brand.brand_name }}</dd></div><div><dt>Danh mục</dt><dd>{{ product.category.category_name }}</dd></div></dl>{% if product.category.status == 'ACTIVE' %}<a class="shop-button shop-button-outline" href="{% url 'shop:products' %}?category={{ product.category_id }}">Xem sản phẩm cùng danh mục <span aria-hidden="true">→</span></a>{% else %}<a class="shop-button shop-button-outline" href="{% url 'shop:products' %}">Khám phá các sản phẩm khác <span aria-hidden="true">→</span></a>{% endif %}<a class="detail-back" href="{% url 'shop:products' %}">← Về danh sách sản phẩm</a></div>
+    <figure class="detail-image">
+      <div class="detail-placeholder"><img src="{% static 'images/product-image-unavailable.svg' %}" alt="" width="80" height="80"></div>
+      <figcaption>Chưa có ảnh sản phẩm</figcaption>
+    </figure>
+    <div class="detail-information">
+      <h1>{{ product.product_name }}</h1>
+      <p class="product-price">{{ product.price|vnd_price }}</p>
+      <dl class="product-facts">
+        <div><dt>Thương hiệu</dt><dd>{{ product.brand.brand_name }}</dd></div>
+        <div><dt>Danh mục</dt><dd>{{ product.category.category_name }}</dd></div>
+      </dl>
+      {% if product.category.status == 'ACTIVE' %}<a class="shop-button shop-button-outline" href="{% url 'shop:products' %}?category={{ product.category_id }}">Xem sản phẩm cùng danh mục</a>{% endif %}
+      <a class="detail-back" href="{% url 'shop:products' %}">Về danh sách sản phẩm</a>
+    </div>
   </div>
-  <section class="product-description" aria-labelledby="description-title"><p class="eyebrow">TÌM HIỂU SẢN PHẨM</p><h2 id="description-title">Mô tả sản phẩm</h2><div>{{ product.description|default:"Chưa có mô tả."|linebreaks }}</div></section>
+  <section class="product-description" aria-labelledby="description-title">
+    <h2 id="description-title">Mô tả sản phẩm</h2><div>{{ product.description|default:"Chưa có mô tả."|linebreaks }}</div>
+  </section>
 </article>
 {% endblock %}
