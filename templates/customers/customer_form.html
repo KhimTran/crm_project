@@ -1,17 +1,17 @@
-{% extends "layouts/base_crm.html" %}
-{% load static %}
-{% block title %}Thêm khách hàng{% endblock %}
-{% block page_title %}Thêm khách hàng{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}">{% endblock %}
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{% t "Thêm khách hàng" "Create Customer" %}{% endblock %}
+{% block page_title %}{% t "Thêm khách hàng" "Create Customer" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 
 {% block content %}
 <div class="crm-card">
   <form method="post" class="crm-form" novalidate>
     {% csrf_token %}
     {% if form.non_field_errors %}
-      <ul class="crm-errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+      <ul class="crm-errorlist">{% for e in form.non_field_errors %}<li>{% t e %}</li>{% endfor %}</ul>
     {% endif %}
-    <p>Hệ thống tạo tài khoản đăng nhập cho khách hàng với mật khẩu tạm; mật khẩu chỉ hiển thị một lần sau khi lưu.</p>
+    <p>{% t "Hệ thống tạo tài khoản đăng nhập cho khách hàng với mật khẩu tạm; mật khẩu chỉ hiển thị một lần sau khi lưu." "The system creates a login account for the customer with a temporary password; the password is shown only once after saving." %}</p>
 
     <div class="crm-form-grid">
       {% for field in form %}
@@ -19,7 +19,7 @@
           <div class="crm-field">
             <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
             {{ field }}
-            {% if field.errors %}<ul class="crm-errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            {% if field.errors %}<ul class="crm-errorlist">{% for e in field.errors %}<li>{% t e %}</li>{% endfor %}</ul>{% endif %}
           </div>
         {% endif %}
       {% endfor %}
@@ -30,14 +30,14 @@
         <fieldset class="crm-field">
           <legend>{{ field.label }}</legend>
           {{ field }}
-          {% if field.errors %}<ul class="crm-errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          {% if field.errors %}<ul class="crm-errorlist">{% for e in field.errors %}<li>{% t e %}</li>{% endfor %}</ul>{% endif %}
         </fieldset>
       {% endif %}
     {% endfor %}
 
     <div class="crm-actions">
-      <button type="submit" class="crm-btn">Lưu khách hàng</button>
-      <a class="crm-btn crm-btn-secondary" href="{% url 'customers:list' %}">Hủy</a>
+      <button type="submit" class="crm-btn">{% t "Lưu khách hàng" "Save Customer" %}</button>
+      <a class="crm-btn crm-btn-secondary" href="{% url 'customers:list' %}">{% t "Hủy" "Cancel" %}</a>
     </div>
   </form>
 </div>

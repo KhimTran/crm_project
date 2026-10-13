@@ -183,7 +183,8 @@ class SurveyRegressionTests(TestCase):
         self.survey.save(update_fields=["title"])
         self.client.force_login(self.admin)
         response = self.client.get(reverse("surveys:manage_stats", args=[self.survey.pk]))
-        self.assertContains(response, '<h1 class="sv-print-title">Thống kê — Report &lt;title&gt;</h1>')
+        # Admin xem trong Admin Portal nên tiêu đề in là tiếng Anh (Quản lý CRM vẫn thấy "Thống kê —")
+        self.assertContains(response, '<h1 class="sv-print-title">Statistics — Report &lt;title&gt;</h1>')
 
     @override_settings(LANGUAGE_CODE="vi")
     def test_statistics_keep_decimal_points_in_css_and_correct_counts(self):

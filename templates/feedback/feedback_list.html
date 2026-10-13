@@ -1,59 +1,60 @@
-{% extends "layouts/base_crm.html" %}
-{% load static %}
-{% block title %}Phản hồi khách hàng{% endblock %}
-{% block page_title %}Phản hồi khách hàng{% endblock %}
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{% t "Phản hồi khách hàng" "Customer Feedback" %}{% endblock %}
+{% block page_title %}{% t "Phản hồi khách hàng" "Customer Feedback" %}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}">
+<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">
 <link rel="stylesheet" href="{% static 'css/crm_feedbacks.css' %}">
 {% endblock %}
 
 {% block content %}
-<p class="crm-summary">Có <strong>{{ new_count }}</strong> phản hồi mới chưa xử lý.</p>
+{% if in_admin_portal %}<p class="crm-summary"><strong>{{ new_count }}</strong> new feedback item(s) waiting to be handled.</p>
+{% else %}<p class="crm-summary">Có <strong>{{ new_count }}</strong> phản hồi mới chưa xử lý.</p>{% endif %}
 
-<form method="get" class="crm-card crm-filter" role="search" aria-label="Lọc phản hồi">
+<form method="get" class="crm-card crm-filter" role="search" aria-label="{% t 'Lọc phản hồi' 'Filter feedback' %}">
   <div class="crm-field">{{ form.q.label_tag }}{{ form.q }}</div>
   <div class="crm-field">{{ form.status.label_tag }}{{ form.status }}</div>
   <div class="crm-field">{{ form.product.label_tag }}{{ form.product }}</div>
   <div class="crm-field">{{ form.rating.label_tag }}{{ form.rating }}</div>
   <div class="crm-field">{{ form.date_from.label_tag }}{{ form.date_from }}</div>
   <div class="crm-field">{{ form.date_to.label_tag }}{{ form.date_to }}
-    {% if form.date_to.errors %}<ul class="crm-errorlist">{% for e in form.date_to.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+    {% if form.date_to.errors %}<ul class="crm-errorlist">{% for e in form.date_to.errors %}<li>{% t e %}</li>{% endfor %}</ul>{% endif %}
   </div>
   <div class="crm-actions">
-    <button type="submit" class="crm-btn">Lọc</button>
-    <a class="crm-btn crm-btn-secondary" href="{% url 'crm_feedbacks:list' %}">Xóa lọc</a>
+    <button type="submit" class="crm-btn">{% t "Lọc" "Search" %}</button>
+    <a class="crm-btn crm-btn-secondary" href="{% url 'crm_feedbacks:list' %}">{% t "Xóa lọc" "Clear" %}</a>
   </div>
 </form>
 
 <div class="crm-card">
   <table class="crm-table">
     <thead>
-      <tr><th>#</th><th>Ngày gửi</th><th>Khách hàng</th><th>Sản phẩm</th><th>Số sao</th><th>Nội dung</th><th>Trạng thái</th><th>Người xử lý</th><th>Thao tác</th></tr>
+      <tr><th>#</th><th>{% t "Ngày gửi" "Submitted At" %}</th><th>{% t "Khách hàng" "Customer" %}</th><th>{% t "Sản phẩm" "Product" %}</th><th>{% t "Số sao" "Rating" %}</th><th>{% t "Nội dung" "Content" %}</th><th>{% t "Trạng thái" "Status" %}</th><th>{% t "Người xử lý" "Handled By" %}</th><th>{% t "Thao tác" "Actions" %}</th></tr>
     </thead>
     <tbody>
       {% for f in page %}
         <tr>
           <td>{{ f.feedback_id }}</td>
-          <td>{{ f.created_at|date:"d/m/Y H:i" }}</td>
+          <td>{{ f.created_at|date:datetime_fmt }}</td>
           <td>{{ f.customer.customer_code }} – {{ f.customer.full_name }}</td>
           <td>{{ f.product.product_name }}</td>
-          <td><span class="crm-stars" aria-label="{{ f.rating }} sao">{{ f.rating }}★</span></td>
+          <td><span class="crm-stars" aria-label="{{ f.rating }} {% t 'sao' 'stars' %}">{{ f.rating }}★</span></td>
           <td>{{ f.content|truncatechars:80 }}</td>
-          <td><span class="crm-badge fb-{{ f.status|lower }}">{{ f.status_label }}</span></td>
+          <td><span class="crm-badge fb-{{ f.status|lower }}">{% t f.status_label %}</span></td>
           <td>{{ f.handled_by.email|default:"–" }}</td>
-          <td><a class="crm-btn crm-btn-secondary crm-btn-sm" href="{% url 'crm_feedbacks:detail' f.feedback_id %}">Xem / xử lý</a></td>
+          <td><a class="crm-btn crm-btn-secondary crm-btn-sm" href="{% url 'crm_feedbacks:detail' f.feedback_id %}">{% t "Xem / xử lý" "View / Handle" %}</a></td>
         </tr>
       {% empty %}
-        <tr><td colspan="9">Không có phản hồi nào phù hợp.</td></tr>
+        <tr><td colspan="9">{% t "Không có phản hồi nào phù hợp." "No matching feedback found." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
 
   {% if page.has_other_pages %}
-    <nav class="crm-pagination" aria-label="Phân trang">
-      {% if page.has_previous %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page.previous_page_number }}">&laquo; Trước</a>{% endif %}
-      <span>Trang {{ page.number }} / {{ page.paginator.num_pages }}</span>
-      {% if page.has_next %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page.next_page_number }}">Sau &raquo;</a>{% endif %}
+    <nav class="crm-pagination" aria-label="{% t 'Phân trang' 'Pagination' %}">
+      {% if page.has_previous %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page.previous_page_number }}">&laquo; {% t "Trước" "Previous" %}</a>{% endif %}
+      <span>{% t "Trang" "Page" %} {{ page.number }} / {{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page.next_page_number }}">{% t "Sau" "Next" %} &raquo;</a>{% endif %}
     </nav>
   {% endif %}
 </div>

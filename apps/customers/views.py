@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.accounts.constants import AccountRole
 from apps.accounts.decorators import role_required
 from apps.feedback.models import Feedback
 
@@ -14,6 +15,7 @@ from .constants import CustomerStatus, PreferenceType
 from .errors import CustomerNotFound, CustomerServiceError
 from .forms import CustomerCreateForm, CustomerFilterForm, CustomerLockForm
 from .models import Customer, CustomerPreference
+from .portal_text import localize_form, localize_rows, portal_english, say, tr
 from .selectors import customer_queryset, filter_customers
 from .self_service_choices import CATEGORY_PREFERENCE_TYPE
 from .self_service_forms import CustomerCategoryPreferencesForm, CustomerProfileForm
@@ -23,15 +25,16 @@ from .services import create_customer, customer_related_counts, delete_customer,
 PAGE_SIZE = 10
 
 
-# tv4: kiểm tra tài khoản có thuộc nhóm Quản lý CRM không (để hiện nút thêm/khóa/xóa; CSKH chỉ xem)
+# tv4: kiểm tra tài khoản là Admin hoặc thuộc nhóm Quản lý CRM (để hiện nút thêm/khóa/xóa; CSKH chỉ xem)
 def is_crm_manager(user):
-    return user.groups.filter(name="CRM_MANAGER").exists()
+    return getattr(user, "role", None) == AccountRole.ADMIN or user.groups.filter(name="CRM_MANAGER").exists()
 
 
 # tv4: danh sách khách hàng chưa xóa, tìm kiếm + bộ lọc (selectors.filter_customers), phân trang
-@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@portal_english
 def customer_list(request):
-    form = CustomerFilterForm(request.GET or None)
+    form = localize_form(CustomerFilterForm(request.GET or None))
     customers = customer_queryset()
     if form.is_bound and form.is_valid():
         customers = filter_customers(customers, form.cleaned_data)
@@ -43,22 +46,26 @@ def customer_list(request):
 
 
 # tv4: tạo khách hàng và hiển thị mật khẩu tạm một lần.
-@role_required("CRM_MANAGER")
+@role_required("ADMIN", "CRM_MANAGER")
+@portal_english
 def customer_create(request):
-    form = CustomerCreateForm(request.POST or None)
+    form = localize_form(CustomerCreateForm(request.POST or None))
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data
         try:
             customer, password = create_customer(**data)
         except CustomerServiceError as exc:
-            form.add_error(None, str(exc))
+            form.add_error(None, tr(str(exc)))
         else:
             messages.success(
                 request,
-                f"Đã thêm khách hàng {customer.customer_code} – "
-                f"{customer.full_name}. "
-                f"Tài khoản: {customer.account.email} · "
-                f"Mật khẩu tạm: {password} (chỉ hiển thị một lần).",
+                say(f"Đã thêm khách hàng {customer.customer_code} – "
+                    f"{customer.full_name}. "
+                    f"Tài khoản: {customer.account.email} · "
+                    f"Mật khẩu tạm: {password} (chỉ hiển thị một lần).",
+                    f"Customer {customer.customer_code} – {customer.full_name} created. "
+                    f"Account: {customer.account.email} · "
+                    f"Temporary password: {password} (shown only once)."),
             )
             return redirect("customers:list")
 
@@ -83,14 +90,15 @@ def _get_active_customer_or_404(customer_id):
 
 
 # tv4: chi tiết khách hàng: thông tin, sở thích, số liệu liên quan, lịch sử phản hồi
-@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@portal_english
 def customer_detail(request, customer_id):
     customer = _get_active_customer_or_404(customer_id)
     preferences = {}
     for pref in customer.customerpreference_set.order_by("preference_type", "preference_value"):
-        preferences.setdefault(PreferenceType(pref.preference_type).label
+        preferences.setdefault(tr(PreferenceType(pref.preference_type).label)
                                if pref.preference_type in PreferenceType.values else pref.preference_type,
-                               []).append(pref.preference_value)
+                               []).append(tr(pref.preference_value))
     feedbacks = (Feedback.objects.filter(customer=customer).select_related("product", "handled_by")
                  .order_by("-created_at", "-feedback_id"))
     return render(request, "customers/customer_detail.html", {
@@ -110,8 +118,9 @@ def _back_after_action(request, customer_id):
 
 
 # tv4: 4.1.3 xử lý nút khóa tài khoản khách hàng (POST), kèm lý do trong thông báo
-@role_required("CRM_MANAGER")
+@role_required("ADMIN", "CRM_MANAGER")
 @require_POST
+@portal_english
 def customer_lock(request, customer_id):
     form = CustomerLockForm(request.POST)
     reason = form.cleaned_data["reason"] if form.is_valid() else ""
@@ -121,30 +130,34 @@ def customer_lock(request, customer_id):
     except CustomerNotFound as exc:
         raise Http404(str(exc)) from exc
     except CustomerServiceError as exc:
-        messages.error(request, str(exc))
+        messages.error(request, tr(str(exc)))
     else:
-        suffix = f" Lý do: {reason}" if reason else ""
-        messages.success(request, f"Đã khóa tài khoản {customer.customer_code} – {customer.full_name}.{suffix}")
+        suffix = say(f" Lý do: {reason}", f" Reason: {reason}") if reason else ""
+        messages.success(request, say(f"Đã khóa tài khoản {customer.customer_code} – {customer.full_name}.",
+                                      f"Account {customer.customer_code} – {customer.full_name} locked.") + suffix)
     return _back_after_action(request, customer_id)
 
 
 # tv4: mở khóa tài khoản khách hàng, chỉ nhận POST.
-@role_required("CRM_MANAGER")
+@role_required("ADMIN", "CRM_MANAGER")
 @require_POST
+@portal_english
 def customer_unlock(request, customer_id):
     try:
         customer = unlock_customer(customer_id)
     except CustomerNotFound as exc:
         raise Http404(str(exc)) from exc
     except CustomerServiceError as exc:
-        messages.error(request, str(exc))
+        messages.error(request, tr(str(exc)))
     else:
-        messages.success(request, f"Đã mở khóa tài khoản {customer.customer_code} – {customer.full_name}.")
+        messages.success(request, say(f"Đã mở khóa tài khoản {customer.customer_code} – {customer.full_name}.",
+                                      f"Account {customer.customer_code} – {customer.full_name} unlocked."))
     return _back_after_action(request, customer_id)
 
 
 # tv4: xác nhận và thực hiện xóa mềm khách hàng.
-@role_required("CRM_MANAGER")
+@role_required("ADMIN", "CRM_MANAGER")
+@portal_english
 def customer_delete(request, customer_id):
     customer = _get_active_customer_or_404(customer_id)
 
@@ -154,12 +167,13 @@ def customer_delete(request, customer_id):
         except CustomerNotFound as exc:
             raise Http404(str(exc)) from exc
         except CustomerServiceError as exc:
-            messages.error(request, str(exc))
+            messages.error(request, tr(str(exc)))
         else:
             messages.success(
                 request,
-                f"Đã xóa khách hàng {customer.customer_code} – "
-                f"{customer.full_name}.",
+                say(f"Đã xóa khách hàng {customer.customer_code} – "
+                    f"{customer.full_name}.",
+                    f"Customer {customer.customer_code} – {customer.full_name} deleted."),
             )
         return redirect("customers:list")
     return render(request, "customers/customer_confirm_delete.html",
@@ -167,15 +181,20 @@ def customer_delete(request, customer_id):
 
 
 # tv4: 4.1.5 trang báo cáo khách hàng: biểu đồ Chart.js + bảng số liệu, có nút In
-@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@portal_english
 def customer_report(request):
     charts = {
-        "age": reports.age_group_report(),
-        "gender": reports.gender_report(),
-        "level": reports.playing_level_report(),
+        "age": localize_rows(reports.age_group_report()),
+        "gender": localize_rows(reports.gender_report()),
+        "level": localize_rows(reports.playing_level_report()),
         "monthly": reports.new_customers_by_month(),
         "satisfaction": reports.satisfaction_by_product(),
-        "preferences": reports.preference_report(),
+        "preferences": [{**group, "label": tr(group["label"]), "rows": localize_rows(group["rows"])}
+                        for group in reports.preference_report()],
+        "labels": {"customers": say("Số khách hàng", "Customers"),
+                   "new_customers": say("Khách hàng mới", "New customers"),
+                   "avg_rating": say("Điểm hài lòng TB", "Avg. satisfaction")},
     }
     return render(request, "customers/customer_report.html", {
         "summary": reports.summary(),

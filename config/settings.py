@@ -49,6 +49,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.feedback.context_processors.crm_feedback_badge',
+                'apps.customers.context_processors.crm_layout',
             ],
         },
     },

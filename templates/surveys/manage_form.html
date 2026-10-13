@@ -1,12 +1,13 @@
-{% extends "layouts/base_crm.html" %}
-{% load static %}
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{{ heading }}{% endblock %}
 {% block page_title %}{{ heading }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 {% block content %}
 <form method="post" class="sv-form">
   {% csrf_token %}
   {{ form.as_p }}
-  <button class="sv-btn">Lưu</button>
-  <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_list' %}">Hủy</a>
+  <button class="sv-btn">{% t "Lưu" "Save" %}</button>
+  <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_list' %}">{% t "Hủy" "Cancel" %}</a>
 </form>
 {% endblock %}

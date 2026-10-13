@@ -1,28 +1,41 @@
-{% extends "layouts/base_crm.html" %}
-{% load static %}
-{% block title %}Xóa khách hàng{% endblock %}
-{% block page_title %}Xóa khách hàng{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}">{% endblock %}
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{% t "Xóa khách hàng" "Delete Customer" %}{% endblock %}
+{% block page_title %}{% t "Xóa khách hàng" "Delete Customer" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 
 {% block content %}
 <div class="crm-card crm-form">
+  {% if in_admin_portal %}
+  <p>Are you sure you want to delete customer <strong>{{ customer.customer_code }} – {{ customer.full_name }}</strong> ({{ customer.account.email }})?</p>
+  {% else %}
   <p>Bạn có chắc muốn xóa khách hàng <strong>{{ customer.customer_code }} – {{ customer.full_name }}</strong> ({{ customer.account.email }})?</p>
+  {% endif %}
 
   {% if counts.feedbacks or counts.surveys_sent %}
+    {% if in_admin_portal %}
+    <div class="crm-message warning alert alert-warning" role="alert">
+      This customer has <strong>{{ counts.feedbacks }}</strong> feedback record(s) and
+      has received <strong>{{ counts.surveys_sent }}</strong> survey(s)
+      (<strong>{{ counts.surveys_answered }}</strong> answered).
+      This data is kept for reports, but the customer will be hidden from the list.
+    </div>
+    {% else %}
     <div class="crm-message warning" role="alert">
       Khách hàng này đã có <strong>{{ counts.feedbacks }}</strong> phản hồi,
       được gửi <strong>{{ counts.surveys_sent }}</strong> khảo sát
       (đã làm <strong>{{ counts.surveys_answered }}</strong>).
       Các dữ liệu này vẫn được giữ lại cho báo cáo, nhưng khách hàng sẽ bị ẩn khỏi danh sách.
     </div>
+    {% endif %}
   {% endif %}
 
-  <p>Sau khi xóa, tài khoản đăng nhập của khách hàng sẽ bị khóa.</p>
+  <p>{% t "Sau khi xóa, tài khoản đăng nhập của khách hàng sẽ bị khóa." "After deletion, the customer's login account will be locked." %}</p>
 
   <form method="post" class="crm-actions">
     {% csrf_token %}
-    <button type="submit" class="crm-btn crm-btn-danger">Xác nhận xóa</button>
-    <a class="crm-btn crm-btn-secondary" href="{% url 'customers:list' %}">Hủy</a>
+    <button type="submit" class="crm-btn crm-btn-danger">{% t "Xác nhận xóa" "Confirm Delete" %}</button>
+    <a class="crm-btn crm-btn-secondary" href="{% url 'customers:list' %}">{% t "Hủy" "Cancel" %}</a>
   </form>
 </div>
 {% endblock %}
