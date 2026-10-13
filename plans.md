@@ -1056,3 +1056,23 @@ was used without printing credentials.
   Final browser connection interrupted; preview 8001 restarted. See precise results,
   data TV1/TV2 must prepare, run commands and safe rollback in
   docs/tv1_shop_retail_revision.md. Previous redesign evidence remains historical.
+
+### TV1 approved storefront — prepare PR to develop, 2026-10-13
+
+- Owner approved compact retail UI; explicitly authorized commit/push/PR but no
+  PR merge. Committed known latest UI paths as ed06697; ignored local settings/env
+  and all temporary QA files remain excluded.
+- Fetched origin; origin/develop 6dc43723 is already an ancestor. Integration merge
+  reports Already up to date, no conflicts. Final remote SHA check unchanged.
+- Latest develop has customer CRM and existing recipient survey routes; feedback
+  UI/routes and customer survey-list menu are not yet integrated. No unmerged
+  TV4/TV5 branch imported, no fake menus. Admin/CRM source unchanged.
+- Check 0 issues; no migration changes; full suite 212/212 passed in 214.456s on
+  test_crm_db. No demo database tests/writes/seed/reset/migrate/restore.
+- Fresh browser verification: home/search/detail/filter/page2, login/register,
+  customer login/profile save, existing survey take/submit/result, CRM manager
+  customer list, Admin accounts/products. QA writes only on test_crm_db after
+  runner completion; all own fixtures/authenticated sessions/server/scripts cleaned.
+- PR validation evidence and precise integration limitations recorded in
+  docs/tv1_shop_pr_validation.md. Branch prepared for push and PR to develop;
+  final merge remains the owner's review decision.

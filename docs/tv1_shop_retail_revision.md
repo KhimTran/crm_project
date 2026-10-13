@@ -1,5 +1,7 @@
 # TV1 — bản cửa hàng gọn, 2026-10-12
 
+> Bản thử ngày 12/10. Người dùng đã duyệt ngày 13/10; phiên bản đã commit và kết quả chuẩn bị PR được ghi trong [PR validation](tv1_shop_pr_validation.md).
+
 ## Trạng thái bàn giao
 
 - Nhánh: `feature/tv1-shop-redesign`, worktree
