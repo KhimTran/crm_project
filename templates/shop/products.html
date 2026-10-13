@@ -1,18 +1,29 @@
 {% extends "layouts/base_customer.html" %}
-{% block title %}Sản phẩm{% endblock %}
+{% block title %}Sản phẩm · Cửa hàng cầu lông{% endblock %}
 {% block content %}
-<h1>Sản phẩm</h1>
-<form method="get" class="filter-panel">
-  {{ form.as_div }}
-  <div><button class="btn btn-success" type="submit">Lọc sản phẩm</button> <a href="{% url 'shop:products' %}">Xóa bộ lọc</a></div>
-</form>
-<p>{{ page.paginator.count }} sản phẩm</p>
-{% include "shop/_product_cards.html" with products=page.object_list %}
-{% if page.paginator.num_pages > 1 %}
-<nav class="pagination-panel" aria-label="Phân trang sản phẩm">
-  {% if page.has_previous %}<a href="?{{ filter_query }}&amp;page={{ page.previous_page_number }}">Trang trước</a>{% endif %}
-  <span>Trang {{ page.number }} / {{ page.paginator.num_pages }}</span>
-  {% if page.has_next %}<a href="?{{ filter_query }}&amp;page={{ page.next_page_number }}">Trang sau</a>{% endif %}
-</nav>
-{% endif %}
+<nav class="shop-breadcrumb" aria-label="Breadcrumb"><a href="{% url 'shop:home' %}">Trang chủ</a><span aria-hidden="true">/</span><span aria-current="page">Sản phẩm</span></nav>
+<div class="page-heading"><h1>Sản phẩm</h1></div>
+<div class="catalog-layout">
+  <aside class="catalog-filters" aria-label="Bộ lọc sản phẩm">
+    <details class="filter-disclosure" open>
+      <summary>Bộ lọc sản phẩm <span aria-hidden="true">⌄</span></summary>
+      <form method="get" class="filter-panel">
+        {% if form.errors %}<p class="filter-error" role="alert">Bộ lọc chưa hợp lệ. Vui lòng kiểm tra thông tin bên dưới.</p>{% endif %}
+        {{ form.as_div }}
+        <div class="filter-actions"><button class="shop-button" type="submit">Lọc sản phẩm</button><a href="{% url 'shop:products' %}">Xóa bộ lọc</a></div>
+      </form>
+    </details>
+  </aside>
+  <section class="catalog-results" aria-labelledby="results-title">
+    <div class="results-heading"><h2 id="results-title">{% if form.q.value %}Kết quả cho “{{ form.q.value }}”{% else %}Tất cả sản phẩm{% endif %}</h2><span>{{ page.paginator.count }} sản phẩm</span></div>
+    {% include "shop/_product_cards.html" with products=page.object_list %}
+    {% if page.paginator.num_pages > 1 %}
+      <nav class="pagination-panel" aria-label="Phân trang sản phẩm">
+        {% if page.has_previous %}<a href="?{{ filter_query }}&amp;page={{ page.previous_page_number }}" aria-label="Trang trước">← <span>Trang trước</span></a>{% endif %}
+        <span class="pagination-current" aria-current="page">Trang {{ page.number }} / {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}<a href="?{{ filter_query }}&amp;page={{ page.next_page_number }}" aria-label="Trang sau"><span>Trang sau</span> →</a>{% endif %}
+      </nav>
+    {% endif %}
+  </section>
+</div>
 {% endblock %}

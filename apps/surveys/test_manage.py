@@ -35,7 +35,9 @@ class SurveyManageTests(TestCase):
         cls.pro = make_customer("pro@tv5.test", "ADVANCED")
         now = timezone.now()
         cls.survey = Survey.objects.create(title="S", status=SurveyStatus.DRAFT, created_by=cls.admin,
-                                           start_at=now, end_at=now + timedelta(days=5))
+                                           # MySQL DATETIME rounds fractional seconds; keep this
+                                           # open-survey fixture away from the opening boundary.
+                                           start_at=now - timedelta(minutes=1), end_at=now + timedelta(days=5))
         cls.single = SurveyQuestion.objects.create(survey=cls.survey, question_text="Q1",
                                                    question_type=QT.SINGLE_CHOICE, is_required=True, sort_order=1)
         cls.yes = SurveyOption.objects.create(question=cls.single, option_text="Yes", sort_order=1)

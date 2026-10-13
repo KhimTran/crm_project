@@ -1,0 +1,16 @@
+.crm-summary { margin: 0 0 1rem; }
+.crm-stars { color: #a86b00; font-weight: 600; white-space: nowrap; }
+.crm-badge.fb-new { background: #fdf0d5; color: #7a4d00; }
+.crm-badge.fb-in_progress { background: #e1ecfa; color: #1d4a80; }
+.crm-badge.fb-resolved { background: #e3f3e9; color: #195c37; }
+.crm-feedback-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.crm-feedback-grid h2 { margin-top: 0; font-size: 1.1rem; }
+.crm-dl { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: .4rem .75rem; margin: 0 0 1rem; }
+.crm-dl dt { color: #536984; }
+.crm-dl dd { margin: 0; }
+.crm-quote { margin: 0; padding: .75rem 1rem; border-left: 4px solid #b9c6d8; background: #f5f8fb; overflow-wrap: anywhere; }
+.crm-field textarea { width: 100%; padding: .5rem .7rem; border: 1px solid #b9c6d8; border-radius: .35rem; font: inherit; box-sizing: border-box; }
+@media (max-width: 860px) {
+  .crm-feedback-grid { grid-template-columns: minmax(0, 1fr); }
+  .crm-dl { grid-template-columns: minmax(0, 1fr); }
+}

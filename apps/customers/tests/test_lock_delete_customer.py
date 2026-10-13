@@ -20,6 +20,7 @@ def make_customer(n=1):
     return create_customer(email=f"kh{n}@example.com", full_name=f"Khách {n}", phone=f"09000000{n:02d}")
 
 
+# tv4: test 4.1.3 khóa / mở khóa chặn và khôi phục đăng nhập
 class LockUnlockServiceTests(TestCase):
     def test_lock_blocks_login_and_unlock_restores_it(self):
         customer, password = make_customer()
@@ -60,6 +61,7 @@ class LockUnlockServiceTests(TestCase):
                 action(customer.pk)
 
 
+# tv4: test 4.1.2 xóa mềm giữ lịch sử và khóa tài khoản
 class DeleteServiceTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -90,6 +92,7 @@ class DeleteServiceTests(TestCase):
         self.assertFalse(self.client.login(email=customer.account.email, password=password))
 
 
+# tv4: test 4.1.2/4.1.3 các view khóa, mở, xóa và phân quyền
 class LockDeleteViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):

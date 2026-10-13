@@ -1,8 +1,21 @@
 {% extends "layouts/base_customer.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<section class="form-panel">
-  <h1>{{ title }}</h1>
-  <form method="post">{% csrf_token %}{{ form.as_div }}<button class="btn btn-success" type="submit">{{ submit_label }}</button></form>
+<section class="customer-auth-layout" aria-labelledby="account-form-title">
+  <div class="customer-auth-card form-panel">
+    <h1 id="account-form-title">{{ title }}</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_div }}
+      <button class="shop-button" type="submit">{{ submit_label }}</button>
+    </form>
+    <div class="auth-links">
+      {% if request.resolver_match.url_name == 'register' %}
+        <p>Đã có tài khoản? <a href="{% url 'customer_auth:login' %}">Đăng nhập</a></p>
+      {% else %}
+        <a href="{% url 'shop:home' %}">Về cửa hàng</a>
+      {% endif %}
+    </div>
+  </div>
 </section>
 {% endblock %}

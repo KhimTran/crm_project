@@ -6,12 +6,19 @@
 
 {% block content %}
 <div class="crm-toolbar">
-  <form method="get" role="search">
-    <input type="text" name="q" value="{{ q }}" placeholder="Tìm theo tên, SĐT, email" aria-label="Tìm khách hàng">
-    <button type="submit" class="crm-btn crm-btn-secondary">Tìm</button>
-  </form>
-  <a class="crm-btn" href="{% url 'customers:create' %}">+ Thêm khách hàng</a>
+  <span>Tìm thấy <strong>{{ page.paginator.count }}</strong> khách hàng.</span>
+  {% if can_manage %}<a class="crm-btn" href="{% url 'customers:create' %}">+ Thêm khách hàng</a>{% endif %}
 </div>
+
+<form method="get" class="crm-card crm-filter" role="search" aria-label="Lọc khách hàng">
+  {% for field in form %}
+    <div class="crm-field">{{ field.label_tag }}{{ field }}</div>
+  {% endfor %}
+  <div class="crm-actions">
+    <button type="submit" class="crm-btn">Lọc</button>
+    <a class="crm-btn crm-btn-secondary" href="{% url 'customers:list' %}">Xóa lọc</a>
+  </div>
+</form>
 
 <div class="crm-card">
   <table class="crm-table">
@@ -22,16 +29,18 @@
       {% for c in page %}
         <tr>
           <td>{{ c.customer_code }}</td>
-          <td>{{ c.full_name }}</td>
+          <td><a href="{% url 'customers:detail' c.customer_id %}">{{ c.full_name }}</a></td>
           <td>{{ c.account.email }}</td>
           <td>{{ c.phone|default:"–" }}</td>
-          <td>{{ c.playing_level|default:"–" }}</td>
+          <td>{{ c.playing_level_label|default:"–" }}</td>
           <td>
             {% if c.account.status == "ACTIVE" %}<span class="crm-badge">Hoạt động</span>
             {% else %}<span class="crm-badge locked">Đã khóa</span>{% endif %}
           </td>
           <td>{{ c.created_at|date:"d/m/Y" }}</td>
           <td class="crm-row-actions">
+            <a class="crm-btn crm-btn-secondary" href="{% url 'customers:detail' c.customer_id %}">Xem</a>
+            {% if can_manage %}
             {% if c.account.status == "ACTIVE" %}
               <form method="post" action="{% url 'customers:lock' c.customer_id %}">
                 {% csrf_token %}
@@ -45,6 +54,7 @@
               </form>
             {% endif %}
             <a class="crm-btn crm-btn-danger" href="{% url 'customers:delete' c.customer_id %}">Xóa</a>
+            {% endif %}
           </td>
         </tr>
       {% empty %}
@@ -55,9 +65,9 @@
 
   {% if page.has_other_pages %}
     <nav class="crm-pagination" aria-label="Phân trang">
-      {% if page.has_previous %}<a href="?q={{ q|urlencode }}&page={{ page.previous_page_number }}">&laquo; Trước</a>{% endif %}
+      {% if page.has_previous %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page.previous_page_number }}">&laquo; Trước</a>{% endif %}
       <span>Trang {{ page.number }} / {{ page.paginator.num_pages }}</span>
-      {% if page.has_next %}<a href="?q={{ q|urlencode }}&page={{ page.next_page_number }}">Sau &raquo;</a>{% endif %}
+      {% if page.has_next %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page.next_page_number }}">Sau &raquo;</a>{% endif %}
     </nav>
   {% endif %}
 </div>

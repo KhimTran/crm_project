@@ -1,12 +1,26 @@
 {% extends "layouts/base_customer.html" %}
 {% block title %}Hồ sơ cá nhân{% endblock %}
 {% block content %}
-<section class="form-panel">
-  <h1>Hồ sơ cá nhân</h1>
-  <p>Email: <strong>{{ request.user.email }}</strong> (không thể thay đổi).</p>
+<header class="customer-profile-header">
+  <div>
+    <p class="eyebrow">Tài khoản của bạn</p>
+    <h1>Hồ sơ cá nhân</h1>
+    <p>Cập nhật thông tin và lựa chọn cầu lông của bạn.</p>
+  </div>
+  <a class="shop-button shop-button-secondary" href="{% url 'customer_auth:password_change' %}">Đổi mật khẩu</a>
+</header>
+<section class="form-panel customer-profile-panel" aria-labelledby="profile-information-title">
+  <div class="profile-meta">
+    <span>Email tài khoản</span>
+    <strong>{{ request.user.email }}</strong>
+    <span>Không thể thay đổi.</span>
+  </div>
   <form method="post">
     {% csrf_token %}
-    {{ form.as_div }}
+    <section class="profile-section" aria-labelledby="profile-information-title">
+      <h2 id="profile-information-title">Thông tin cá nhân</h2>
+      {{ form.as_div }}
+    </section>
     {{ preferences.non_field_errors }}
     <fieldset class="preference-panel">
       <legend>Danh mục bạn quan tâm</legend>
@@ -37,7 +51,10 @@
         <p>Các lựa chọn này được giữ nguyên khi bạn lưu hồ sơ.</p>
       </section>
     {% endif %}
-    <button class="btn btn-success" type="submit">Lưu hồ sơ</button>
+    <div class="form-actions">
+      <button class="shop-button" type="submit">Lưu hồ sơ</button>
+      <a href="{% url 'shop:products' %}">Tiếp tục xem sản phẩm</a>
+    </div>
   </form>
 </section>
 {% endblock %}

@@ -1,56 +1,48 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.decorators import role_required
+from apps.feedback.models import Feedback
 
-from .constants import CustomerStatus
+from . import reports
+from .constants import CustomerStatus, PreferenceType
 from .errors import CustomerNotFound, CustomerServiceError
-from .forms import CustomerCreateForm, CustomerLockForm
+from .forms import CustomerCreateForm, CustomerFilterForm, CustomerLockForm
 from .models import Customer, CustomerPreference
+from .selectors import customer_queryset, filter_customers
 from .self_service_choices import CATEGORY_PREFERENCE_TYPE
 from .self_service_forms import CustomerCategoryPreferencesForm, CustomerProfileForm
 from .self_services import own_customer, update_own_profile
-from .services import (
-    create_customer,
-    customer_related_counts,
-    delete_customer,
-    lock_customer,
-    unlock_customer,
-)
+from .services import create_customer, customer_related_counts, delete_customer, lock_customer, unlock_customer
 
 PAGE_SIZE = 10
 
 
-# TV4: danh sách khách hàng, tìm kiếm và phân trang.
-@role_required("CRM_MANAGER")
+# tv4: kiểm tra tài khoản có thuộc nhóm Quản lý CRM không (để hiện nút thêm/khóa/xóa; CSKH chỉ xem)
+def is_crm_manager(user):
+    return user.groups.filter(name="CRM_MANAGER").exists()
+
+
+# tv4: danh sách khách hàng chưa xóa, tìm kiếm + bộ lọc (selectors.filter_customers), phân trang
+@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
 def customer_list(request):
-    q = request.GET.get("q", "").strip()
-    customers = (
-        Customer.objects.exclude(status=CustomerStatus.DELETED)
-        .select_related("account")
-        .order_by("-customer_id")
-    )
-    if q:
-        customers = customers.filter(
-            Q(full_name__icontains=q)
-            | Q(phone__icontains=q)
-            | Q(account__email__icontains=q)
-        )
-
+    form = CustomerFilterForm(request.GET or None)
+    customers = customer_queryset()
+    if form.is_bound and form.is_valid():
+        customers = filter_customers(customers, form.cleaned_data)
     page = Paginator(customers, PAGE_SIZE).get_page(request.GET.get("page"))
-    return render(
-        request,
-        "customers/customer_list.html",
-        {"page": page, "q": q},
-    )
+    query = request.GET.copy()
+    query.pop("page", None)
+    return render(request, "customers/customer_list.html", {"form": form, "page": page, "query": query.urlencode(),
+                                                            "can_manage": is_crm_manager(request.user)})
 
 
-# TV4: tạo khách hàng và hiển thị mật khẩu tạm một lần.
+# tv4: tạo khách hàng và hiển thị mật khẩu tạm một lần.
 @role_required("CRM_MANAGER")
 def customer_create(request):
     form = CustomerCreateForm(request.POST or None)
@@ -77,7 +69,7 @@ def customer_create(request):
     )
 
 
-# TV4: lấy khách hàng chưa bị xóa.
+# tv4: lấy khách hàng chưa bị xóa.
 def _get_active_customer_or_404(customer_id):
     customer = (
         Customer.objects.select_related("account")
@@ -90,7 +82,34 @@ def _get_active_customer_or_404(customer_id):
     return customer
 
 
-# TV4: khóa tài khoản khách hàng, chỉ nhận POST.
+# tv4: chi tiết khách hàng: thông tin, sở thích, số liệu liên quan, lịch sử phản hồi
+@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
+def customer_detail(request, customer_id):
+    customer = _get_active_customer_or_404(customer_id)
+    preferences = {}
+    for pref in customer.customerpreference_set.order_by("preference_type", "preference_value"):
+        preferences.setdefault(PreferenceType(pref.preference_type).label
+                               if pref.preference_type in PreferenceType.values else pref.preference_type,
+                               []).append(pref.preference_value)
+    feedbacks = (Feedback.objects.filter(customer=customer).select_related("product", "handled_by")
+                 .order_by("-created_at", "-feedback_id"))
+    return render(request, "customers/customer_detail.html", {
+        "customer": customer,
+        "preferences": preferences,
+        "feedbacks": feedbacks,
+        "counts": customer_related_counts(customer),
+        "can_manage": is_crm_manager(request.user),
+    })
+
+
+# tv4: sau khi khóa/mở khóa thì quay lại trang đã bấm (chi tiết hoặc danh sách)
+def _back_after_action(request, customer_id):
+    if request.POST.get("from") == "detail":
+        return redirect("customers:detail", customer_id=customer_id)
+    return redirect("customers:list")
+
+
+# tv4: 4.1.3 xử lý nút khóa tài khoản khách hàng (POST), kèm lý do trong thông báo
 @role_required("CRM_MANAGER")
 @require_POST
 def customer_lock(request, customer_id):
@@ -105,16 +124,11 @@ def customer_lock(request, customer_id):
         messages.error(request, str(exc))
     else:
         suffix = f" Lý do: {reason}" if reason else ""
-        messages.success(
-            request,
-            f"Đã khóa tài khoản {customer.customer_code} – "
-            f"{customer.full_name}.{suffix}",
-        )
-
-    return redirect("customers:list")
+        messages.success(request, f"Đã khóa tài khoản {customer.customer_code} – {customer.full_name}.{suffix}")
+    return _back_after_action(request, customer_id)
 
 
-# TV4: mở khóa tài khoản khách hàng, chỉ nhận POST.
+# tv4: mở khóa tài khoản khách hàng, chỉ nhận POST.
 @role_required("CRM_MANAGER")
 @require_POST
 def customer_unlock(request, customer_id):
@@ -125,16 +139,11 @@ def customer_unlock(request, customer_id):
     except CustomerServiceError as exc:
         messages.error(request, str(exc))
     else:
-        messages.success(
-            request,
-            f"Đã mở khóa tài khoản {customer.customer_code} – "
-            f"{customer.full_name}.",
-        )
-
-    return redirect("customers:list")
+        messages.success(request, f"Đã mở khóa tài khoản {customer.customer_code} – {customer.full_name}.")
+    return _back_after_action(request, customer_id)
 
 
-# TV4: xác nhận và thực hiện xóa mềm khách hàng.
+# tv4: xác nhận và thực hiện xóa mềm khách hàng.
 @role_required("CRM_MANAGER")
 def customer_delete(request, customer_id):
     customer = _get_active_customer_or_404(customer_id)
@@ -153,15 +162,26 @@ def customer_delete(request, customer_id):
                 f"{customer.full_name}.",
             )
         return redirect("customers:list")
+    return render(request, "customers/customer_confirm_delete.html",
+                  {"customer": customer, "counts": customer_related_counts(customer)})
 
-    return render(
-        request,
-        "customers/customer_confirm_delete.html",
-        {
-            "customer": customer,
-            "counts": customer_related_counts(customer),
-        },
-    )
+
+# tv4: 4.1.5 trang báo cáo khách hàng: biểu đồ Chart.js + bảng số liệu, có nút In
+@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
+def customer_report(request):
+    charts = {
+        "age": reports.age_group_report(),
+        "gender": reports.gender_report(),
+        "level": reports.playing_level_report(),
+        "monthly": reports.new_customers_by_month(),
+        "satisfaction": reports.satisfaction_by_product(),
+        "preferences": reports.preference_report(),
+    }
+    return render(request, "customers/customer_report.html", {
+        "summary": reports.summary(),
+        "charts": charts,
+        "generated_at": timezone.localtime(),
+    })
 
 
 # TV1: khách hàng cập nhật hồ sơ và sở thích của chính mình.

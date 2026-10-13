@@ -95,25 +95,20 @@ def submit_survey(user, recipient_id, answers):
             )
             if response.submitted_at or response.status == "SUBMITTED":
                 return False
-            question_ids = [int(item["question_id"]) for item in answers]
+            _check_payload(answers)
+            question_ids = [item["question_id"] for item in answers]
             unique_ids = set(question_ids)
             questions = {q.pk: q for q in SurveyQuestion.objects.filter(survey=recipient.survey, pk__in=unique_ids)}
             if len(questions) != len(unique_ids):
                 raise ValidationError("Câu hỏi không thuộc khảo sát này.")
-            _check_answer_shapes(questions, answers)
+            answers = _check_answer_shapes(questions, answers)
             required = set(SurveyQuestion.objects.filter(survey=recipient.survey, is_required=True).values_list("pk", flat=True))
             if not required.issubset(question_ids):
                 raise ValidationError("Vui lòng trả lời các câu hỏi bắt buộc.")
             for item in answers:
-                question = questions[int(item["question_id"])]
+                question = questions[item["question_id"]]
                 option_id = item.get("option_id")
-                if option_id is not None and not question.surveyoption_set.filter(pk=option_id).exists():
-                    raise ValidationError("Lựa chọn không thuộc câu hỏi này.")
                 rating = item.get("rating_value")
-                if rating is not None and not 1 <= int(rating) <= 5:
-                    raise ValidationError("Điểm đánh giá phải từ 1 đến 5.")
-                if question.is_required and not (option_id or item.get("answer_text") or rating is not None):
-                    raise ValidationError("Vui lòng trả lời các câu hỏi bắt buộc.")
                 SurveyAnswer.objects.create(response=response, question=question, option_id=option_id,
                                             answer_text=item.get("answer_text"), rating_value=rating)
             now = timezone.now()
@@ -132,26 +127,60 @@ def submit_survey(user, recipient_id, answers):
 
 
 # ───────────────────────── TV5: answer shape rules ─────────────────────────
+def _valid_identifier(value):
+    return type(value) is int and 1 <= value <= 2147483647
+
+
+def _check_payload(answers):
+    """Validate JSON types before ORM lookups; bool is not an integer answer."""
+    if not isinstance(answers, list):
+        raise ValidationError("Câu trả lời phải là một danh sách.")
+    for item in answers:
+        if not isinstance(item, dict) or not _valid_identifier(item.get("question_id")):
+            raise ValidationError("Câu trả lời cần có mã câu hỏi là số nguyên hợp lệ.")
+
+
 def _check_answer_shapes(questions, answers):
-    """One answer per question, except MULTI_CHOICE (one row per distinct option).
-    Choice types need option_id, RATING needs rating_value."""
+    """Validate each type and return normalized copies before saving any answer.
+
+    Optional questions may be omitted. Every supplied answer must be meaningful;
+    MULTI_CHOICE keeps the existing one-row-per-distinct-option contract.
+    """
     per_question = Counter()
     picked = set()
+    normalized = []
     for item in answers:
-        question = questions[int(item["question_id"])]
+        question = questions[item["question_id"]]
         per_question[question.pk] += 1
         qtype = question.question_type
         if per_question[question.pk] > 1 and qtype != QuestionType.MULTI_CHOICE:
             raise ValidationError("Mỗi câu hỏi chỉ được trả lời một lần.")
         if qtype in CHOICE_TYPES:
+            field = "option_id"
             option_id = item.get("option_id")
-            if option_id is None:
-                raise ValidationError("Câu hỏi lựa chọn cần chọn một đáp án.")
-            if (question.pk, int(option_id)) in picked:
+            if not _valid_identifier(option_id) or not question.surveyoption_set.filter(pk=option_id).exists():
+                raise ValidationError("Lựa chọn phải là mã số nguyên thuộc câu hỏi này.")
+            if (question.pk, option_id) in picked:
                 raise ValidationError("Không được chọn trùng một đáp án.")
-            picked.add((question.pk, int(option_id)))
-        elif qtype == QuestionType.RATING and item.get("rating_value") is None:
-            raise ValidationError("Câu hỏi thang điểm cần có điểm từ 1 đến 5.")
+            picked.add((question.pk, option_id))
+            value = option_id
+        elif qtype == QuestionType.RATING:
+            field = "rating_value"
+            value = item.get(field)
+            if type(value) is not int or not 1 <= value <= 5:
+                raise ValidationError("Điểm đánh giá phải là số nguyên từ 1 đến 5.")
+        elif qtype == QuestionType.TEXT:
+            field = "answer_text"
+            value = item.get(field)
+            if not isinstance(value, str) or not value.strip():
+                raise ValidationError("Câu trả lời tự do phải có nội dung sau khi bỏ khoảng trắng.")
+            value = value.strip()
+        else:
+            raise ValidationError("Loại câu hỏi không được hỗ trợ.")
+        if set(item) != {"question_id", field}:
+            raise ValidationError("Câu trả lời chứa trường không phù hợp với loại câu hỏi.")
+        normalized.append({"question_id": question.pk, field: value})
+    return normalized
 
 
 # ───────────────────────── TV5: survey lifecycle ─────────────────────────

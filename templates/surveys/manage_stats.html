@@ -1,5 +1,5 @@
 {% extends "layouts/base_crm.html" %}
-{% load static %}
+{% load static l10n %}
 {% block page_title %}Thống kê — {{ survey.title }}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
 {% block content %}
@@ -22,7 +22,7 @@
     <table class="sv-table">
       {% for r in item.rows %}
       <tr><td style="width:30%">{{ r.label }}</td>
-          <td><div class="sv-bar"><span style="width:{{ r.pct }}%"></span></div></td>
+          <td><div class="sv-bar"><span style="width:{{ r.pct|unlocalize }}%"></span></div></td>
           <td style="width:90px">{{ r.n }} ({{ r.pct }}%)</td></tr>
       {% endfor %}
     </table>

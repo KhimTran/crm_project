@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 400" role="img" aria-labelledby="title">
+  <title id="title">Minh họa loại sản phẩm: trang phục thể thao</title>
+  <rect width="480" height="400" fill="#fffaf4"/>
+  <circle cx="240" cy="195" r="144" fill="#fff0df"/>
+  <ellipse cx="242" cy="344" rx="109" ry="9" fill="#e9dccf"/>
+  <path d="m199 86-57 29-47 77 51 32 22-33-7 134q81 22 158 0l-7-134 22 33 51-32-47-77-57-29q-39 23-82 0Z" fill="#ef6b2e" stroke="#212b31" stroke-width="4" stroke-linejoin="round"/>
+  <path d="m199 86-24 12q60 62 129 0l-23-12q-39 23-82 0Z" fill="#212b31"/>
+  <path d="m142 115-47 77 51 32 29-43Z" fill="#212b31"/>
+  <path d="m338 115 47 77-51 32-29-43Z" fill="#212b31"/>
+  <path d="m103 183 49 30m225-30-49 30" stroke="#fff4e8" stroke-width="5"/>
+  <path d="M168 243q72-28 146-99l3 68q-61 53-153 87Z" fill="#ff9a55"/>
+  <path d="M171 315q71 16 140 0" fill="none" stroke="#b84411" stroke-width="3"/>
+  <path d="m183 177 17 7m100-7-17 7" stroke="#fff4e8" stroke-width="5" stroke-linecap="round"/>
+</svg>

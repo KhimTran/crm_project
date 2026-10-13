@@ -36,6 +36,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # CRM – khách hàng (TV4)
+    path('crm/feedbacks/', include('apps.feedback.crm_urls')),
+    path('crm/reports/customers/', include('apps.customers.report_urls')),
+
+    # Phản hồi phía khách hàng (TV4)
+    path('feedbacks/', include('apps.feedback.urls')),
 
     # Surveys
     path('surveys/', include('apps.surveys.urls')),

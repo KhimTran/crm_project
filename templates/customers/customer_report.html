@@ -1,0 +1,81 @@
+{% extends "layouts/base_crm.html" %}
+{% load static %}
+{% block title %}Báo cáo khách hàng{% endblock %}
+{% block page_title %}Báo cáo khách hàng{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}">
+<link rel="stylesheet" href="{% static 'css/crm_reports.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="crm-toolbar">
+  <span>Số liệu tính đến {{ generated_at|date:"d/m/Y H:i" }} (không tính khách hàng đã xóa).</span>
+  <button type="button" class="crm-btn report-no-print" id="report-print">In báo cáo</button>
+</div>
+
+<div class="report-tiles">
+  <div class="report-tile"><span>Tổng khách hàng</span><strong>{{ summary.total }}</strong></div>
+  <div class="report-tile"><span>Khách hàng mới tháng này</span><strong>{{ summary.new_this_month }}</strong></div>
+  <div class="report-tile"><span>Tài khoản đang khóa</span><strong>{{ summary.locked }}</strong></div>
+  <div class="report-tile"><span>Điểm hài lòng TB</span><strong>{% if summary.avg_rating is not None %}{{ summary.avg_rating }}★{% else %}–{% endif %}</strong><small>{{ summary.feedbacks }} phản hồi</small></div>
+</div>
+
+<div class="report-grid">
+  <section class="crm-card report-section" aria-labelledby="r-age">
+    <h2 id="r-age">Khách hàng theo nhóm tuổi</h2>
+    <div class="report-chart"><canvas id="chart-age" role="img" aria-label="Biểu đồ khách hàng theo nhóm tuổi"></canvas></div>
+    <table class="crm-table"><thead><tr><th>Nhóm tuổi</th><th>Số KH</th></tr></thead>
+      <tbody>{% for r in charts.age %}<tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>{% endfor %}</tbody></table>
+  </section>
+
+  <section class="crm-card report-section" aria-labelledby="r-gender">
+    <h2 id="r-gender">Khách hàng theo giới tính</h2>
+    <div class="report-chart"><canvas id="chart-gender" role="img" aria-label="Biểu đồ khách hàng theo giới tính"></canvas></div>
+    <table class="crm-table"><thead><tr><th>Giới tính</th><th>Số KH</th></tr></thead>
+      <tbody>{% for r in charts.gender %}<tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>{% endfor %}</tbody></table>
+  </section>
+
+  <section class="crm-card report-section" aria-labelledby="r-level">
+    <h2 id="r-level">Khách hàng theo trình độ</h2>
+    <div class="report-chart"><canvas id="chart-level" role="img" aria-label="Biểu đồ khách hàng theo trình độ"></canvas></div>
+    <table class="crm-table"><thead><tr><th>Trình độ</th><th>Số KH</th></tr></thead>
+      <tbody>{% for r in charts.level %}<tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>{% endfor %}</tbody></table>
+  </section>
+
+  <section class="crm-card report-section" aria-labelledby="r-monthly">
+    <h2 id="r-monthly">Khách hàng mới theo tháng (12 tháng gần nhất)</h2>
+    <div class="report-chart"><canvas id="chart-monthly" role="img" aria-label="Biểu đồ khách hàng mới theo tháng"></canvas></div>
+    <table class="crm-table"><thead><tr><th>Tháng</th><th>KH mới</th></tr></thead>
+      <tbody>{% for r in charts.monthly %}<tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>{% endfor %}</tbody></table>
+  </section>
+
+  {% for group in charts.preferences %}
+    <section class="crm-card report-section" aria-labelledby="r-pref-{{ forloop.counter }}">
+      <h2 id="r-pref-{{ forloop.counter }}">Sở thích – {{ group.label }}</h2>
+      <div class="report-chart"><canvas id="chart-pref-{{ forloop.counter0 }}" role="img" aria-label="Biểu đồ sở thích {{ group.label }}"></canvas></div>
+      <table class="crm-table"><thead><tr><th>{{ group.label }}</th><th>Số KH</th></tr></thead>
+        <tbody>{% for r in group.rows %}<tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>{% endfor %}</tbody></table>
+    </section>
+  {% empty %}
+    <section class="crm-card report-section"><h2>Sở thích</h2><p>Chưa có khách hàng khai báo sở thích.</p></section>
+  {% endfor %}
+
+  <section class="crm-card report-section report-wide" aria-labelledby="r-sat">
+    <h2 id="r-sat">Điểm hài lòng trung bình theo sản phẩm</h2>
+    {% if charts.satisfaction %}
+      <div class="report-chart"><canvas id="chart-satisfaction" role="img" aria-label="Biểu đồ điểm hài lòng theo sản phẩm"></canvas></div>
+      <table class="crm-table"><thead><tr><th>Sản phẩm</th><th>Điểm TB (1–5)</th><th>Số phản hồi</th></tr></thead>
+        <tbody>{% for r in charts.satisfaction %}<tr><td>{{ r.label }}</td><td>{{ r.avg }}</td><td>{{ r.count }}</td></tr>{% endfor %}</tbody></table>
+    {% else %}
+      <p>Chưa có phản hồi nào.</p>
+    {% endif %}
+  </section>
+</div>
+
+{{ charts|json_script:"report-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/customer_report.js' %}"></script>
+{% endblock %}
