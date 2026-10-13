@@ -1117,3 +1117,36 @@ was used without printing credentials.
   initialize after reset (kernel asset/path error). HTTP verification is not a
   substitute for visual/mobile/JavaScript/confirmation testing. No screenshots claim.
   Detailed evidence: docs/tv5_pr6_validation.md. PR remains open for final review.
+
+### TV5 PR #6 dedicated browser QA — 2026-10-13
+
+- Owner requested actual browser QA on port 8002/test_crm_db, synthetic accounts,
+  fixes/commit/push on feature/tv5-surveys-v2, no merge and no demo-data changes.
+  Verified clean head 23f2b2a and fetched origin; develop c6a053e already integrated.
+- [x] Prior browser blocker resolved with an authorized alternative: in-app and
+  Node kernels still fail on asset/path initialization, but bundled Playwright
+  controls installed Edge 155.0.4283.45 successfully. Actual form clicks, JavaScript
+  answer collection, alert/confirm dialogs and persisted data were verified.
+- [x] Four-type create/edit/delete/reorder; audience preview/send with AND filters;
+  exact four eligible recipients, wrong age/level/preference and locked exclusions;
+  required/optional/cancel/single-submission rules, held-form close rejection,
+  future take rejection, ownership/locked/manager access; correct counts/average,
+  choice bars/text, browser print media and visually checked two-page A4 PDF.
+- [x] Desktop 1440/1366 and mobile 390 at scale 1; customer/CRM survey menus/forms,
+  shop real search/filter/pagination/empty/error, real profile save, TV4 feedback
+  customer -> CRM reply -> customer, CRM routes and Admin Categories/Brands menus.
+- Fixed two browser-discovered UI bugs only in survey templates/CSS: print report
+  confined to sidebar grid column/missing title; CRM survey list document overflow
+  at 390px. Full-width titled print report and focusable internal table scrolling
+  verified after restart. Three new Django regressions and optional browser layout
+  regression added; no model/migration/config or unrelated CRM/Admin CSS changes.
+- [x] Initial full 284/284 (332.231s), final full 287/287 (337.570s), check 0 issues,
+  no generated migration, all existing migrations applied and empty migration plan.
+  Tests were sequential; no browser writes while runners operated.
+- [x] Independently verified 14 answers/3 submitted responses, exact recipient
+  IDs, no held/future answers and resolved feedback before exact-ID cleanup.
+  Both synthetic fixtures and 9+1 sessions removed, QA contexts/server closed,
+  private credential/state JSON and logs deleted. No crm_tv1_demo writes/reset/seed.
+- Evidence/details: docs/tv5_pr6_validation.md; screenshots/PDF/JSON outside Git.
+  Native OS printer chooser/physical printing and other browser engines not tested.
+  No remaining functional blocker in the tested scope; PR stays open for owner review.

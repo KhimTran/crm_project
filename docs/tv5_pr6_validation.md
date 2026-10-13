@@ -55,7 +55,7 @@ python manage.py test --settings=config.test_settings --keepdb --noinput
 - git diff and cached diff --check passed; no unresolved conflict entries.
 - Seed messages during regression tests refer only to the runner's test database.
 
-## Workflow verification and browser limitation
+## Initial workflow verification and browser limitation
 
 Browser automation could not initialize: `failed to write kernel assets` with
 Windows path error 3, repeatedly after reset. The shared Node runtime failed too.
@@ -84,4 +84,118 @@ answer rows were verified before deleting only this run's synthetic fixture IDs
 and authenticated sessions. Temporary scripts/settings/credential JSON removed.
 Non-sensitive HTTP audit results remain outside Git. No demo data was modified.
 
-PR #6 must remain open for review; browser QA is still outstanding before merge.
+This limitation applied to the initial integration run. The dedicated browser QA
+below supersedes it. PR #6 remains open for the owner's final review.
+
+## Dedicated browser QA — 2026-10-13
+
+Verified clean branch feature/tv5-surveys-v2 at 23f2b2a and fetched origin;
+develop c6a053e was already an ancestor. Initial fresh full run passed 284/284
+in 332.231 seconds. Browser QA began only after that runner finished.
+
+The in-app browser again failed before initialization with `failed to write
+kernel assets: The system cannot find the path specified. (os error 3)`.
+Resetting and testing the alternate Node tool produced the same error. Bundled
+Playwright could run through the shell; its default Chromium binary was absent,
+so QA used the installed Microsoft Edge **155.0.4283.45** (Chromium engine),
+headless, with actual rendered pages, JavaScript, clicks, form submissions and
+native JavaScript dialogs. These results are browser evidence, not Django Client
+or HTTP-only substitutes. No extra runtime/package was installed.
+
+Server: 127.0.0.1:8002, temporary external settings with database NAME explicitly
+fixed to **test_crm_db**, unique QA session/CSRF cookie names. Synthetic accounts
+used example.test addresses and generated passwords kept outside Git. No commands
+or browser requests targeted crm_tv1_demo. No migrate, shared seed or reset ran.
+
+Browser checks performed:
+
+- CRM created draft surveys and all four types plus an optional TEXT question.
+  Edited TEXT, deleted a disposable question, moved its order, inspected detail.
+- Actual audience radio/checkbox forms selected age 25–34, BEGINNER and a unique
+  QA category preference. Preview showed four recipients. Send confirmation
+  created exactly those four; three accounts outside age/level/preference saw no
+  survey. The matching LOCKED account was excluded. ORM independently verified IDs.
+- Three customer sessions opened their own list/form and submitted with JS
+  serialization and confirm dialogs. Required empty/whitespace TEXT produced the
+  real alert; optional TEXT was omitted. Canceling confirmation sent no POST.
+  Saved answers matched selected options, ratings 3/4/5 and stripped text exactly:
+  5 + 5 + 4 answer rows, three submitted responses. Reopening redirected to result.
+- A fourth customer held a filled form while CRM closed the survey. Its actual
+  form POST returned 400, with no answers/submission persisted. Closed GET returned
+  400; list moved the survey to closed. A sent survey opening tomorrow offered no
+  take button; direct take returned 400, and no response was created.
+- Another customer's take/result returned 403. Plain customer could not enter
+  survey creation. A session locked after login lost access (take 403, profile
+  redirected to login); a pre-locked account's real login form rejected login.
+  Backend regression tests additionally cover POST ownership, duplicate POST and
+  the unopened survey's POST path, which has no usable browser form.
+- Statistics showed sent=4, done=3, pending=1, rate=75%, rating average=4;
+  single-choice counts 2/1, multi-choice 3/2/0, correct text and optional zero.
+  Actual rendered 66.7% bars measured approximately 66.7% of their tracks.
+- Clicked Print, rendered print media and a two-page A4 PDF, and visually inspected
+  both rasterized PDF pages. This validates browser print layout; the operating
+  system printer chooser and physical printing were not exercised.
+- Desktop 1440 and mobile 390 at scale 1: survey detail, audience, take, customer
+  lists, stats, menus/forms/buttons and bars inspected/screenshotted. Shop home,
+  list, detail, profile, account/category menus and TV4 reply views had no document
+  overflow. Admin mobile menu worked; wide Admin tables retain their existing
+  internal scrolling.
+- Shop real search returned 14 QA products; next-page link preserved q. Category,
+  brand and price form returned three; empty and invalid filter states rendered.
+  Customer saved profile through its form. TV4 customer feedback -> CRM RESOLVED
+  reply -> customer reading reply passed with persisted status/note checked.
+  CRM overview/customers/feedback/surveys loaded; Admin Categories/Brands links
+  navigated to both pages on desktop and Categories via the mobile menu.
+
+### Bugs found and corrected
+
+1. Print CSS hid the sidebar without removing its 240px grid column. The report
+   became a narrow column, losing its header title. Survey-only print CSS now
+   switches the shell to block, removes main padding, keeps a four-column KPI row,
+   preserves bar colors and prints an escaped survey title. Browser measured
+   workspace=1440px, shell=1440px; the A4 report has no clipped cards/bars.
+2. CRM survey list overflowed the 390px document by 3px. A labeled, focusable
+   table region now scrolls internally while its readable table keeps 620px
+   minimum width. ArrowRight was exercised with actual keyboard focus; document
+   scrollWidth stayed 390px. No global CRM/Admin CSS change.
+
+Added three Django regressions for held-form close, future GET/POST rejection
+without writes and printable title escaping. Added optional
+`scripts/qa_survey_layout.cjs`, which checks actual list keyboard scrolling,
+390/1440 document width, statistical bars and full-width print layout using an
+existing Playwright installation. It runs only against a local QA URL on 8002
+with an external synthetic manager storage-state file; no credentials are tracked.
+
+Example browser regression command (private state/output stay outside repository):
+
+```powershell
+$env:PLAYWRIGHT_MODULE = '<existing Playwright package directory>'
+node scripts/qa_survey_layout.cjs --base-url http://127.0.0.1:8002 --survey-id <qa-survey-id> --storage-state <external-private-state.json> --output <external-evidence-directory>
+```
+
+Only this run's synthetic IDs and nine authenticated sessions were removed after
+checking persistence. QA server stopped and private credentials/storage-state
+JSON and server logs deleted before the final test runner started. Browser
+contexts closed. Non-sensitive screenshots, PDF previews and JSON audits remain
+outside Git; no account credentials, tokens, demo data or local settings commit.
+
+Final checks: `check` found 0 issues; `makemigrations --check --dry-run` reported
+No changes detected; the complete suite passed **287/287 in 337.570 seconds** on
+test_crm_db. No browser writes occurred during either test run. Node syntax check
+and the actual browser regression script passed. No model/config/migration changes
+relative to develop; all prior test methods remain.
+
+After the runner finished, a fresh synthetic draft was used to confirm edit and
+delete operations separately for **each** of SINGLE_CHOICE, MULTI_CHOICE, RATING
+and TEXT. Both choice types rejected a single option through the real form,
+accepted corrected options and replaced them on edit. Required flags changed to
+optional; up/down controls produced the correct question order. Four individual
+delete confirmations removed all questions; Send was disabled with the no-question
+error. Empty list and question form were inspected; 1366/390 layouts had no document
+overflow. No further code changes were needed. This second fixture and its one
+manager session were removed, server stopped and private state/logs deleted.
+
+Outcome: no remaining functional blocker found in the tested scope. Browser QA
+used Edge's Chromium engine and desktop/mobile viewport emulation; native OS
+printer selection/physical printing and other browser engines remain outside
+this check. PR #6 is ready for the owner's final review; no merge or auto-merge.

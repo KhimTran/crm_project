@@ -11,6 +11,9 @@
 .sv-btn.sv-danger{background:#fff;color:#b91c1c;border-color:#b91c1c}
 .sv-btn.sv-small{padding:.2rem .55rem;font-size:.85rem}
 .sv-table{width:100%;border-collapse:collapse;background:#fff}
+.sv-table-scroll{max-width:100%;overflow-x:auto}
+.sv-table-scroll:focus-visible{outline:3px solid #73b0f5;outline-offset:3px}
+.sv-survey-list{min-width:620px}
 .sv-table th,.sv-table td{padding:.55rem .7rem;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
 .sv-badge{display:inline-block;padding:.1rem .55rem;border-radius:999px;font-size:.8rem;background:#e5e7eb}
 .sv-badge.ACTIVE{background:#dcfce7;color:#166534}.sv-badge.DRAFT{background:#fef3c7;color:#92400e}
@@ -31,4 +34,14 @@
 .sv-question legend{font-weight:600;padding:0 .3rem}.sv-question label{display:block;margin:.3rem 0}
 .sv-rating{display:flex;gap:1rem;flex-wrap:wrap}.sv-rating label{display:inline-block}
 .sv-inline{display:inline}
-@media print{.sv-noprint,.crm-sidebar,.crm-header{display:none!important}}
+.sv-print-title{display:none}
+@media print{
+  .sv-noprint,.crm-sidebar,.crm-header,.crm-skip-link{display:none!important}
+  /* Removing the sidebar must also remove its grid column. */
+  .crm-layout .crm-shell{display:block}
+  .crm-layout .crm-main{padding:0}
+  .crm-layout{background:#fff}
+  .sv-print-title{display:block;margin:0 0 1rem;font-size:1.4rem}
+  .sv-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .sv-bar,.sv-bar>span{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}

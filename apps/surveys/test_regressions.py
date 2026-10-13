@@ -1,10 +1,12 @@
 """PR #6 type, atomicity, navigation and localized statistics regressions."""
 import json
 from copy import deepcopy
+from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import Account
 from apps.customers.models import Customer
@@ -149,6 +151,39 @@ class SurveyRegressionTests(TestCase):
         url = reverse("surveys:submit", args=[self.recipient.pk])
         self.assertEqual(self.client.post(url, {"answers": json.dumps(self.answers())}).status_code, 400)
         self.assertFalse(SurveyAnswer.objects.exists())
+
+    def test_already_open_form_cannot_submit_after_manager_closes_survey(self):
+        self.client.force_login(self.account)
+        self.assertEqual(self.client.get(reverse("surveys:take", args=[self.recipient.pk])).status_code, 200)
+        response = SurveyResponse.objects.get(recipient=self.recipient)
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.post(reverse("surveys:manage_close", args=[self.survey.pk])).status_code, 302)
+        self.client.force_login(self.account)
+        result = self.client.post(reverse("surveys:submit", args=[self.recipient.pk]),
+                                  {"answers": json.dumps(self.answers())})
+        self.assertEqual(result.status_code, 400)
+        response.refresh_from_db()
+        self.assertEqual(response.status, "IN_PROGRESS")
+        self.assertIsNone(response.submitted_at)
+        self.assertFalse(SurveyAnswer.objects.exists())
+        self.recipient.refresh_from_db()
+        self.assertIsNone(self.recipient.completed_at)
+
+    def test_future_survey_rejects_get_and_post_without_creating_response(self):
+        Survey.objects.filter(pk=self.survey.pk).update(start_at=timezone.now() + timedelta(days=1))
+        self.client.force_login(self.account)
+        self.assertEqual(self.client.get(reverse("surveys:take", args=[self.recipient.pk])).status_code, 400)
+        self.assertEqual(self.client.post(reverse("surveys:submit", args=[self.recipient.pk]),
+                                         {"answers": json.dumps(self.answers())}).status_code, 400)
+        self.assertFalse(SurveyResponse.objects.exists())
+        self.assertFalse(SurveyAnswer.objects.exists())
+
+    def test_statistics_have_a_printable_survey_title(self):
+        self.survey.title = "Report <title>"
+        self.survey.save(update_fields=["title"])
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("surveys:manage_stats", args=[self.survey.pk]))
+        self.assertContains(response, '<h1 class="sv-print-title">Thống kê — Report &lt;title&gt;</h1>')
 
     @override_settings(LANGUAGE_CODE="vi")
     def test_statistics_keep_decimal_points_in_css_and_correct_counts(self):

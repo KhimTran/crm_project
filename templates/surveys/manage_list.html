@@ -15,7 +15,8 @@
   </form>
   <a class="sv-btn" href="{% url 'surveys:manage_create' %}">+ Tạo khảo sát</a>
 </div>
-<table class="sv-table">
+<div class="sv-table-scroll" role="region" aria-label="Danh sách khảo sát" tabindex="0">
+<table class="sv-table sv-survey-list">
   <thead><tr><th>Tiêu đề</th><th>Thời gian</th><th>Trạng thái</th><th>Đã làm / Đã gửi</th><th></th></tr></thead>
   <tbody>
   {% for s in surveys %}
@@ -30,4 +31,5 @@
   {% endfor %}
   </tbody>
 </table>
+</div>
 {% endblock %}
