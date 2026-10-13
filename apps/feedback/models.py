@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from .constants import FeedbackStatus
+
 
 class Feedback(models.Model):
     feedback_id = models.AutoField(primary_key=True)
@@ -24,3 +26,8 @@ class Feedback(models.Model):
             models.Index(fields=["created_at"], name="idx_feedbacks_created_at"),
         ]
         constraints = [models.CheckConstraint(condition=models.Q(rating__gte=1, rating__lte=5), name="chk_feedbacks_rating")]
+
+    # tv4: nhãn tiếng Việt của trạng thái (cột status không khai báo choices để không sinh migration)
+    @property
+    def status_label(self):
+        return FeedbackStatus(self.status).label if self.status in FeedbackStatus.values else self.status

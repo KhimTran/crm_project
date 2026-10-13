@@ -60,6 +60,8 @@ class ShopTests(TestCase):
     def test_detail_is_read_only_and_hides_missing_or_inactive_products(self):
         response = self.client.get(f"/products/{self.products[0].pk}/")
         self.assertContains(response, self.products[0].product_name)
+        self.assertContains(response, f'href="/feedbacks/new/?product={self.products[0].pk}"')
+        self.assertNotContains(response, "Gửi phản hồi: Sắp có")
         self.assertContains(response, self.products[0].category.category_name)
         self.assertContains(response, self.products[0].brand.brand_name)
         self.assertNotContains(response, 'href="#"')

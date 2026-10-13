@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from .constants import Gender, PlayingLevel
+
 
 class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)
@@ -23,6 +25,15 @@ class Customer(models.Model):
     @property
     def customer_code(self):
         return f"KH{self.customer_id:04d}"
+
+    # tv4: nhãn tiếng Việt cho trình độ / giới tính (cột không khai báo choices để không sinh migration)
+    @property
+    def playing_level_label(self):
+        return PlayingLevel(self.playing_level).label if self.playing_level in PlayingLevel.values else self.playing_level
+
+    @property
+    def gender_label(self):
+        return Gender(self.gender).label if self.gender in Gender.values else self.gender
 
 
 class CustomerPreference(models.Model):

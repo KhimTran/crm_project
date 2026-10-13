@@ -1,0 +1,37 @@
+{% extends "layouts/base_customer.html" %}
+{% load static %}
+{% block title %}Gửi phản hồi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/customer_feedbacks.css' %}">{% endblock %}
+
+{% block content %}
+<h1>Gửi phản hồi sản phẩm</h1>
+<p>Ý kiến của bạn giúp cửa hàng cải thiện sản phẩm và dịch vụ.</p>
+
+<form method="post" class="cf-form" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<ul class="cf-errors">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+
+  <div class="cf-field">
+    {{ form.product.label_tag }}{{ form.product }}
+    {% if form.product.errors %}<ul class="cf-errors">{% for e in form.product.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+
+  <fieldset class="cf-field cf-rating">
+    <legend>{{ form.rating.label }}</legend>
+    {% for radio in form.rating %}
+      <label>{{ radio.tag }} {{ radio.choice_label }}</label>
+    {% endfor %}
+    {% if form.rating.errors %}<ul class="cf-errors">{% for e in form.rating.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  </fieldset>
+
+  <div class="cf-field">
+    {{ form.content.label_tag }}{{ form.content }}
+    {% if form.content.errors %}<ul class="cf-errors">{% for e in form.content.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+
+  <div class="cf-actions">
+    <button type="submit" class="cf-btn">Gửi phản hồi</button>
+    <a href="{% url 'feedbacks:mine' %}">Xem phản hồi đã gửi</a>
+  </div>
+</form>
+{% endblock %}

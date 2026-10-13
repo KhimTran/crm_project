@@ -21,6 +21,7 @@
         <div><dt>Thương hiệu</dt><dd>{{ product.brand.brand_name }}</dd></div>
         <div><dt>Danh mục</dt><dd>{{ product.category.category_name }}</dd></div>
       </dl>
+      <p><a class="shop-button" href="{% url 'feedbacks:create' %}?product={{ product.product_id }}">Gửi phản hồi</a></p>
       {% if product.category.status == 'ACTIVE' %}<a class="shop-button shop-button-outline" href="{% url 'shop:products' %}?category={{ product.category_id }}">Xem sản phẩm cùng danh mục</a>{% endif %}
       <a class="detail-back" href="{% url 'shop:products' %}">Về danh sách sản phẩm</a>
     </div>

@@ -1076,3 +1076,21 @@ was used without printing credentials.
 - PR validation evidence and precise integration limitations recorded in
   docs/tv1_shop_pr_validation.md. Branch prepared for push and PR to develop;
   final merge remains the owner's review decision.
+
+### TV4 PR #5 integration with merged storefront — 2026-10-13
+
+- Owner authorized updating feature/tv4-models/PR #5, commit/push but no PR merge.
+  Clean worktree 44c0 reused; fetched develop 59c10d1 containing merged PR #7.
+- Resolved exactly three conflicts in base_customer.html, product_detail.html
+  and apps/shop/tests.py. Kept TV1 retail layout and added TV4's real feedback
+  menu/product CTA; retained both suites and replaced only an obsolete placeholder
+  assertion. Added two menu/HTTP feedback-flow regression tests.
+- No new model, migration, API, permission or feedback business-logic changes.
+  Customer feedback CSS scoped to customer layout; mobile navigation can wrap.
+- Check 0 issues, migration dry-run No changes detected; test DB migration plan
+  empty. Focused 42/42 pass (27.035s), full 258/258 pass (290.497s), all on test_crm_db.
+- Browser confirmed customer submit -> CRM reply/resolve -> customer reply view,
+  missing-field/reply errors, menus, 1440/390 layout. Persisted handler/reply/time
+  verified; only own QA fixtures/sessions removed, QA server/settings/scripts cleaned.
+  Demo data untouched. Details: docs/tv4_pr5_develop_integration.md.
+- Existing PR #5 is the update target; final merge remains the owner's decision.

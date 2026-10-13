@@ -22,6 +22,7 @@ VALID = {
 }
 
 
+# tv4: test 4.1.1 service tạo khách hàng, trùng email / SĐT
 class CreateCustomerServiceTests(TestCase):
     def test_creates_account_customer_and_preferences(self):
         customer, password = create_customer(
@@ -57,6 +58,7 @@ class CreateCustomerServiceTests(TestCase):
         create_customer(email="b@example.com", full_name="B", phone="0901111111")
 
 
+# tv4: test 4.1.1 trang thêm khách hàng và phân quyền
 class CustomerCreateViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
