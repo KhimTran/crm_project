@@ -5,6 +5,8 @@
   var dataNode = document.getElementById("report-data");
   if (!dataNode || typeof Chart === "undefined") return;
   var data = JSON.parse(dataNode.textContent);
+  // tv4: nhãn dataset do server gửi (Admin Portal tiếng Anh), thiếu thì dùng tiếng Việt
+  var LABELS = data.labels || {};
   var PALETTE = ["#2f6db5", "#d9822b", "#3a9a5b", "#b5475a", "#7a5cc4", "#2b9aa6", "#9a7b2f", "#5f6b7a"];
 
   Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', sans-serif";
@@ -21,7 +23,7 @@
       data: {
         labels: rows.map(function (r) { return r.label; }),
         datasets: [{
-          label: opts.label || "Số khách hàng",
+          label: opts.label || LABELS.customers || "Số khách hàng",
           data: rows.map(function (r) { return opts.value ? opts.value(r) : r.count; }),
           backgroundColor: isRound ? PALETTE : (opts.color || PALETTE[0]),
           borderColor: isRound ? "#fff" : (opts.color || PALETTE[0]),
@@ -47,12 +49,12 @@
   draw("chart-age", "bar", data.age);
   draw("chart-gender", "doughnut", data.gender);
   draw("chart-level", "doughnut", data.level);
-  draw("chart-monthly", "line", data.monthly, { label: "Khách hàng mới", color: PALETTE[2] });
+  draw("chart-monthly", "line", data.monthly, { label: LABELS.new_customers || "Khách hàng mới", color: PALETTE[2] });
   (data.preferences || []).forEach(function (group, i) {
     draw("chart-pref-" + i, "bar", group.rows, { horizontal: true, color: PALETTE[(i + 3) % PALETTE.length] });
   });
   draw("chart-satisfaction", "bar", data.satisfaction, {
-    horizontal: true, label: "Điểm hài lòng TB", color: PALETTE[1], max: 5,
+    horizontal: true, label: LABELS.avg_rating || "Điểm hài lòng TB", color: PALETTE[1], max: 5,
     value: function (r) { return r.avg; }
   });
 

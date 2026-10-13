@@ -1,46 +1,46 @@
-{% extends "layouts/base_crm.html" %}
-{% load static %}
-{% block title %}Phản hồi #{{ feedback.feedback_id }}{% endblock %}
-{% block page_title %}Phản hồi #{{ feedback.feedback_id }}{% endblock %}
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{% t "Phản hồi" "Feedback" %} #{{ feedback.feedback_id }}{% endblock %}
+{% block page_title %}{% t "Phản hồi" "Feedback" %} #{{ feedback.feedback_id }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}">
+<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">
 <link rel="stylesheet" href="{% static 'css/crm_feedbacks.css' %}">
 {% endblock %}
 
 {% block content %}
-<p><a href="{% url 'crm_feedbacks:list' %}">&laquo; Quay lại danh sách phản hồi</a></p>
+<p class="crm-toolbar"><a href="{% url 'crm_feedbacks:list' %}">&laquo; {% t "Quay lại danh sách phản hồi" "Back to feedback" %}</a></p>
 
 <div class="crm-feedback-grid">
   <section class="crm-card" aria-labelledby="fb-info">
-    <h2 id="fb-info">Nội dung phản hồi</h2>
+    <h2 id="fb-info">{% t "Nội dung phản hồi" "Feedback Details" %}</h2>
     <dl class="crm-dl">
-      <dt>Khách hàng</dt>
-      <dd>{% if feedback.customer.status == "DELETED" %}{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }} <span class="crm-badge locked">Đã xóa</span>
+      <dt>{% t "Khách hàng" "Customer" %}</dt>
+      <dd>{% if feedback.customer.status == "DELETED" %}{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }} <span class="crm-badge locked">{% t "Đã xóa" "DELETED" %}</span>
         {% else %}<a href="{% url 'customers:detail' feedback.customer.customer_id %}">{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }}</a>{% endif %}</dd>
-      <dt>Email / SĐT</dt><dd>{{ feedback.customer.account.email }} · {{ feedback.customer.phone|default:"–" }}</dd>
-      <dt>Sản phẩm</dt><dd>{{ feedback.product.product_name }}</dd>
-      <dt>Số sao</dt><dd><span class="crm-stars" aria-label="{{ feedback.rating }} sao">{{ feedback.rating }}★</span></dd>
-      <dt>Ngày gửi</dt><dd>{{ feedback.created_at|date:"d/m/Y H:i" }}</dd>
-      <dt>Trạng thái</dt><dd><span class="crm-badge fb-{{ feedback.status|lower }}">{{ feedback.status_label }}</span></dd>
-      <dt>Người xử lý</dt><dd>{{ feedback.handled_by.email|default:"–" }}</dd>
-      <dt>Xử lý xong lúc</dt><dd>{{ feedback.resolved_at|date:"d/m/Y H:i"|default:"–" }}</dd>
+      <dt>{% t "Email / SĐT" "Email / Phone" %}</dt><dd>{{ feedback.customer.account.email }} · {{ feedback.customer.phone|default:"–" }}</dd>
+      <dt>{% t "Sản phẩm" "Product" %}</dt><dd>{{ feedback.product.product_name }}</dd>
+      <dt>{% t "Số sao" "Rating" %}</dt><dd><span class="crm-stars" aria-label="{{ feedback.rating }} {% t 'sao' 'stars' %}">{{ feedback.rating }}★</span></dd>
+      <dt>{% t "Ngày gửi" "Submitted At" %}</dt><dd>{{ feedback.created_at|date:datetime_fmt }}</dd>
+      <dt>{% t "Trạng thái" "Status" %}</dt><dd><span class="crm-badge fb-{{ feedback.status|lower }}">{% t feedback.status_label %}</span></dd>
+      <dt>{% t "Người xử lý" "Handled By" %}</dt><dd>{{ feedback.handled_by.email|default:"–" }}</dd>
+      <dt>{% t "Xử lý xong lúc" "Resolved At" %}</dt><dd>{{ feedback.resolved_at|date:datetime_fmt|default:"–" }}</dd>
     </dl>
     <blockquote class="crm-quote">{{ feedback.content|linebreaksbr }}</blockquote>
   </section>
 
   <section class="crm-card" aria-labelledby="fb-handle">
-    <h2 id="fb-handle">Xử lý và trả lời</h2>
+    <h2 id="fb-handle">{% t "Xử lý và trả lời" "Handle & Reply" %}</h2>
     <form method="post" class="crm-form" novalidate>
       {% csrf_token %}
-      {% if form.non_field_errors %}<ul class="crm-errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      {% if form.non_field_errors %}<ul class="crm-errorlist">{% for e in form.non_field_errors %}<li>{% t e %}</li>{% endfor %}</ul>{% endif %}
       <div class="crm-field">{{ form.status.label_tag }}{{ form.status }}
-        {% if form.status.errors %}<ul class="crm-errorlist">{% for e in form.status.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        {% if form.status.errors %}<ul class="crm-errorlist">{% for e in form.status.errors %}<li>{% t e %}</li>{% endfor %}</ul>{% endif %}
       </div>
       <div class="crm-field">{{ form.manager_note.label_tag }}{{ form.manager_note }}
-        {% if form.manager_note.errors %}<ul class="crm-errorlist">{% for e in form.manager_note.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-        <small>Câu trả lời sẽ hiển thị cho khách hàng ở trang "Phản hồi của tôi".</small>
+        {% if form.manager_note.errors %}<ul class="crm-errorlist">{% for e in form.manager_note.errors %}<li>{% t e %}</li>{% endfor %}</ul>{% endif %}
+        <small>{% t 'Câu trả lời sẽ hiển thị cho khách hàng ở trang "Phản hồi của tôi".' 'The reply is shown to the customer on their "My Feedback" page.' %}</small>
       </div>
-      <div class="crm-actions"><button type="submit" class="crm-btn">Lưu xử lý</button></div>
+      <div class="crm-actions"><button type="submit" class="crm-btn">{% t "Lưu xử lý" "Save" %}</button></div>
     </form>
   </section>
 </div>

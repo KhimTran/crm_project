@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from apps.accounts.decorators import role_required
 from apps.customers.constants import CustomerStatus
 from apps.customers.models import Customer
+from apps.customers.portal_text import localize_form, portal_english, say, tr
 
 from .constants import FeedbackStatus
 from .errors import FeedbackNotFound, FeedbackServiceError
@@ -17,9 +18,10 @@ PAGE_SIZE = 10
 
 
 # tv4: 4.1.4 danh sách phản hồi cho quản lý CRM / CSKH, có bộ lọc và phân trang
-@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@portal_english
 def feedback_list(request):
-    form = FeedbackFilterForm(request.GET or None)
+    form = localize_form(FeedbackFilterForm(request.GET or None))
     feedbacks = feedback_queryset()
     if form.is_bound and form.is_valid():
         feedbacks = filter_feedbacks(feedbacks, form.cleaned_data)
@@ -35,22 +37,23 @@ def feedback_list(request):
 
 
 # tv4: 4.1.4 xem chi tiết phản hồi; POST cập nhật trạng thái + trả lời khách hàng
-@role_required("CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@portal_english
 def feedback_detail(request, feedback_id):
     feedback = get_object_or_404(feedback_queryset(), pk=feedback_id)
     initial = {"status": (feedback.status if feedback.status != FeedbackStatus.NEW else FeedbackStatus.IN_PROGRESS),
                "manager_note": feedback.manager_note or ""}
-    form = FeedbackHandleForm(request.POST or None, initial=initial)
+    form = localize_form(FeedbackHandleForm(request.POST or None, initial=initial))
     if request.method == "POST" and form.is_valid():
         try:
             feedback = handle_feedback(feedback.pk, handled_by=request.user, **form.cleaned_data)
         except FeedbackNotFound:
             return redirect("crm_feedbacks:list")
         except FeedbackServiceError as exc:
-            form.add_error(None, str(exc))
+            form.add_error(None, tr(str(exc)))
         else:
-            messages.success(request, f"Đã cập nhật phản hồi #{feedback.feedback_id}: "
-                                      f"{feedback.status_label}.")
+            messages.success(request, say(f"Đã cập nhật phản hồi #{feedback.feedback_id}: {feedback.status_label}.",
+                                          f"Feedback #{feedback.feedback_id} updated: {tr(feedback.status_label)}."))
             return redirect("crm_feedbacks:detail", feedback_id=feedback.pk)
     return render(request, "feedback/feedback_detail.html", {"feedback": feedback, "form": form})
 
