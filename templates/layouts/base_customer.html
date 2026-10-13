@@ -1,10 +1,11 @@
-{% load static %}
+{% load static shop_ui %}
 <!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Cửa hàng cầu lông{% endblock %}</title>
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/customer.css' %}">
   <link rel="stylesheet" href="{% static 'css/tv1.css' %}">
@@ -14,39 +15,52 @@
   <a class="customer-skip-link" href="#main-content">Đến nội dung chính</a>
   <header class="customer-header">
     <div class="customer-header-inner">
-      <a class="customer-brand" href="/">Cửa hàng cầu lông</a>
+      <a class="customer-brand" href="{% url 'shop:home' %}" aria-label="Cửa hàng cầu lông — Trang chủ">Cửa hàng <span>cầu lông</span></a>
+      <form class="header-search" method="get" action="{% url 'shop:products' %}" role="search">
+        <label class="visually-hidden" for="shop-search">Tìm tên sản phẩm</label>
+        <input id="shop-search" type="search" name="q" maxlength="200" placeholder="Bạn đang tìm sản phẩm nào?" value="{{ request.GET.q|default:'' }}">
+        <button type="submit" aria-label="Tìm kiếm"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg></button>
+      </form>
+      <details class="account-menu">
+        <summary><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><span>Tài khoản</span><span aria-hidden="true">⌄</span></summary>
+        <div class="account-menu-panel">
+          {% if request.user.is_authenticated %}
+            <p class="customer-user">{{ request.user.email }}</p>
+            {% if request.user.role == 'CUSTOMER' %}<a href="{% url 'customers:profile' %}">Hồ sơ cá nhân</a>{% endif %}
+            <a href="{% url 'customer_auth:password_change' %}">Đổi mật khẩu</a>
+            <form method="post" action="{% url 'customer_auth:logout' %}">{% csrf_token %}<button type="submit">Đăng xuất</button></form>
+          {% else %}
+            <a href="{% url 'customer_auth:login' %}">Đăng nhập</a>
+            <a href="{% url 'customer_auth:register' %}">Đăng ký khách hàng</a>
+          {% endif %}
+        </div>
+      </details>
+    </div>
+    <div class="customer-navigation-row">
       <nav class="customer-nav" aria-label="Điều hướng cửa hàng">
-        <a href="/">Trang chủ</a>
-        <a href="{% url 'shop:products' %}">Sản phẩm</a>
-        {% if request.user.role == 'CUSTOMER' %}<a href="{% url 'feedbacks:mine' %}">Phản hồi của tôi</a>{% endif %}
-        <span class="unavailable">Khảo sát của tôi · Sắp có</span>
-        {% if request.user.is_authenticated %}
-          {% if request.user.role == 'CUSTOMER' %}<a href="{% url 'customers:profile' %}">Tài khoản</a>{% endif %}
-          <a href="{% url 'customer_auth:password_change' %}">Đổi mật khẩu</a>
-        {% else %}
-          <a href="{% url 'customer_auth:login' %}">Tài khoản / Đăng nhập</a>
-          <a href="{% url 'customer_auth:register' %}">Đăng ký</a>
-        {% endif %}
+        {% shop_navigation %}
+        <a href="{% url 'shop:home' %}"{% if request.resolver_match.view_name == 'shop:home' %} aria-current="page"{% endif %}>Trang chủ</a>
+        <a href="{% url 'shop:products' %}"{% if request.resolver_match.view_name == 'shop:products' %} aria-current="page"{% endif %}>Sản phẩm</a>
+        {% if request.user.is_authenticated and request.user.role == 'CUSTOMER' %}<a href="{% url 'feedbacks:mine' %}"{% if request.resolver_match.namespace == 'feedbacks' %} aria-current="page"{% endif %}>Phản hồi của tôi</a>{% endif %}
       </nav>
-      {% if request.user.is_authenticated %}
-        <span class="customer-user">{{ request.user.email }}</span>
-        <form method="post" action="{% url 'customer_auth:logout' %}" class="inline-form">{% csrf_token %}<button class="text-button" type="submit">Đăng xuất</button></form>
-      {% endif %}
     </div>
   </header>
   <main id="main-content" class="customer-main" tabindex="-1">
     {% if messages %}
       <div class="customer-messages" aria-live="polite" aria-atomic="true">
-        {% for message in messages %}
-          <div class="customer-message{% if message.tags %} {{ message.tags }}{% endif %}">{{ message }}</div>
-        {% endfor %}
+        {% for message in messages %}<div class="customer-message{% if message.tags %} {{ message.tags }}{% endif %}">{{ message }}</div>{% endfor %}
       </div>
     {% endif %}
     {% block content %}{% endblock %}
   </main>
   <footer class="customer-footer">
-    <p>&copy; {% now "Y" %} Cửa hàng cầu lông</p>
+    <div class="customer-footer-inner">
+      <p class="footer-brand">Cửa hàng cầu lông</p>
+      <nav aria-label="Liên kết cuối trang"><a href="{% url 'shop:products' %}">Sản phẩm</a><a href="{% url 'customer_auth:login' %}">Tài khoản khách hàng</a></nav>
+      <p class="footer-copyright">&copy; {% now "Y" %} Cửa hàng cầu lông</p>
+    </div>
   </footer>
+  <script src="{% static 'js/shop.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

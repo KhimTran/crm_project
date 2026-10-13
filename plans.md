@@ -1004,3 +1004,93 @@ was used without printing credentials.
   corrected it to match by Category ID and reran successfully; no source defect.
   Added only synthetic profile fixture/category rows; no legacy/shared DB or bulk
   data conversion. Credentials, scripts/results/logs/images remain outside repo.
+
+### TV1 experimental shop redesign — 2026-10-12
+
+- Owner authorized customer-storefront redesign on feature/tv1-shop-redesign,
+  fetched/branched from origin/develop at 6dc4372. Initial tree clean; existing
+  managed worktree used. Primary D:/Desktop/crm_project remains clean on develop.
+  Local commit only; no push/PR/merge/auto-merge.
+- Scoped customer layout/CSS, shop templates/presentation tags, customer auth/
+  profile templates, original local SVG assets and meaningful shop/layout tests.
+  No model/migration/SQL/URL/API/permission/service or Admin/CRM implementation
+  changes. ACTIVE Category navigation separate from Brand, real header GET search,
+  existing Decimal filters/pagination, desktop/mobile grids and detail layout.
+- Inspected crm_tv1_demo read-only; migrations all applied. No demo data changed,
+  no seed/reset/restore/migrate. Ignored local settings/.env copied from main
+  checkout, no credential added to tracked files. All required assets local.
+- Check 0 issues; migration dry-run No changes detected; full suite 211/211 pass
+  in 205.067s on test_crm_db. Final shop/layout 20/20 pass after added inactive-
+  category link regression and no-JS filter fallback; full suite was before these
+  final presentation changes. Initial 60/61 focused run had outdated survey-menu
+  text assertion, corrected before full run.
+- Browser verified desktop/mobile search/filter/page2/detail/empty/error, login/
+  register/menu, profile success/save, keyboard focus/Escape. Home widths
+  320/390/768/1024/1280 have no horizontal overflow. Account/profile/Admin browser
+  writes only to temporary fixtures on test_crm_db via server8002; those fixtures,
+  sessions/server/settings/credentials were removed. Admin implementation untouched.
+  Screenshots outside repo; no physical-device/SMTP/all-browser claim.
+- Read-only review found ACTIVE Product may have INACTIVE Category under existing
+  selector. Detail now renders inactive category as text and links to full catalog,
+  without changing visibility policy. Existing long/demo labels preserved.
+- Run/rollback guidance and precise validation: docs/tv1_shop_redesign.md.
+
+### TV1 compact retail revision — 2026-10-12
+
+- Owner requested a complete retail-oriented revision on the same feature branch.
+  Clean HEAD d22c43f saved as local annotated tag
+  checkpoint/tv1-shop-before-retail-20261012 before edits and browser captures.
+  New revision remains uncommitted in the existing worktree; no push/merge/PR.
+- Reduced header to two rows, compact text banner, direct category/product headings,
+  full DB category labels, neutral missing-image asset, readable compact product cards,
+  responsive filters and simplified auth forms. Removed category-name illustration
+  guessing helpers. No domain schema/URL/service/permissions or Admin/CRM changes.
+- Demo DB unchanged. 62 related tests pass in 51.576s on test_crm_db; check 0 issues,
+  migration dry-run No changes detected. Regression preserves Demo/PR2 labels.
+- Browser 1440/1366/390 at 100%: home/list 4/2 columns and no overflow; search,
+  combined filters, pagination, detail, empty/error, menus, focus/Escape checked.
+  Login/profile/Admin QA used temporary test_crm_db fixtures/cookies on 8002 only;
+  all created business fixtures/authenticated sessions removed. No physical-device
+  or full-suite rerun claim. Main text palette contrast >=5.18:1.
+- Before/after captures at matching 1440 and 390 viewports outside repository.
+  Final browser connection interrupted; preview 8001 restarted. See precise results,
+  data TV1/TV2 must prepare, run commands and safe rollback in
+  docs/tv1_shop_retail_revision.md. Previous redesign evidence remains historical.
+
+### TV1 approved storefront — prepare PR to develop, 2026-10-13
+
+- Owner approved compact retail UI; explicitly authorized commit/push/PR but no
+  PR merge. Committed known latest UI paths as ed06697; ignored local settings/env
+  and all temporary QA files remain excluded.
+- Fetched origin; origin/develop 6dc43723 is already an ancestor. Integration merge
+  reports Already up to date, no conflicts. Final remote SHA check unchanged.
+- Latest develop has customer CRM and existing recipient survey routes; feedback
+  UI/routes and customer survey-list menu are not yet integrated. No unmerged
+  TV4/TV5 branch imported, no fake menus. Admin/CRM source unchanged.
+- Check 0 issues; no migration changes; full suite 212/212 passed in 214.456s on
+  test_crm_db. No demo database tests/writes/seed/reset/migrate/restore.
+- Fresh browser verification: home/search/detail/filter/page2, login/register,
+  customer login/profile save, existing survey take/submit/result, CRM manager
+  customer list, Admin accounts/products. QA writes only on test_crm_db after
+  runner completion; all own fixtures/authenticated sessions/server/scripts cleaned.
+- PR validation evidence and precise integration limitations recorded in
+  docs/tv1_shop_pr_validation.md. Branch prepared for push and PR to develop;
+  final merge remains the owner's review decision.
+
+### TV4 PR #5 integration with merged storefront — 2026-10-13
+
+- Owner authorized updating feature/tv4-models/PR #5, commit/push but no PR merge.
+  Clean worktree 44c0 reused; fetched develop 59c10d1 containing merged PR #7.
+- Resolved exactly three conflicts in base_customer.html, product_detail.html
+  and apps/shop/tests.py. Kept TV1 retail layout and added TV4's real feedback
+  menu/product CTA; retained both suites and replaced only an obsolete placeholder
+  assertion. Added two menu/HTTP feedback-flow regression tests.
+- No new model, migration, API, permission or feedback business-logic changes.
+  Customer feedback CSS scoped to customer layout; mobile navigation can wrap.
+- Check 0 issues, migration dry-run No changes detected; test DB migration plan
+  empty. Focused 42/42 pass (27.035s), full 258/258 pass (290.497s), all on test_crm_db.
+- Browser confirmed customer submit -> CRM reply/resolve -> customer reply view,
+  missing-field/reply errors, menus, 1440/390 layout. Persisted handler/reply/time
+  verified; only own QA fixtures/sessions removed, QA server/settings/scripts cleaned.
+  Demo data untouched. Details: docs/tv4_pr5_develop_integration.md.
+- Existing PR #5 is the update target; final merge remains the owner's decision.

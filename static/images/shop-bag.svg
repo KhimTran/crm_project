@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 400" role="img" aria-labelledby="title">
+  <title id="title">Minh họa loại sản phẩm: túi đựng dụng cụ</title>
+  <rect width="480" height="400" fill="#fffaf4"/>
+  <circle cx="244" cy="199" r="144" fill="#fff0df"/>
+  <ellipse cx="240" cy="324" rx="153" ry="10" fill="#e9dccf"/>
+  <path d="M177 144q-4-52 41-53 41-1 49 54m-68-5q-5-30 19-31 24 0 30 31" fill="none" stroke="#212b31" stroke-width="8" stroke-linecap="round"/>
+  <path d="M98 176q18-32 77-39l127-5q45 3 57 43l34 110q5 28-27 33l-252-2q-37-3-31-34Z" fill="#ef6b2e" stroke="#212b31" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M124 185q69-29 182-25l31 119q-93 15-225 8Z" fill="#f58a4c"/>
+  <path d="M102 179q93-30 242-15" fill="none" stroke="#212b31" stroke-width="6"/>
+  <path d="M325 159q38-19 54 47l20 77q10 34-28 37h-44q28-12 18-42l-29-94Z" fill="#212b31"/>
+  <path d="m363 214 22 72" stroke="#647681" stroke-width="3"/>
+  <path d="M90 282q111 27 249 9l-10 28H112q-30-4-22-37Z" fill="#212b31"/>
+  <path d="M144 185v86m35-95 1 96" stroke="#212b31" stroke-width="9"/>
+  <path d="M204 201h87v56h-87Z" fill="none" stroke="#fff4e8" stroke-width="3"/>
+  <path d="M213 244h69" stroke="#fff4e8" stroke-width="3"/>
+  <path d="M220 163v18" stroke="#fff4e8" stroke-width="5" stroke-linecap="round"/>
+</svg>

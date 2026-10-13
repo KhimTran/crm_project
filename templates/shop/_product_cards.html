@@ -1,13 +1,22 @@
-{% load static %}
+{% load static shop_ui %}
 <div class="product-grid">
 {% for product in products %}
   <article class="product-card">
-    <img src="{% static 'images/product-placeholder.svg' %}" alt="Ảnh minh họa sản phẩm cầu lông" width="320" height="220" loading="lazy">
+    <a class="product-image" href="{% url 'shop:product_detail' product.product_id %}" tabindex="-1" aria-hidden="true">
+      <img src="{% static 'images/product-image-unavailable.svg' %}" alt="" width="64" height="64" loading="lazy"><span>Chưa có ảnh</span>
+    </a>
     <div class="product-card-body">
-      <p class="product-meta">{{ product.category.category_name }} · {{ product.brand.brand_name }}</p>
-      <h2><a href="{% url 'shop:product_detail' product.product_id %}">{{ product.product_name }}</a></h2>
-      <p class="product-price">{{ product.price|floatformat:"0g" }} ₫</p>
+      <h3><a href="{% url 'shop:product_detail' product.product_id %}">{{ product.product_name }}</a></h3>
+      <p class="product-meta">{{ product.brand.brand_name }}</p>
+      <p class="product-price">{{ product.price|vnd_price }}</p>
+      <a class="product-detail-link" href="{% url 'shop:product_detail' product.product_id %}">Xem chi tiết<span class="visually-hidden"> {{ product.product_name }}</span></a>
     </div>
   </article>
-{% empty %}<p>Chưa có sản phẩm phù hợp.</p>{% endfor %}
+{% empty %}
+  <div class="shop-empty">
+    <h2>{% if form.errors %}Bộ lọc chưa hợp lệ{% else %}Chưa có sản phẩm phù hợp{% endif %}</h2>
+    <p>{% if form.errors %}Kiểm tra các trường được đánh dấu rồi thử lại.{% else %}Thử từ khóa khác hoặc thay đổi bộ lọc.{% endif %}</p>
+    <a class="shop-button shop-button-outline" href="{% url 'shop:products' %}">Xem tất cả sản phẩm</a>
+  </div>
+{% endfor %}
 </div>

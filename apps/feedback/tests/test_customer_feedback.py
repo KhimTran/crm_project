@@ -1,5 +1,5 @@
 from django.contrib.auth.models import Group
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Account
@@ -44,6 +44,48 @@ class CustomerFeedbackTests(TestCase):
         self.assertEqual((feedback.customer, feedback.rating, feedback.content, feedback.status),
                          (self.an, 4, "Vợt đầm tay", FeedbackStatus.NEW))
         self.assertIsNone(feedback.handled_by)
+
+    def test_feedback_menu_preserves_storefront_navigation_and_search(self):
+        for path in ("/", "/products/", reverse("feedbacks:mine"), reverse("feedbacks:create")):
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertContains(response, 'href="/feedbacks/mine/"')
+                self.assertContains(response, "Phản hồi của tôi")
+                self.assertContains(response, 'class="header-search"')
+                self.assertContains(response, 'name="q"')
+                self.assertContains(response, 'class="category-menu"')
+                self.assertContains(response, 'class="account-menu"')
+                if path.startswith("/feedbacks/"):
+                    self.assertContains(response, 'href="/feedbacks/mine/" aria-current="page"')
+        self.client.logout()
+        self.assertNotContains(self.client.get("/"), 'href="/feedbacks/mine/"')
+
+    def test_customer_submission_crm_reply_and_customer_view_through_http(self):
+        response = self.client.post(reverse("feedbacks:create"), {
+            "product": self.racket.pk, "rating": 4, "content": "Tôi cần hướng dẫn bảo quản vợt.",
+        }, follow=True)
+        self.assertRedirects(response, reverse("feedbacks:mine"))
+        feedback = Feedback.objects.get(customer=self.an)
+        self.assertEqual(feedback.status, FeedbackStatus.NEW)
+
+        manager_client = Client()
+        self.assertTrue(manager_client.login(email=self.manager.email, password="Quanly@12345"))
+        reply = "Cất vợt ở nơi khô thoáng sau khi chơi."
+        detail_url = reverse("crm_feedbacks:detail", args=[feedback.pk])
+        response = manager_client.post(detail_url, {
+            "status": FeedbackStatus.RESOLVED, "manager_note": reply,
+        }, follow=True)
+        self.assertRedirects(response, detail_url)
+        feedback.refresh_from_db()
+        self.assertEqual(feedback.status, FeedbackStatus.RESOLVED)
+        self.assertEqual(feedback.handled_by, self.manager)
+        self.assertIsNotNone(feedback.resolved_at)
+        response = self.client.get(reverse("feedbacks:mine"))
+        self.assertContains(response, reply)
+        self.assertContains(response, "Đã xử lý")
+        # Use an authenticated second customer to verify reply ownership.
+        self.client.force_login(self.binh.account)
+        self.assertNotContains(self.client.get(reverse("feedbacks:mine")), reply)
 
     def test_invalid_submission_is_rejected(self):
         for data in ({"product": self.racket.pk, "rating": 6, "content": "x"},

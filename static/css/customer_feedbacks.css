@@ -1,27 +1,28 @@
-.cf-form { display: grid; gap: 1.1rem; max-width: 640px; }
-.cf-field { display: grid; gap: .35rem; margin: 0; padding: 0; border: 0; }
-.cf-field label, .cf-field legend { font-weight: 600; }
-.cf-field select, .cf-field textarea { width: 100%; padding: .55rem .75rem; border: 1px solid #b9cdbf; border-radius: .4rem; font: inherit; background: #fff; }
-.cf-rating { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; }
-.cf-rating legend { width: 100%; margin-bottom: .35rem; }
-.cf-rating label { font-weight: 400; }
-.cf-errors { margin: 0; padding: 0; list-style: none; color: #8c2525; font-size: .9rem; width: 100%; }
-.cf-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
-.cf-btn { display: inline-block; padding: .6rem 1.1rem; border: 0; border-radius: .4rem; background: #236647; color: #fff !important; font: inherit; text-decoration: none; cursor: pointer; }
-.cf-btn:hover { background: #1a4f37; }
-.cf-head { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.cf-head h1 { margin: 0; }
-.cf-card { padding: 1rem 1.25rem; margin-bottom: 1rem; border: 1px solid #dce6df; border-radius: .5rem; }
-.cf-card-head { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
-.cf-card-head time { margin-left: auto; color: #59685f; font-size: .9rem; }
-.cf-stars { color: #a86b00; font-weight: 600; }
-.cf-status { padding: .1rem .6rem; border-radius: 999px; font-size: .85rem; }
-.cf-new { background: #fdf0d5; color: #7a4d00; }
-.cf-in_progress { background: #e1ecfa; color: #1d4a80; }
-.cf-resolved { background: #e3f3e9; color: #195c37; }
-.cf-content { overflow-wrap: anywhere; }
-.cf-reply { padding: .75rem 1rem; border-left: 4px solid #236647; background: #f2f8f4; }
-.cf-reply p { margin: 0; overflow-wrap: anywhere; }
-.cf-reply-title { font-weight: 600; margin-bottom: .35rem !important; }
-.cf-muted { color: #59685f; font-style: italic; }
-.cf-pagination { display: flex; gap: .75rem; align-items: center; }
+.customer-layout .cf-form { display: grid; gap: 1.1rem; max-width: 640px; }
+.customer-layout .cf-field { display: grid; gap: .35rem; margin: 0; padding: 0; border: 0; }
+.customer-layout .cf-field label, .customer-layout .cf-field legend { font-weight: 600; }
+.customer-layout .cf-field select, .customer-layout .cf-field textarea { width: 100%; padding: .55rem .75rem; border: 1px solid #aeb5ba; border-radius: 3px; font: inherit; background: #fff; }
+.customer-layout .cf-rating { display: flex; flex-wrap: wrap; gap: 3px 1.25rem; }
+.customer-layout .cf-rating legend { width: 100%; margin-bottom: .35rem; }
+.customer-layout .cf-rating label { font-weight: 400; }
+.customer-layout .cf-errors { margin: 0; padding: 0; list-style: none; color: #8c2525; font-size: .9rem; width: 100%; }
+.customer-layout .cf-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+.customer-layout .cf-btn { display: inline-block; padding: .6rem 1.1rem; border: 0; border-radius: 3px; background: var(--shop-orange); color: #fff !important; font: inherit; text-decoration: none; cursor: pointer; }
+.customer-layout .cf-btn:hover { background: var(--shop-orange-hover); }
+.customer-layout .cf-head { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.customer-layout .cf-head h1 { margin: 0; }
+.customer-layout .cf-card { padding: 1rem 1.25rem; margin-bottom: 1rem; border: 1px solid var(--shop-line); border-radius: 3px; }
+.customer-layout .cf-card-head { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
+.customer-layout .cf-card-head time { margin-left: auto; color: var(--shop-muted); font-size: .9rem; }
+.customer-layout .cf-stars { color: #a86b00; font-weight: 600; }
+.customer-layout .cf-status { padding: .1rem .6rem; border-radius: 999px; font-size: .85rem; }
+.customer-layout .cf-new { background: #fdf0d5; color: #7a4d00; }
+.customer-layout .cf-in_progress { background: #e1ecfa; color: #1d4a80; }
+.customer-layout .cf-resolved { background: #e3f3e9; color: #195c37; }
+.customer-layout .cf-content { overflow-wrap: anywhere; }
+.customer-layout .cf-reply { padding: .75rem 1rem; border-left: 4px solid var(--shop-orange); background: #fff7f2; }
+.customer-layout .cf-reply p { margin: 0; overflow-wrap: anywhere; }
+.customer-layout .cf-reply-title { font-weight: 600; margin-bottom: .35rem !important; }
+.customer-layout .cf-muted { color: var(--shop-muted); font-style: italic; }
+.customer-layout .cf-pagination { display: flex; gap: .75rem; align-items: center; }
+.customer-layout .cf-card-head strong { min-width: 0; overflow-wrap: anywhere; }
