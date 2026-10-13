@@ -42,6 +42,7 @@
         <a href="{% url 'shop:home' %}"{% if request.resolver_match.view_name == 'shop:home' %} aria-current="page"{% endif %}>Trang chủ</a>
         <a href="{% url 'shop:products' %}"{% if request.resolver_match.view_name == 'shop:products' %} aria-current="page"{% endif %}>Sản phẩm</a>
         {% if request.user.is_authenticated and request.user.role == 'CUSTOMER' %}<a href="{% url 'feedbacks:mine' %}"{% if request.resolver_match.namespace == 'feedbacks' %} aria-current="page"{% endif %}>Phản hồi của tôi</a>{% endif %}
+        {% if request.user.is_authenticated and request.user.role == 'CUSTOMER' %}<a href="{% url 'surveys:my_surveys' %}"{% if request.resolver_match.namespace == 'surveys' %} aria-current="page"{% endif %}>Khảo sát của tôi</a>{% endif %}
       </nav>
     </div>
   </header>

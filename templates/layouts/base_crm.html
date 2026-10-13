@@ -20,7 +20,7 @@
         <a href="{% url 'customer_auth:crm_home' %}">Tổng quan</a>
         <a href="{% url 'customers:list' %}">Khách hàng</a>
         <a href="{% url 'crm_feedbacks:list' %}">Phản hồi{% if new_feedback_count %} <span class="crm-nav-badge" aria-label="{{ new_feedback_count }} phản hồi mới">{{ new_feedback_count }}</span>{% endif %}</a>
-        <span>Khảo sát · Sắp có</span>
+        <a href="{% url 'surveys:manage_list' %}">Khảo sát</a>
         <a href="{% url 'customer_reports:customers' %}">Báo cáo khách hàng</a>
         <a href="{% url 'shop:home' %}">Cửa hàng</a>
       </nav>
