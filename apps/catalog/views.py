@@ -1,3 +1,4 @@
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib import messages
 from django.db.models import ProtectedError, Q
 from django.http import HttpResponseForbidden
@@ -137,14 +138,20 @@ def product_create(request):
 @account_admin_required
 @require_http_methods(["GET", "POST"])
 def product_edit(request, product_id):
+    next_url = request.POST.get("next") or request.GET.get("next") or ""
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+            next_url = reverse("catalog_admin:product_list")
     product = get_object_or_404(Product, pk=product_id)
     form = ProductForm(request.POST if request.method == "POST" else None, instance=product)
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Đã cập nhật sản phẩm.")
-        return redirect("catalog_admin:product_list")
+        return redirect(next_url)
     return render(request, "catalog/admin/form.html", {
-        "form": form, "title": "Sản phẩm", "back_url": reverse("catalog_admin:product_list")})
+    "form": form, "title": "Sản phẩm",
+    "back_url": next_url,
+    "next": next_url,
+})
 
 
 @account_admin_required

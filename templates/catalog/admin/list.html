@@ -147,8 +147,9 @@
           <td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>
           <td>
             <div class="d-flex gap-2 flex-wrap align-items-center">
-              <a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:product_edit' item.pk %}">Edit</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:product_edit' item.pk %}?next={{ request.get_full_path|urlencode }}">Edit</a>
               <form method="post" action="{% url 'catalog_admin:product_delete' item.pk %}" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
                 {% csrf_token %}
                 <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
               </form>
