@@ -40,7 +40,7 @@ class SupplierForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ("category", "brand", "supplier", "product_name", "description", "price", "status")
+        fields = ("category", "brand", "supplier", "product_name", "description", "image_url", "price", "status")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

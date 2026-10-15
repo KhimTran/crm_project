@@ -10,9 +10,13 @@
 </nav>
 <article>
   <div class="product-detail">
-    <figure class="detail-image">
-      <div class="detail-placeholder"><img src="{% static 'images/product-image-unavailable.svg' %}" alt="" width="80" height="80"></div>
-      <figcaption>Chưa có ảnh sản phẩm</figcaption>
+        <figure class="detail-image">
+      {% if product.image_url %}
+        <img class="detail-photo" src="{{ product.image_url }}" alt="{{ product.product_name }}">
+      {% else %}
+        <div class="detail-placeholder"><img src="{% static 'images/product-image-unavailable.svg' %}" alt="" width="80" height="80"></div>
+        <figcaption>Chưa có ảnh sản phẩm</figcaption>
+      {% endif %}
     </figure>
     <div class="detail-information">
       <h1>{{ product.product_name }}</h1>

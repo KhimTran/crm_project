@@ -97,6 +97,7 @@
           <th scope="col">Updated At</th>
           {% else %}
           {% include 'catalog/admin/_th_sort.html' with key='id' label='Product ID' %}
+                    <th scope="col">Image</th>
           {% include 'catalog/admin/_th_sort.html' with key='name' label='Product Name' %}
           {% include 'catalog/admin/_th_sort.html' with key='category' label='Category' %}
           {% include 'catalog/admin/_th_sort.html' with key='brand' label='Brand' %}
@@ -134,6 +135,7 @@
           </td>
           {% else %}
           <td>{{ item.product_id }}</td>
+          <td>{% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.product_name }}" style="width:48px;height:48px;object-fit:cover;border-radius:6px" loading="lazy" referrerpolicy="no-referrer">{% else %}—{% endif %}</td>
           <td>{{ item.product_name }}</td>
           <td>{{ item.category.category_name }}</td>
           <td>{{ item.brand.brand_name }}</td>
@@ -145,8 +147,9 @@
           <td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>
           <td>
             <div class="d-flex gap-2 flex-wrap align-items-center">
-              <a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:product_edit' item.pk %}">Edit</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:product_edit' item.pk %}?next={{ request.get_full_path|urlencode }}">Edit</a>
               <form method="post" action="{% url 'catalog_admin:product_delete' item.pk %}" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
                 {% csrf_token %}
                 <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
               </form>
