@@ -54,7 +54,11 @@
 .portal-main .crm-badge.fb-resolved { background: #e8f5ec; color: #246f3b; }
 
 /* Phân trang = portal-pagination */
-.portal-main .crm-pagination { justify-content: space-between; margin: 0; padding: .85rem 1rem; border-top: 1px solid var(--portal-border); font-size: .87rem; }
+.portal-main .crm-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .6rem .75rem; margin: 0; padding: .85rem 1rem; border-top: 1px solid var(--portal-border); color: #637680; font-size: .85rem; }
+.portal-main .crm-pagination a { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; padding: .35rem .7rem; border: 1px solid var(--portal-border); border-radius: .4rem; background: #fff; color: var(--portal-text); line-height: 1.25; text-decoration: none; }
+.portal-main .crm-pagination a:hover { border-color: var(--portal-accent); background: #eaf4f7; color: #15526a; }
+.portal-main .crm-pagination a:focus-visible { outline: 3px solid rgb(23 107 134 / 28%); outline-offset: 2px; }
+.portal-main .crm-pagination span { color: #637680; font-size: .85rem; }
 .portal-main .crm-quote { border-left-color: var(--portal-accent); background: #f5f8f9; }
 
 /* Khảo sát (TV5) trong Admin Portal: đồng bộ nút / bảng / thẻ / ô nhập với trang Products */

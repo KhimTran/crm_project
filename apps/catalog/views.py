@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import urlencode
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.accounts.permissions import account_admin_required
+from apps.accounts.permissions import manager_required
 from django.urls import reverse
 from .forms import BrandForm, CategoryForm, ProductForm, SupplierForm
 from .models import Brand, Category, Product, Status, Supplier
@@ -25,7 +25,7 @@ def _query_strings(filters, sort, direction):
     full = urlencode({k: v for k, v in {**filters, "sort": sort, "dir": direction if sort else ""}.items() if v})
     return base, full
 
-@account_admin_required
+@manager_required
 @require_GET
 def supplier_list(request):
     query = request.GET.get("q", "").strip()
@@ -44,7 +44,7 @@ def supplier_list(request):
     })
 
 
-@account_admin_required
+@manager_required
 @require_http_methods(["GET", "POST"])
 def supplier_create(request):
     form = SupplierForm(request.POST if request.method == "POST" else None)
@@ -57,7 +57,7 @@ def supplier_create(request):
 
 
 
-@account_admin_required
+@manager_required
 @require_http_methods(["GET", "POST"])
 def supplier_edit(request, supplier_id):
     supplier = get_object_or_404(Supplier, pk=supplier_id)
@@ -70,7 +70,7 @@ def supplier_edit(request, supplier_id):
         "form": form, "title": "Nhà cung cấp", "back_url": reverse("catalog_admin:supplier_list")})
 
 
-@account_admin_required
+@manager_required
 @require_POST
 def supplier_delete(request, supplier_id):
     supplier = get_object_or_404(Supplier, pk=supplier_id)
@@ -88,7 +88,7 @@ def supplier_delete(request, supplier_id):
     return redirect("catalog_admin:supplier_list")
 
 
-@account_admin_required
+@manager_required
 @require_GET
 def product_list(request):
     query = request.GET.get("q", "").strip()
@@ -124,7 +124,7 @@ def product_list(request):
     })
 
 
-@account_admin_required
+@manager_required
 @require_http_methods(["GET", "POST"])
 def product_create(request):
     form = ProductForm(request.POST if request.method == "POST" else None)
@@ -133,9 +133,9 @@ def product_create(request):
         messages.success(request, "Đã tạo sản phẩm.")
         return redirect("catalog_admin:product_list")
     return render(request, "catalog/admin/form.html", {
-        "form": form, "title": "Sản phẩm", "back_url": reverse("catalog_admin:product_list")})
+        "form": form, "title": "Product", "back_url": reverse("catalog_admin:product_list")})
 
-@account_admin_required
+@manager_required
 @require_http_methods(["GET", "POST"])
 def product_edit(request, product_id):
     next_url = request.POST.get("next") or request.GET.get("next") or ""
@@ -148,13 +148,13 @@ def product_edit(request, product_id):
         messages.success(request, "Đã cập nhật sản phẩm.")
         return redirect(next_url)
     return render(request, "catalog/admin/form.html", {
-    "form": form, "title": "Sản phẩm",
+    "form": form, "title": "Product",
     "back_url": next_url,
     "next": next_url,
 })
 
 
-@account_admin_required
+@manager_required
 @require_POST
 def product_delete(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
@@ -182,7 +182,7 @@ def _simple_list(request, *, page_func, **context):
     })
 
 
-@account_admin_required
+@manager_required
 @require_GET
 def category_list(request):
     return _simple_list(
@@ -192,7 +192,7 @@ def category_list(request):
     )
 
 
-@account_admin_required
+@manager_required
 @require_http_methods(["GET", "POST"])
 def category_create(request):
     form = CategoryForm(request.POST if request.method == "POST" else None)
@@ -204,7 +204,7 @@ def category_create(request):
         "form": form, "title": "Danh mục", "back_url": reverse("catalog_admin:category_list")})
 
 
-@account_admin_required
+@manager_required
 @require_http_methods(["GET", "POST"])
 def category_edit(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
@@ -217,7 +217,7 @@ def category_edit(request, category_id):
         "form": form, "title": "Danh mục", "back_url": reverse("catalog_admin:category_list")})
 
 
-@account_admin_required
+@manager_required
 @require_POST
 def category_delete(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
@@ -230,7 +230,7 @@ def category_delete(request, category_id):
     return redirect("catalog_admin:category_list")
 
 
-@account_admin_required
+@manager_required
 @require_GET
 def brand_list(request):
     return _simple_list(
@@ -240,7 +240,7 @@ def brand_list(request):
     )
 
 
-@account_admin_required
+@manager_required
 @require_http_methods(["GET", "POST"])
 def brand_create(request):
     form = BrandForm(request.POST if request.method == "POST" else None)
@@ -252,7 +252,7 @@ def brand_create(request):
         "form": form, "title": "Thương hiệu", "back_url": reverse("catalog_admin:brand_list")})
 
 
-@account_admin_required
+@manager_required
 @require_http_methods(["GET", "POST"])
 def brand_edit(request, brand_id):
     brand = get_object_or_404(Brand, pk=brand_id)
@@ -265,7 +265,7 @@ def brand_edit(request, brand_id):
         "form": form, "title": "Thương hiệu", "back_url": reverse("catalog_admin:brand_list")})
 
 
-@account_admin_required
+@manager_required
 @require_POST
 def brand_delete(request, brand_id):
     brand = get_object_or_404(Brand, pk=brand_id)

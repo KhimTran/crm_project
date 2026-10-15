@@ -33,7 +33,7 @@ class CustomerAuthTests(TestCase):
         return self.client.post("/login/", {"email": (user or self.customer).email.upper(), "password": self.password, **extra})
 
     def test_login_redirects_by_role_and_groups_without_modifying_roles(self):
-        for user, destination in ((self.customer, "/"), (self.admin, "/admin-portal/"), (self.manager, "/crm/"), (self.service, "/crm/")):
+        for user, destination in ((self.customer, "/"), (self.admin, "/admin/"), (self.manager, "/crm/"), (self.service, "/crm/")):
             with self.subTest(user=user.email):
                 self.client.logout()
                 response = self.sign_in(user)
@@ -44,7 +44,7 @@ class CustomerAuthTests(TestCase):
                 self.assertEqual(user.role, "ADMIN" if user == self.admin else "CUSTOMER")
         self.admin.groups.add(self.manager.groups.first())
         self.client.logout()
-        self.assertRedirects(self.sign_in(self.admin), "/admin-portal/", fetch_redirect_response=False)
+        self.assertRedirects(self.sign_in(self.admin), "/admin/", fetch_redirect_response=False)
 
     def test_wrong_password_never_discloses_locked_status_or_updates_last_login(self):
         Account.objects.filter(pk=self.customer.pk).update(status="LOCKED")
@@ -200,12 +200,43 @@ class CustomerAuthTests(TestCase):
         self.assertEqual(client.post(start.url, data).status_code, 403)
         self.assertEqual(client.post(start.url, {**data, "csrfmiddlewaretoken": client.cookies["csrftoken"].value}).status_code, 302)
 
-    def test_admin_portal_login_remains_separate_and_customer_cannot_access_admin(self):
-        self.sign_in()
-        self.assertEqual(self.client.get(reverse("accounts_admin:list")).status_code, 403)
+    def test_customer_login_route_and_staff_portal_separation(self):
+        manager = Account.objects.create_user("role-manager@auth.test", self.password, role="MANAGER")
+        # Customer login route uses customer template
+        response = self.client.get("/login/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "accounts/customer/login.html")
+
+        # Staff login routes use shared staff login template
+        for staff_path in ("/admin/login/", "/manager/login/"):
+            with self.subTest(path=staff_path):
+                response = self.client.get(staff_path)
+                self.assertEqual(response.status_code, 200)
+                self.assertTemplateUsed(response, "admin_portal/login.html")
+
+        # Staff login routes redirect admin and manager to their respective dashboards
+        self.assertRedirects(
+            self.client.post("/admin/login/", {"email": self.admin.email, "password": self.password}),
+            reverse("accounts_admin:list"), fetch_redirect_response=False,
+        )
         self.client.logout()
-        response = self.client.post("/admin-portal/login/", {"email": self.customer.email, "password": self.password})
-        self.assertContains(response, "Unable to sign in")
+        self.assertRedirects(
+            self.client.post("/manager/login/", {
+                "email": manager.email, "password": self.password,
+                "next": "/manager/catalog/products/999/edit/",
+            }),
+            "/manager/catalog/products/999/edit/", fetch_redirect_response=False,
+        )
+        self.client.logout()
+
+        # Customer login route redirects staff roles appropriately
+        self.assertRedirects(self.client.post("/login/", {
+            "email": manager.email, "password": self.password, "next": "/admin/accounts/",
+        }), "/manager/", fetch_redirect_response=False)
+
+    def test_customer_denied_from_staff_portal_login(self):
+        # Customer credentials submitted to staff portal login are denied
+        response = self.client.post("/admin/login/", {"email": self.customer.email, "password": self.password})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Access Denied: Staff only.")
         self.assertNotIn("_auth_user_id", self.client.session)
-        response = self.client.post("/admin-portal/login/", {"email": self.admin.email, "password": self.password})
-        self.assertRedirects(response, reverse("accounts_admin:list"), fetch_redirect_response=False)

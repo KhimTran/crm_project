@@ -33,7 +33,7 @@ CREATE TABLE `accounts` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`account_id`),
   UNIQUE KEY `uq_accounts_email` (`email`),
-  CONSTRAINT `chk_accounts_role` CHECK ((`role` in (_utf8mb4'ADMIN',_utf8mb4'CUSTOMER'))),
+  CONSTRAINT `chk_accounts_role` CHECK ((`role` in (_utf8mb4'ADMIN',_utf8mb4'MANAGER',_utf8mb4'CUSTOMER'))),
   CONSTRAINT `chk_accounts_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'LOCKED')))
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -487,6 +487,7 @@ CREATE TABLE `products` (
   `brand_id` int NOT NULL,
   `category_id` int NOT NULL,
   `supplier_id` int NOT NULL,
+  `image_url` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`product_id`),
   KEY `idx_products_category` (`category_id`),
   KEY `idx_products_brand` (`brand_id`),
@@ -508,7 +509,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,'Demo racket 1',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,1),(2,'Demo racket 2',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,2),(3,'Demo racket 3',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,3),(4,'Demo racket 4',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,4),(5,'Demo racket 5',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,5),(6,'Demo racket 6',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,6),(7,'Demo racket 7',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,7),(8,'Demo racket 8',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,8);
+INSERT INTO `products` VALUES (1,'Demo racket 1',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,1,''),(2,'Demo racket 2',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,2,''),(3,'Demo racket 3',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,3,''),(4,'Demo racket 4',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,4,''),(5,'Demo racket 5',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,5,''),(6,'Demo racket 6',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,6,''),(7,'Demo racket 7',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,7,''),(8,'Demo racket 8',NULL,100000.00,'ACTIVE','2026-09-30 16:59:45','2026-09-30 16:59:45',1,1,8,'');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 

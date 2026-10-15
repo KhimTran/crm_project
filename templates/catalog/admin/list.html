@@ -1,5 +1,5 @@
-{% extends 'admin_portal/base.html' %}
-{% block title %}{% if kind == 'supplier' %}Suppliers{% else %}Products{% endif %} · CRM Admin Portal{% endblock %}
+{% extends 'manager/base.html' %}
+{% block title %}{% if kind == 'supplier' %}Suppliers{% else %}Products{% endif %} · CRM Manager Portal{% endblock %}
 {% block page_title %}{% if kind == 'supplier' %}Suppliers{% else %}Products{% endif %}{% endblock %}
 {% block content %}
 
@@ -148,7 +148,7 @@
           <td>
             <div class="d-flex gap-2 flex-wrap align-items-center">
               <a class="btn btn-sm btn-outline-secondary" href="{% url 'catalog_admin:product_edit' item.pk %}?next={{ request.get_full_path|urlencode }}">Edit</a>
-              <form method="post" action="{% url 'catalog_admin:product_delete' item.pk %}" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+              <form method="post" action="{% url 'catalog_admin:product_delete' item.pk %}" onsubmit="return confirm('Delete this product?');">
                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                 {% csrf_token %}
                 <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>

@@ -18,7 +18,7 @@
   <div class="report-tile"><span>{% t "Tổng khách hàng" "Total Customers" %}</span><strong>{{ summary.total }}</strong></div>
   <div class="report-tile"><span>{% t "Khách hàng mới tháng này" "New Customers This Month" %}</span><strong>{{ summary.new_this_month }}</strong></div>
   <div class="report-tile"><span>{% t "Tài khoản đang khóa" "Locked Accounts" %}</span><strong>{{ summary.locked }}</strong></div>
-  <div class="report-tile"><span>{% t "Điểm hài lòng TB" "Avg. Satisfaction" %}</span><strong>{% if summary.avg_rating is not None %}{{ summary.avg_rating }}★{% else %}–{% endif %}</strong><small>{{ summary.feedbacks }} {% t "phản hồi" "feedback" %}</small></div>
+  <div class="report-tile"><span>{% t "Điểm hài lòng TB" "Avg. Satisfaction" %}</span><strong>{% if summary.avg_rating is not None %}{{ summary.avg_rating }}{% else %}–{% endif %}</strong><small>{{ summary.feedbacks }} {% t "phản hồi" "feedback" %}</small></div>
 </div>
 
 <div class="report-grid">

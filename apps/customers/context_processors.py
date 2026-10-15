@@ -1,17 +1,29 @@
-from apps.accounts.constants import AccountRole
+from apps.accounts.constants import AccountRole, AccountStatus
+from apps.accounts.models import Account
 
 ADMIN_PORTAL_LAYOUT = "admin_portal/base.html"
+MANAGER_PORTAL_LAYOUT = "manager/base.html"
 CRM_LAYOUT = "layouts/base_crm.html"
 
 
-# tv4: chọn khung trang cho màn hình khách hàng/phản hồi: Admin ở trong Admin Portal, Quản lý CRM/CSKH dùng khung CRM
+# Chọn khung trang cho màn hình khách hàng/phản hồi: Admin dùng Admin Portal, Manager dùng Manager Portal, Quản lý CRM/CSKH dùng khung CRM
 def crm_layout(request):
     user = getattr(request, "user", None)
-    in_portal = getattr(user, "is_authenticated", False) and getattr(user, "role", None) == AccountRole.ADMIN
+    is_auth = getattr(user, "is_authenticated", False)
+    account = None
+    if is_auth and getattr(user, "pk", None):
+        account = Account.objects.filter(pk=user.pk, status=AccountStatus.ACTIVE).only("role").first()
+    role = account.role if account else None
+    in_portal = role in (AccountRole.ADMIN, AccountRole.MANAGER)
+    if is_auth and role == AccountRole.ADMIN:
+        layout = ADMIN_PORTAL_LAYOUT
+    elif is_auth and role == AccountRole.MANAGER:
+        layout = MANAGER_PORTAL_LAYOUT
+    else:
+        layout = CRM_LAYOUT
     return {
-        "crm_layout": ADMIN_PORTAL_LAYOUT if in_portal else CRM_LAYOUT,
+        "crm_layout": layout,
         "in_admin_portal": in_portal,
-        # Admin Portal hiển thị ngày kiểu Y-m-d như trang Products
         "date_fmt": "Y-m-d" if in_portal else "d/m/Y",
         "datetime_fmt": "Y-m-d H:i" if in_portal else "d/m/Y H:i",
     }

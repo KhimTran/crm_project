@@ -19,7 +19,7 @@ class AccountAdminViewTests(TestCase):
         return reverse("accounts_admin:" + name, args=[(account or self.customer).pk])
 
     def test_routes_and_list_are_safe_paginated_and_filterable(self):
-        self.assertEqual(self.list_url, "/admin-portal/accounts/")
+        self.assertEqual(self.list_url, "/admin/accounts/")
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, self.customer.password)
@@ -113,7 +113,7 @@ class AccountAdminViewTests(TestCase):
         for route in routes:
             response = self.client.get(route)
             self.assertEqual(response.status_code, 302)
-            self.assertTrue(response.url.startswith("/admin-portal/login/?next="))
+            self.assertTrue(response.url.startswith("/admin/login/?next="))
         self.client.force_login(self.customer)
         for route in routes:
             self.assertEqual(self.client.get(route).status_code, 403)
@@ -149,7 +149,7 @@ class AccountAdminViewTests(TestCase):
         url = reverse("accounts_admin:create")
         base = {"email": "fresh@example.com", "role": "CUSTOMER", "status": "ACTIVE", "password": self.password, "password_confirm": self.password}
         cases = [
-            {"email": self.customer.email.upper()}, {"role": "MANAGER"},
+            {"email": self.customer.email.upper()}, {"role": "STAFF"},
             {"status": "DELETED"}, {"password_confirm": "Different!2026"},
             {"password": "123", "password_confirm": "123"},
         ]
@@ -166,7 +166,7 @@ class AccountAdminViewTests(TestCase):
             self.assertTrue(response.context["form"].errors)
 
     def test_email_edit_route_and_link_are_removed(self):
-        path = f"/admin-portal/accounts/{self.customer.pk}/edit/"
+        path = f"/admin/accounts/{self.customer.pk}/edit/"
         self.assertEqual(self.client.get(path).status_code, 404)
         self.assertEqual(self.client.post(path, {"email": "changed@example.com"}).status_code, 404)
         detail = self.client.get(self.url("detail"))

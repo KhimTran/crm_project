@@ -78,7 +78,7 @@
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <form method="post" action="" id="roleForm">{% csrf_token %}
       <div class="modal-header"><h2 class="modal-title h5" id="roleModalTitle">Change Role</h2></div>
-      <div class="modal-body"><p class="text-muted">Account: <strong id="roleAccountEmail"></strong></p><label class="form-label" for="id_role_choice">Role</label><select class="form-select" id="id_role_choice" name="role"><option value="ADMIN">ADMIN</option><option value="CUSTOMER">CUSTOMER</option></select></div>
+      <div class="modal-body"><p class="text-muted">Account: <strong id="roleAccountEmail"></strong></p><label class="form-label" for="id_role_choice">Role</label><select class="form-select" id="id_role_choice" name="role"><option value="ADMIN">ADMIN</option><option value="MANAGER">MANAGER</option><option value="CUSTOMER">CUSTOMER</option></select></div>
       <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Change Role</button></div>
     </form>
   </div></div>

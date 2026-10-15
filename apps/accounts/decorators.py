@@ -32,7 +32,9 @@ def _home_path(account):
     if account is None:
         return "/"
     if account.role == AccountRole.ADMIN:
-        return "/admin-portal/"
+        return "/admin/"
+    if account.role == AccountRole.MANAGER:
+        return "/manager/"
     if account.groups.filter(name__in=_CRM_GROUPS).exists():
         return "/crm/"
     return "/"
@@ -61,7 +63,7 @@ def role_required(*allowed_roles):
     for role in allowed_roles:
         permission = normalize_account_choice(role)
         if not isinstance(permission, str) or permission not in _ALLOWED_ROLES:
-            raise ValueError("Role must be ADMIN, CUSTOMER, CRM_MANAGER or CUSTOMER_SERVICE")
+            raise ValueError("Role must be ADMIN, MANAGER, CUSTOMER, CRM_MANAGER or CUSTOMER_SERVICE")
         permissions.add(permission)
 
     def decorator(view):

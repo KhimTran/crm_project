@@ -137,7 +137,7 @@ class AccountApiTests(TestCase):
             response = self.client.get(self.root, {"status": status})
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["total"], 5)
-        for query in ({"role": "MANAGER"}, {"status": "RUNNING"}):
+        for query in ({"role": "STAFF"}, {"status": "RUNNING"}):
             self.assertEqual(self.client.get(self.root, query).status_code, 400)
 
     def test_role_action_normalizes_case(self):

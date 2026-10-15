@@ -16,7 +16,7 @@ from .models import Brand, Category, Product, Supplier
 
 class CatalogTests(TestCase):
     def setUp(self):
-        self.admin = get_user_model().objects.create_superuser("catalog-admin@example.com", "StrongPass!2026")
+        self.admin = get_user_model().objects.create_user("catalog-manager@example.com", "StrongPass!2026", role="MANAGER")
         self.client.force_login(self.admin)
         self.category = Category.objects.create(category_name="Rackets")
         self.brand = Brand.objects.create(brand_name="Brand")
@@ -68,7 +68,7 @@ class CatalogTests(TestCase):
 class SupplierListTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.admin = get_user_model().objects.create_superuser("supplier-admin@example.com", "StrongPass!2026")
+        cls.admin = get_user_model().objects.create_user("supplier-manager@example.com", "StrongPass!2026", role="MANAGER")
         Supplier.objects.create(supplier_code="SUP001", supplier_name="Yonex Vietnam", status="ACTIVE", email="sales@yonex.example", phone="123456")
         Supplier.objects.create(supplier_code="SUP002", supplier_name="Yonex Europe", status="INACTIVE")
         Supplier.objects.create(supplier_code="SUP003", supplier_name="Victor Vietnam", status="ACTIVE")
@@ -162,7 +162,7 @@ class SupplierListTests(TestCase):
 class ProductListUiTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.admin = get_user_model().objects.create_superuser("product-admin@example.com", "StrongPass!2026")
+        cls.admin = get_user_model().objects.create_user("product-manager@example.com", "StrongPass!2026", role="MANAGER")
         cls.category = Category.objects.create(category_name="Rackets")
         cls.brand = Brand.objects.create(brand_name="Yonex")
         cls.supplier = Supplier.objects.create(supplier_code="SUP100", supplier_name="Yonex Vietnam")
@@ -195,7 +195,7 @@ class ProductListUiTests(TestCase):
             with self.subTest(path=path):
                 response = self.client.get(path)
                 form = response.context["form"]
-                self.assertEqual(set(form.fields), {"category", "brand", "supplier", "product_name", "description", "price", "status"})
+                self.assertEqual(set(form.fields), {"category", "brand", "supplier", "product_name", "description", "image_url", "price", "status"})
                 for field in ("category", "brand", "supplier", "status"):
                     self.assertIsInstance(form.fields[field].widget, forms.Select)
                 for name in ("Rackets", "Yonex", "Yonex Vietnam"):

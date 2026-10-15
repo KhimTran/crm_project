@@ -7,7 +7,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.staticfiles import finders
 from django.template import engines
 from django.template.loader import render_to_string
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import resolve
 
 
@@ -94,5 +94,33 @@ class SharedLayoutTests(SimpleTestCase):
 
     def test_tv1_registers_shop_and_crm_home_without_admin_route_changes(self):
         self.assertEqual(resolve('/').view_name, 'shop:home')
-        self.assertEqual(resolve('/crm/').view_name, 'customer_auth:crm_home')
-        self.assertEqual(resolve('/admin-portal/login/').view_name, 'login')
+        self.assertEqual(resolve('/admin/login/').view_name, 'admin_login')
+        self.assertEqual(resolve('/manager/login/').view_name, 'manager_login')
+
+
+class RoleLayoutIntegrationTests(TestCase):
+    def test_manager_crm_and_catalog_urls_keep_manager_shell_and_active_navigation(self):
+        from apps.accounts.models import Account
+
+        manager = Account.objects.create_user("manager-layout@example.test", "StrongPass!2026", role="MANAGER")
+        self.client.force_login(manager)
+        for url, active_label in (("/crm/customers/", "Customers"), ("/manager/catalog/products/", "Products")):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "CRM MANAGER PORTAL")
+                self.assertContains(response, f'>{active_label}</a>')
+                self.assertNotContains(response, "CRM ADMIN PORTAL")
+                self.assertNotContains(response, "Database Tools")
+                self.assertContains(response, "/static/css/admin_portal.css")
+
+    def test_admin_crm_url_keeps_admin_shell(self):
+        from apps.accounts.models import Account
+
+        admin = Account.objects.create_superuser("admin-layout@example.test", "StrongPass!2026")
+        self.client.force_login(admin)
+        response = self.client.get("/crm/customers/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "CRM ADMIN PORTAL")
+        self.assertContains(response, "Database Tools")
+        self.assertNotContains(response, "CRM MANAGER PORTAL")

@@ -37,10 +37,22 @@ def safe_login_destination(request, account):
     allowed = {"shop:home", "shop:products", "shop:product_detail", "customer_auth:password_change"}
     if account.role == "CUSTOMER":
         allowed.add("customers:profile")
-    if fallback in ("/crm/", "/admin-portal/"):
+    if fallback in ("/crm/", "/admin/", "/manager/"):
         allowed.add("customer_auth:crm_home")
-    if fallback == "/admin-portal/":
-        allowed.update({"admin_portal_home", "accounts_admin:list", "accounts_admin:detail"})
+    if fallback == "/admin/":
+        allowed.update({"admin_home", "accounts_admin:list", "accounts_admin:detail", "database_tools"})
+    if fallback == "/manager/":
+        allowed.update({
+            "manager_home", "customers:list", "customers:detail", "customers:create",
+            "customers:lock", "customers:unlock", "customers:delete",
+            "customer_reports:customers", "crm_feedbacks:list", "crm_feedbacks:detail",
+            "surveys:manage_list", "surveys:manage_create", "surveys:manage_detail",
+            "surveys:manage_edit", "surveys:manage_delete", "surveys:manage_close",
+            "surveys:manage_send", "surveys:manage_stats", "surveys:question_add",
+            "surveys:question_edit", "surveys:question_delete", "surveys:question_move",
+        })
+        if match.view_name.startswith("catalog_admin:"):
+            return destination
     return destination if match.view_name in allowed else fallback
 
 

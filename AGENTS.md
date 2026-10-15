@@ -1,5 +1,13 @@
 # Project Overview
 
+## CURRENT ADMIN & MANAGER PORTAL & RBAC ARCHITECTURE — owner decision 2026-10-15
+
+Role `MANAGER` is added to `accounts.role` alongside `ADMIN` and `CUSTOMER`. Valid stored values are `ADMIN`, `MANAGER`, and `CUSTOMER`.
+Custom **Admin UI** is mounted at `/admin/` exclusively for active `ADMIN` accounts, containing Account management (creation, listing, role/permission assignment, lock/unlock, password reset, deletion) and Database tools (backup, restore, seed).
+**Manager UI** is mounted at `/manager/` for active `MANAGER` accounts, containing Catalog management (Products, Categories, Brands, Suppliers) and CRM navigation (Customers, Customer Reports, Feedback, Surveys). All account management and database tools are removed from `/manager/`.
+Django's built-in admin site is relocated to `/django-admin/`. Legacy `/admin-portal/` is deprecated/removed.
+Active `ADMIN` accounts access `/admin/`. Active `MANAGER` accounts access `/manager/`. `CUSTOMER` and `LOCKED` accounts are blocked from both portals.
+
 ## CURRENT ACCOUNT INPUT CONTRACT — owner decision 2026-10-01
 
 Account email is immutable after creation. Account role/status input is case-insensitive (`strip().upper()`), while stored values remain `ADMIN`/`CUSTOMER` and `ACTIVE`/`LOCKED`. Account generic PATCH and the HTML email-edit route are removed. Role change, lock/unlock, and password reset remain dedicated actions. This decision supersedes historical edit/PATCH proposals below; it requires no SQL or business migration.
@@ -177,7 +185,7 @@ accounts
   account_id BIGINT
   email VARCHAR(255)
   password_hash VARCHAR(255)
-  role VARCHAR(20)                 values: ADMIN, CUSTOMER
+  role VARCHAR(20)                 values: ADMIN, MANAGER, CUSTOMER
   status VARCHAR(20)               values: ACTIVE, LOCKED
   last_login_at DATETIME
   created_at DATETIME
@@ -349,7 +357,7 @@ Trước quyết định cuối cùng, source từng có `TaiKhoan(AbstractUser)
 
 Chuyển `AUTH_USER_MODEL` đã hoàn thành sau khi live inspection xác nhận migration legacy chưa apply, bảng SQL `accounts` đã tồn tại, 13 bảng nghiệp vụ đều có 0 rows và không có bảng legacy. Không xây conversion hoặc compatibility cho model cũ. Các thay đổi Auth sau này vẫn cần kiểm tra migration/data state trước khi áp dụng.
 
-`AbstractBaseUser`/`PermissionsMixin` cung cấp Django Auth; `is_active`, `is_staff`, `is_superuser` là properties, không tạo cột trong `accounts`. ACTIVE ADMIN có quyền framework-level superuser; LOCKED bị từ chối xác thực. Django Groups/Permissions dùng bảng kỹ thuật riêng. `Account.role` chỉ ADMIN/CUSTOMER; profile thuộc Customer, không thêm vào Account.
+`AbstractBaseUser`/`PermissionsMixin` cung cấp Django Auth; `is_active`, `is_staff`, `is_superuser` là properties, không tạo cột trong `accounts`. ACTIVE ADMIN có quyền framework-level superuser; LOCKED bị từ chối xác thực. Django Groups/Permissions dùng bảng kỹ thuật riêng. `Account.role` gồm ADMIN/MANAGER/CUSTOMER (theo owner decision 2026-10-15); profile thuộc Customer, không thêm vào Account.
 
 ## AUTH_USER_MODEL inspection gate
 

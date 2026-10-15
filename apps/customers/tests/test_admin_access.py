@@ -16,11 +16,13 @@ class AdminAccessTests(TestCase):
         self.customer, _ = create_customer(email="kh1@example.com", full_name="Khách 1", phone="0900000001")
         self.client.login(email=self.admin.email, password=self.password)
 
-    # tv4: sidebar Admin Portal có link Customers / Feedback, không còn nhãn Planned
+    # Admin Portal sidebar chỉ có Accounts và Database Tools, không chứa CRM modules
     def test_admin_portal_sidebar_links_customers_and_feedback(self):
         response = self.client.get(reverse("accounts_admin:list"))
-        self.assertContains(response, f'href="{reverse("customers:list")}"')
-        self.assertContains(response, f'href="{reverse("crm_feedbacks:list")}"')
+        self.assertContains(response, f'href="{reverse("accounts_admin:list")}"')
+        self.assertContains(response, f'href="{reverse("database_tools")}"')
+        self.assertNotContains(response, f'href="{reverse("customers:list")}"')
+        self.assertNotContains(response, f'href="{reverse("crm_feedbacks:list")}"')
         self.assertNotContains(response, "Planned")
 
     # tv4: admin mở được các trang xem của TV4

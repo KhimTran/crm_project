@@ -5,6 +5,7 @@ from .errors import InvalidAccountRole
 
 class AccountRole(models.TextChoices):
     ADMIN = "ADMIN", "Admin"
+    MANAGER = "MANAGER", "Manager"
     CUSTOMER = "CUSTOMER", "Customer"
 
 
@@ -20,7 +21,7 @@ def normalize_account_choice(value):
 def normalize_account_role(value):
     role = normalize_account_choice(value)
     if role not in AccountRole.values:
-        raise InvalidAccountRole("Role must be ADMIN or CUSTOMER")
+        raise InvalidAccountRole("Role must be ADMIN, MANAGER or CUSTOMER")
     return role
 
 

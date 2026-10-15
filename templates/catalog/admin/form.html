@@ -1,5 +1,5 @@
-{% extends 'admin_portal/base.html' %}
-{% block title %}{{ title }} · CRM Admin Portal{% endblock %}
+{% extends 'manager/base.html' %}
+{% block title %}{{ title }} · CRM Manager Portal{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 {% block content %}
 <div class="portal-section-intro"><a href="{% if back_url %}{{ back_url }}{% elif 'supplier' in request.path %}{% url 'catalog_admin:supplier_list' %}{% else %}{% url 'catalog_admin:product_list' %}{% endif %}">Back to list</a></div>

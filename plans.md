@@ -1150,3 +1150,35 @@ was used without printing credentials.
 - Evidence/details: docs/tv5_pr6_validation.md; screenshots/PDF/JSON outside Git.
   Native OS printer chooser/physical printing and other browser engines not tested.
   No remaining functional blocker in the tested scope; PR stays open for owner review.
+
+### Admin and Manager UI refactoring & MANAGER role addition — 2026-10-15
+
+- Owner decision: Add `MANAGER` role to `accounts.role` (alongside `ADMIN` and `CUSTOMER`). Valid stored values are `ADMIN`, `MANAGER`, and `CUSTOMER`.
+- UI & Routing separation:
+  - Custom Admin UI mounted at `/admin/` exclusively for active `ADMIN` accounts (`status=ACTIVE`, `role=ADMIN`). Contains Account administration (creation, listing, role assignment, lock/unlock, password reset, deletion), database tools (backup, restore, seed), and CRM module links.
+  - Manager UI mounted at `/manager/` for active `MANAGER` accounts (`status=ACTIVE`, `role=MANAGER`). Contains Catalog management (Products, Categories, Brands, Suppliers) and CRM navigation (Customers, Customer Reports, Feedback, Surveys). All account creation/deletion, role assignment, and database backup/restore features are completely removed from `/manager/`.
+  - Django built-in admin relocated to `/django-admin/`. Legacy `/admin-portal/` prefix deprecated and removed.
+  - Active `ADMIN` accounts access `/admin/`. Active `MANAGER` accounts access `/manager/`. `CUSTOMER` and `LOCKED` accounts remain strictly blocked (403) from both `/admin/` and `/manager/`.
+- Database & Model Migration:
+  - Updated `apps/accounts/constants.py` (`AccountRole.MANAGER`) and `normalize_account_role`.
+  - Updated `apps/accounts/models.py` `chk_accounts_role` CheckConstraint to include `'MANAGER'`.
+  - Created and applied migration `apps/accounts/migrations/0002_remove_account_chk_accounts_role_alter_account_role_and_more.py` on live MySQL `crm_db`. Aligned `database/crm_db.sql`.
+- Permissions & RBAC:
+  - Updated `apps/accounts/permissions.py`: added `require_active_manager`, `manager_required`. Updated `account_admin_required` (redirects to `admin_login`), `manager_required` (redirects to `manager_login`).
+  - Updated `apps/accounts/decorators.py`: home redirect routes `ADMIN` -> `/admin/`, `MANAGER` -> `/manager/`, CRM groups -> `/crm/`.
+  - Updated `apps/accounts/services.py`: `_protect_final_admin` triggers when demoting from `ADMIN` to any non-admin role (`role != AccountRole.ADMIN`).
+  - Updated `apps/catalog/views.py`: all 16 views protected with `@manager_required`.
+- Views, URLs & Templates:
+  - Created `apps/admin_portal/urls_admin.py` for `/admin/` and `apps/admin_portal/urls_manager.py` for `/manager/`.
+  - Separated view handlers: `admin_home`, `admin_login`, `admin_logout`, `database_tools`, `seed_data` for Admin; `manager_home`, `manager_login`, `manager_logout`, `catalog/` for Manager.
+  - Created `templates/manager/base.html`, `templates/manager/login.html`, `templates/manager/partials/sidebar.html`.
+  - Updated `templates/catalog/admin/list.html`, `form.html`, `simple_list.html` to extend `manager/base.html`.
+  - Updated `templates/admin_portal/partials/sidebar.html` strictly with Accounts and Database Tools (CRM modules completely removed).
+  - Implemented Database Backup (`apps/admin_portal/services/backup_service.py`), Download (`download_backup`), and Restore with `RESTORE` confirmation (`apps/admin_portal/services/restore_service.py`) in `templates/admin_portal/database.html`.
+  - Applied `catalog` migration `0002_product_image_url` to resolve OperationalError 1054 on `/manager/catalog/products/` and aligned `database/crm_db.sql`.
+  - Updated CRM module guards (`apps/customers/views.py`, `apps/feedback/views.py`, `apps/surveys/views.py`, `apps/surveys/services.py`, `apps/customers/portal_text.py`) to authorize the `MANAGER` role.
+- Verification:
+  - `manage.py check`: 0 issues.
+  - `manage.py showmigrations`: all migrations `[X]`.
+  - Full test suite: 301/301 passed in 185.654s on MySQL `test_crm_db` (`apps.accounts`, `apps.admin_portal`, `apps.catalog`, `apps.customers`, `apps.feedback`, `apps.surveys`, `apps.shop`).
+  - End-to-end client verification: `/manager/` redirects to `/manager/catalog/products/` with 200 OK; Admin sidebar contains strictly Accounts and Database Tools.

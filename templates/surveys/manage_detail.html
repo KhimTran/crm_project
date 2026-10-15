@@ -11,6 +11,7 @@
     {% if survey.description %}<p>{{ survey.description|linebreaksbr }}</p>{% endif %}
   </div>
   <div class="sv-actions">
+    <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_list' %}">Back to Surveys</a>
     {% if is_draft %}<a class="sv-btn sv-ghost" href="{% url 'surveys:manage_edit' survey.survey_id %}">{% t "Sửa thông tin" "Edit Survey" %}</a>{% endif %}
     {% if survey.status != 'CLOSED' %}<a class="sv-btn" href="{% url 'surveys:manage_send' survey.survey_id %}">{% t "Gửi khảo sát" "Send Survey" %}</a>{% endif %}
     <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_stats' survey.survey_id %}">{% t "Thống kê" "Statistics" %}</a>
