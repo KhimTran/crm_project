@@ -94,7 +94,7 @@ def register(request):
     return render(request, "accounts/customer/form.html", {"form": form, "title": "Đăng ký khách hàng", "submit_label": "Đăng ký"})
 
 
-@role_required("ADMIN", "CUSTOMER")
+@role_required("ADMIN", "MANAGER", "CUSTOMER")
 @never_cache
 @sensitive_post_parameters("old_password", "new_password1", "new_password2")
 @require_http_methods(["GET", "POST"])

@@ -33,7 +33,7 @@
           <form method="post" action="{% url 'manager_logout' %}">{% csrf_token %}<button class="btn btn-outline-secondary btn-sm" type="submit">Logout</button></form>
         </div>
       </header>
-      {% include 'admin_portal/partials/messages.html' %}
+      {% include 'admin/portal/partials/messages.html' %}
       {% block content %}{% endblock %}
     </main>
   </div>

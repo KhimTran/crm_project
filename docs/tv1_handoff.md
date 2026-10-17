@@ -103,7 +103,7 @@ khi backend/test quyền hoàn tất. Nội dung trang tổng quan tại
 nên feedback hiển thị “Sắp có”. TV4 nối nút theo route thật, kiểm tra Product và
 Customer ở backend. Survey không có route shop theo product, không suy diễn mapping.
 
-TV3 giữ `templates/admin_portal/*`, Account API/services hiện có. Chỉ test root
+TV3 dùng `templates/admin/portal/*` theo rename ngày 2026-10-17, giữ Account API/services hiện có. Chỉ test root
 404 trước đây đổi sang 200 vì TV1 thêm homepage. Admin login guard dùng `reverse('login')`,
 không phụ thuộc LOGIN_URL chung. Việc gán nhóm vẫn do quy trình quản trị có sẵn,
 TV1 không cấp quyền qua register/profile.

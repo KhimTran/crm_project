@@ -1,5 +1,7 @@
 from unittest.mock import patch
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
 from django.test import Client, TestCase, override_settings
@@ -186,7 +188,7 @@ class AdminPortalUiTests(TestCase):
         self.client.force_login(self.admin)
         response = self.client.post(reverse("database_backup"))
         self.assertRedirects(response, reverse("database_tools"))
-        mock_create_backup.assert_called_once()
+        mock_create_backup.assert_called_once_with(actor_id=self.admin.pk)
 
         self.client.force_login(self.customer)
         self.assertEqual(self.client.post(reverse("database_backup")).status_code, 403)
@@ -199,10 +201,18 @@ class AdminPortalUiTests(TestCase):
         self.assertRedirects(response, reverse("database_tools"))
         mock_restore.assert_not_called()
 
-        # With RESTORE confirmation
-        response = self.client.post(reverse("database_restore"), {"filename": "test.sql", "confirm": "RESTORE"})
-        self.assertRedirects(response, reverse("database_tools"))
-        mock_restore.assert_called_once_with("test.sql", "RESTORE")
+        # Exact file/database confirmation and maintenance acknowledgment are required.
+        mock_restore.return_value = Path("recovery.sql")
+        database_name = settings.DATABASES["default"]["NAME"]
+        response = self.client.post(reverse("database_restore"), {
+            "filename": "test.sql", "confirm": f"RESTORE test.sql TO {database_name}",
+            "target_database": database_name, "maintenance_ack": "on",
+        })
+        self.assertContains(response, "Recovery backup retained")
+        mock_restore.assert_called_once_with(
+            "test.sql", f"RESTORE test.sql TO {database_name}", actor=self.admin,
+            target_database=database_name, maintenance_ack=True,
+        )
 
         self.client.force_login(self.customer)
         self.assertEqual(self.client.post(reverse("database_restore"), {"filename": "test.sql", "confirm": "RESTORE"}).status_code, 403)

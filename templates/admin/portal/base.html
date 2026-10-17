@@ -13,14 +13,14 @@
 <body class="admin-portal">
   <div class="portal-shell">
     <aside class="portal-sidebar d-none d-lg-block" aria-label="Admin Portal navigation">
-      {% include 'admin_portal/partials/sidebar.html' %}
+      {% include 'admin/portal/partials/sidebar.html' %}
     </aside>
     <div class="offcanvas offcanvas-start portal-mobile-sidebar" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarTitle">
       <div class="offcanvas-header">
         <h2 class="offcanvas-title fs-5" id="mobileSidebarTitle">CRM Admin Portal</h2>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="offcanvas">Close</button>
       </div>
-      <div class="offcanvas-body p-0">{% include 'admin_portal/partials/sidebar.html' %}</div>
+      <div class="offcanvas-body p-0">{% include 'admin/portal/partials/sidebar.html' %}</div>
     </div>
     <main class="portal-main">
       <header class="portal-header">
@@ -33,7 +33,7 @@
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn-outline-secondary btn-sm" type="submit">Logout</button></form>
         </div>
       </header>
-      {% include 'admin_portal/partials/messages.html' %}
+      {% include 'admin/portal/partials/messages.html' %}
       {% block content %}{% endblock %}
     </main>
   </div>

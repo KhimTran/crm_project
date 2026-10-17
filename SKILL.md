@@ -215,8 +215,12 @@ Prefix:
 Layout:
 
 ```text
-base_admin.html / admin_portal/base.html
+admin/portal/base.html
 ```
+
+Custom portal templates live under `templates/admin/portal/` (TV3 naming,
+2026-10-17). Do not create `templates/admin/base.html`, `base_site.html`,
+`index.html` or `login.html`; those names belong to Django's built-in admin.
 
 ### Manager
 

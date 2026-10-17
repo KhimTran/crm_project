@@ -1,12 +1,15 @@
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from django.apps import apps
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.staticfiles import finders
 from django.template import engines
-from django.template.loader import render_to_string
+from django.template.loader import get_template, render_to_string
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import resolve
 
@@ -96,6 +99,39 @@ class SharedLayoutTests(SimpleTestCase):
         self.assertEqual(resolve('/').view_name, 'shop:home')
         self.assertEqual(resolve('/admin/login/').view_name, 'admin_login')
         self.assertEqual(resolve('/manager/login/').view_name, 'manager_login')
+
+
+class PortalTemplateResolutionTests(SimpleTestCase):
+    def test_custom_portal_templates_resolve_from_the_portal_subdirectory(self):
+        for relative_name in ("base.html", "database.html", "login.html",
+                              "partials/messages.html", "partials/sidebar.html"):
+            with self.subTest(template=relative_name):
+                template = get_template(f"admin/portal/{relative_name}")
+                expected = Path(settings.BASE_DIR) / "templates" / "admin" / "portal" / relative_name
+                self.assertEqual(Path(template.origin.name).resolve(), expected.resolve())
+
+    def test_django_admin_templates_resolve_from_the_framework(self):
+        framework_templates = Path(apps.get_app_config("admin").path) / "templates"
+        for name in ("base.html", "base_site.html", "login.html", "index.html"):
+            with self.subTest(template=name):
+                template = get_template(f"admin/{name}")
+                self.assertEqual(Path(template.origin.name).resolve(),
+                                 (framework_templates / "admin" / name).resolve())
+
+    def test_shared_staff_login_and_manager_alias_render_one_independent_login_page(self):
+        from apps.admin_portal.views import PortalLoginForm
+
+        for name in ("admin/portal/login.html", "manager/login.html"):
+            with self.subTest(template=name):
+                request = RequestFactory().get("/admin/login/")
+                request.user = AnonymousUser()
+                html = render_to_string(name, {"form": PortalLoginForm(), "next": ""}, request=request)
+                self.assertEqual(html.lower().count("<!doctype html>"), 1)
+                self.assertIn("CRM STAFF PORTAL", html)
+                self.assertIn('name="email"', html)
+                self.assertIn('name="password"', html)
+                self.assertIn('name="csrfmiddlewaretoken"', html)
+                self.assertNotIn('id="site-name"', html)
 
 
 class RoleLayoutIntegrationTests(TestCase):

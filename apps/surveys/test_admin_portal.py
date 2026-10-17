@@ -31,7 +31,7 @@ class SurveyAdminPortalTests(TestCase):
                           (reverse("surveys:manage_stats", args=[sid]), "Response Rate"),
                           (reverse("surveys:question_add", args=[sid]), "Question Type")):
             response = self.client.get(url)
-            self.assertTemplateUsed(response, "admin_portal/base.html")
+            self.assertTemplateUsed(response, "admin/portal/base.html")
             self.assertContains(response, text, msg_prefix=url)
 
     # tv4: lỗi form và thông báo cũng sang tiếng Anh

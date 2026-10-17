@@ -40,7 +40,7 @@ class AdminAccessTests(TestCase):
     # tv4: admin xem trang TV4 trong khung Admin Portal, Quản lý CRM vẫn dùng khung CRM
     def test_layout_follows_role(self):
         response = self.client.get(reverse("crm_feedbacks:list"))
-        self.assertTemplateUsed(response, "admin_portal/base.html")
+        self.assertTemplateUsed(response, "admin/portal/base.html")
         self.assertContains(response, "crm_portal.css")
 
         manager = get_user_model().objects.create_user("manager@example.test", self.password)
@@ -48,7 +48,7 @@ class AdminAccessTests(TestCase):
         self.client.force_login(manager)
         response = self.client.get(reverse("customers:list"))
         self.assertTemplateUsed(response, "layouts/base_crm.html")
-        self.assertTemplateNotUsed(response, "admin_portal/base.html")
+        self.assertTemplateNotUsed(response, "admin/portal/base.html")
 
     # tv4: trong Admin Portal nội dung tiếng Anh (nhãn, lựa chọn, lỗi form, thông báo); Quản lý CRM vẫn tiếng Việt
     def test_admin_portal_content_is_english(self):

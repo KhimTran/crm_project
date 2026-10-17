@@ -1,7 +1,7 @@
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.models import Account
 
-ADMIN_PORTAL_LAYOUT = "admin_portal/base.html"
+ADMIN_PORTAL_LAYOUT = "admin/portal/base.html"
 MANAGER_PORTAL_LAYOUT = "manager/base.html"
 CRM_LAYOUT = "layouts/base_crm.html"
 

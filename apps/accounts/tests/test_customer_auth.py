@@ -212,7 +212,7 @@ class CustomerAuthTests(TestCase):
             with self.subTest(path=staff_path):
                 response = self.client.get(staff_path)
                 self.assertEqual(response.status_code, 200)
-                self.assertTemplateUsed(response, "admin_portal/login.html")
+                self.assertTemplateUsed(response, "admin/portal/login.html")
 
         # Staff login routes redirect admin and manager to their respective dashboards
         self.assertRedirects(
@@ -240,3 +240,124 @@ class CustomerAuthTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Access Denied: Staff only.")
         self.assertNotIn("_auth_user_id", self.client.session)
+
+
+class ManagerPasswordChangeTests(TestCase):
+    password = "StrongPass!2026"
+    new_password = "NewStrongPass!2027"
+    path = "/account/password/change/"
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.manager = Account.objects.create_user("manager@password.test", cls.password, role="MANAGER")
+        cls.other_account = Account.objects.create_user("other@password.test", cls.password)
+
+    def password_data(self, **extra):
+        return {"old_password": self.password, "new_password1": self.new_password,
+                "new_password2": self.new_password, **extra}
+
+    def test_manager_login_redirects_and_password_change_next(self):
+        for login_path, extra, destination in (
+            ("/login/", {}, "/manager/"),
+            ("/login/", {"next": self.path}, self.path),
+            ("/manager/login/", {}, reverse("catalog_admin:product_list")),
+        ):
+            with self.subTest(login_path=login_path, extra=extra):
+                self.client.logout()
+                response = self.client.post(login_path, {
+                    "email": self.manager.email, "password": self.password, **extra,
+                })
+                self.assertRedirects(response, destination, fetch_redirect_response=False)
+                self.assertEqual(self.client.get(self.path).status_code, 200)
+        self.manager.refresh_from_db()
+        self.assertEqual(self.manager.role, "MANAGER")
+        self.assertTrue(self.manager.check_password(self.password))
+
+    def test_manager_password_change_requires_current_password_and_valid_new_password(self):
+        self.client.force_login(self.manager)
+        original_hash = self.manager.password
+        for data, error_field in (
+            (self.password_data(old_password="wrong"), "old_password"),
+            (self.password_data(new_password1="123", new_password2="123"), "new_password2"),
+            (self.password_data(new_password2="Mismatch!2026"), "new_password2"),
+        ):
+            with self.subTest(error_field=error_field):
+                response = self.client.post(self.path, data)
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(error_field, response.context["form"].errors)
+                self.manager.refresh_from_db()
+                self.assertEqual(self.manager.password, original_hash)
+                self.assertEqual(self.client.session["_auth_user_id"], str(self.manager.pk))
+
+    def test_manager_changes_only_self_and_preserves_current_session_invalidates_others(self):
+        self.client.force_login(self.manager)
+        other_session = Client()
+        other_session.force_login(self.manager)
+        other_hash = self.other_account.password
+        response = self.client.post(self.path, self.password_data(
+            account_id=self.other_account.pk, email=self.other_account.email,
+            role="ADMIN", status="LOCKED", next="/admin/",
+        ))
+        self.assertRedirects(response, "/manager/", fetch_redirect_response=False)
+        self.manager.refresh_from_db()
+        self.other_account.refresh_from_db()
+        self.assertTrue(self.manager.check_password(self.new_password))
+        self.assertFalse(self.manager.check_password(self.password))
+        self.assertEqual((self.manager.role, self.manager.status), ("MANAGER", "ACTIVE"))
+        self.assertEqual(self.other_account.password, other_hash)
+        self.assertEqual(self.client.session["_auth_user_id"], str(self.manager.pk))
+        self.assertEqual(self.client.get(reverse("catalog_admin:product_list")).status_code, 200)
+        self.assertRedirects(other_session.get(self.path), f"/login/?next={self.path}", fetch_redirect_response=False)
+        self.assertNotIn("_auth_user_id", other_session.session)
+        self.client.logout()
+        self.assertEqual(self.client.post("/login/", {
+            "email": self.manager.email, "password": self.password,
+        }).status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertRedirects(self.client.post("/login/", {
+            "email": self.manager.email, "password": self.new_password,
+        }), "/manager/", fetch_redirect_response=False)
+
+    def test_locked_manager_cannot_change_password_from_existing_session(self):
+        self.client.force_login(self.manager)
+        self.assertEqual(self.client.get(self.path).status_code, 200)
+        original_hash = self.manager.password
+        Account.objects.filter(pk=self.manager.pk).update(status="LOCKED")
+        for method, data in ((self.client.get, {}), (self.client.post, self.password_data())):
+            response = method(self.path, data)
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.url.startswith("/login/?next="))
+        self.manager.refresh_from_db()
+        self.assertEqual(self.manager.password, original_hash)
+        self.assertRedirects(self.client.get(reverse("catalog_admin:product_list")),
+                             "/manager/login/?next=%2Fmanager%2Fcatalog%2Fproducts%2F",
+                             fetch_redirect_response=False)
+        self.client.logout()
+        response = self.client.post("/manager/login/", {
+            "email": self.manager.email, "password": self.password,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_manager_password_change_requires_csrf_and_post_to_write(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.manager)
+        self.assertEqual(client.get(self.path).status_code, 200)
+        self.assertEqual(client.post(self.path, self.password_data()).status_code, 403)
+        for method in (client.put, client.patch, client.delete):
+            self.assertEqual(method(self.path, HTTP_X_CSRFTOKEN=client.cookies["csrftoken"].value).status_code, 405)
+        self.manager.refresh_from_db()
+        self.assertTrue(self.manager.check_password(self.password))
+        response = client.post(self.path, self.password_data(
+            csrfmiddlewaretoken=client.cookies["csrftoken"].value,
+        ))
+        self.assertRedirects(response, "/manager/", fetch_redirect_response=False)
+        self.manager.refresh_from_db()
+        self.assertTrue(self.manager.check_password(self.new_password))
+
+    def test_anonymous_password_change_requires_login(self):
+        for method, data in ((self.client.get, {}), (self.client.post, self.password_data())):
+            self.assertRedirects(method(self.path, data),
+                                 f"/login/?next={self.path}", fetch_redirect_response=False)
+        self.manager.refresh_from_db()
+        self.assertTrue(self.manager.check_password(self.password))

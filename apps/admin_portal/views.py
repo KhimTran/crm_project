@@ -1,13 +1,16 @@
+import logging
+
 from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.http import FileResponse, Http404, HttpResponseForbidden
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.html import format_html
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
@@ -17,7 +20,10 @@ from apps.accounts.managers import AccountManager
 from apps.accounts.permissions import account_admin_required, manager_required, require_active_admin, require_active_manager
 from apps.accounts.errors import AccountPermissionDenied
 from apps.admin_portal.services.backup_service import create_database_backup, list_database_backups
-from apps.admin_portal.services.restore_service import restore_database_from_backup, validate_backup_filename
+from apps.admin_portal.services.restore_service import RestoreFailed, restore_confirmation, restore_database_from_backup, validate_backup_filename
+
+
+logger = logging.getLogger(__name__)
 
 
 class PortalLoginForm(forms.Form):
@@ -104,7 +110,7 @@ def staff_login(request):
             return redirect(_safe_staff_next(request, request.user))
         form = PortalLoginForm()
         form.add_error(None, "Access Denied: Staff only.")
-        return render(request, "admin_portal/login.html", {"form": form, "next": next_url})
+        return render(request, "admin/portal/login.html", {"form": form, "next": next_url})
 
     form = PortalLoginForm(request.POST if request.method == "POST" else None)
     if request.method == "POST":
@@ -124,7 +130,7 @@ def staff_login(request):
             else:
                 form.add_error(None, "Unable to sign in with these credentials.")
 
-    return render(request, "admin_portal/login.html", {"form": form, "next": next_url})
+    return render(request, "admin/portal/login.html", {"form": form, "next": next_url})
 
 
 # Staff login aliases
@@ -153,10 +159,11 @@ def admin_logout(request):
 @require_GET
 def database_tools(request):
     backups = list_database_backups()
-    return render(request, "admin_portal/database.html", {
+    return render(request, "admin/portal/database.html", {
         "active_section": "database",
         "seed_available": settings.DEBUG,
         "backups": backups,
+        "database_name": settings.DATABASES["default"]["NAME"],
     })
 
 
@@ -164,10 +171,11 @@ def database_tools(request):
 @require_POST
 def backup_database(request):
     try:
-        backup_path = create_database_backup()
+        backup_path = create_database_backup(actor_id=request.user.pk)
         messages.success(request, f"Database backup created successfully: {backup_path.name}")
-    except Exception as exc:
-        messages.error(request, f"Database backup failed: {exc}")
+    except (OSError, ValueError, RuntimeError) as exc:
+        logger.error("database_backup request_failure actor_id=%s reason=%s", request.user.pk, type(exc).__name__)
+        messages.error(request, "Database backup failed. No verified backup was published; check the server log and database tool configuration.")
     return redirect("database_tools")
 
 
@@ -177,8 +185,8 @@ def download_backup(request, filename):
     try:
         file_path = validate_backup_filename(filename)
         return FileResponse(file_path.open("rb"), as_attachment=True, filename=filename)
-    except Exception as exc:
-        messages.error(request, f"Unable to download backup: {exc}")
+    except (OSError, ValueError):
+        messages.error(request, "Unable to download the selected backup.")
         return redirect("database_tools")
 
 
@@ -187,18 +195,44 @@ def download_backup(request, filename):
 def restore_database(request):
     filename = request.POST.get("filename", "").strip()
     confirm = (request.POST.get("restore_confirm") or request.POST.get("confirm") or "").strip()
-    if confirm != "RESTORE":
-        messages.error(request, "You must type 'RESTORE' exactly to confirm database restoration.")
-        return redirect("database_tools")
     if not filename:
         messages.error(request, "Please select a backup file to restore.")
         return redirect("database_tools")
+    database_name = settings.DATABASES["default"]["NAME"]
+    if (request.POST.get("target_database") != database_name
+            or confirm != restore_confirmation(filename, database_name)
+            or request.POST.get("maintenance_ack") != "on"):
+        messages.error(request, "Confirm the exact backup file, target database and maintenance window before restoring.")
+        return redirect("database_tools")
 
     try:
-        restore_database_from_backup(filename, confirm)
-        messages.success(request, f"Database successfully restored from backup: {filename}")
-    except Exception as exc:
-        messages.error(request, f"Database restore failed: {exc}")
+        recovery_path = restore_database_from_backup(
+            filename, confirm, actor=request.user,
+            target_database=request.POST.get("target_database", ""),
+            maintenance_ack=request.POST.get("maintenance_ack") == "on",
+        )
+        # The imported dump may replace django_session, including this session.
+        # Report the result without a session save or database-backed rendering.
+        response = HttpResponse(format_html(
+            "<h1>Database restored</h1><p>Database <code>{}</code> was restored from <code>{}</code>.</p>"
+            "<p>Recovery backup retained: <code>{}</code>.</p><p><a href=\"{}\">Sign in again</a></p>",
+            database_name, filename, recovery_path.name, reverse("admin_login"),
+        ))
+        response.delete_cookie(settings.SESSION_COOKIE_NAME, path=settings.SESSION_COOKIE_PATH,
+                               domain=settings.SESSION_COOKIE_DOMAIN, samesite=settings.SESSION_COOKIE_SAMESITE)
+        return response
+    except RestoreFailed as exc:
+        # A partially imported database may no longer support sessions or context processors.
+        return HttpResponse(format_html("<h1>Database recovery required</h1><p>{}</p>", str(exc)), status=503)
+    except AccountPermissionDenied:
+        return HttpResponseForbidden("Database restoration is restricted to active administrators.")
+    except (ValueError, RuntimeError) as exc:
+        logger.warning("database_restore request_rejected actor_id=%s reason=%s", request.user.pk, type(exc).__name__)
+        messages.error(request, str(exc))
+    except OSError:
+        logger.error("database_restore request_failure actor_id=%s reason=filesystem_error", request.user.pk)
+        return HttpResponse("Database restore could not complete. Keep external writers stopped and check the server log and "
+                            "database/backups/.restore-recovery.json for recovery instructions.", status=503, content_type="text/plain")
     return redirect("database_tools")
 
 
