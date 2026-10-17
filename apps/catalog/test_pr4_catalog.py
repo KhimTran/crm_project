@@ -55,6 +55,9 @@ class CatalogFixtures(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin = get_user_model().objects.create_superuser("pr4-admin@example.test", "StrongPass!2026")
+        cls.manager = get_user_model().objects.create_user(
+            "pr4-manager@example.test", "StrongPass!2026", role="MANAGER",
+        )
         cls.category = Category.objects.create(category_name="Rackets")
         cls.brand = Brand.objects.create(brand_name="Yonex")
         cls.supplier = Supplier.objects.create(supplier_code="SUP001", supplier_name="Supplier")
@@ -62,7 +65,7 @@ class CatalogFixtures(TestCase):
                                             product_name="Racket", price=Decimal("100.00"))
 
     def setUp(self):
-        self.client.force_login(self.admin)
+        self.client.force_login(self.manager)
 
     def product_payload(self, **changes):
         return {"product_name": "New racket", "price": "100.50", "status": "ACTIVE",
@@ -381,7 +384,7 @@ class CatalogAuthorizationTests(CatalogFixtures):
                 with self.subTest(kind=kind, action=action, method=method):
                     response = getattr(self.client, method)(url, payload)
                     self.assertEqual(response.status_code, 302)
-                    self.assertEqual(urlsplit(response.url).path, reverse("login"))
+                    self.assertIn(urlsplit(response.url).path, (reverse("manager_login"), reverse("login")))
         self.assertEqual(self.snapshot(), before)
 
     def test_customer_with_crm_groups_cannot_manage_catalog(self):
@@ -393,24 +396,31 @@ class CatalogAuthorizationTests(CatalogFixtures):
                     self.assertEqual(getattr(self.client, method)(url, payload).status_code, 403)
         self.assertEqual(self.snapshot(), before)
 
-    def test_locked_and_demoted_admin_existing_sessions_are_rejected(self):
+    def test_locked_and_demoted_manager_existing_sessions_are_rejected(self):
         for update in ({"status": "LOCKED"}, {"role": "CUSTOMER"}):
             with self.subTest(update=update):
-                get_user_model().objects.filter(pk=self.admin.pk).update(role="ADMIN", status="ACTIVE")
-                self.admin.refresh_from_db()
-                self.client.force_login(self.admin)
-                get_user_model().objects.filter(pk=self.admin.pk).update(**update)
+                get_user_model().objects.filter(pk=self.manager.pk).update(role="MANAGER", status="ACTIVE")
+                self.manager.refresh_from_db()
+                self.client.force_login(self.manager)
+                get_user_model().objects.filter(pk=self.manager.pk).update(**update)
                 before = self.snapshot()
                 for _, action, url, payload in self.routes():
                     response = self.client.get(url) if action == "list" else self.client.post(url, payload)
                     self.assertIn(response.status_code, (302, 403))
                 self.assertEqual(self.snapshot(), before)
 
-    def test_active_admin_can_open_every_list_create_and_edit_page(self):
+    def test_active_manager_can_open_every_list_create_and_edit_page(self):
         for kind, action, url, _ in self.routes():
             if action != "delete":
                 with self.subTest(kind=kind, action=action):
                     self.assertEqual(self.client.get(url).status_code, 200)
+
+    def test_admin_cannot_enter_manager_catalog(self):
+        self.client.force_login(self.admin)
+        for kind, action, url, _ in self.routes():
+            if action != "delete":
+                with self.subTest(kind=kind, action=action):
+                    self.assertEqual(self.client.get(url).status_code, 403)
 
     def test_delete_only_accepts_post_and_csrf_is_required(self):
         before = self.snapshot()
@@ -421,7 +431,7 @@ class CatalogAuthorizationTests(CatalogFixtures):
                         self.assertEqual(getattr(self.client, method)(url).status_code, 405)
         self.assertEqual(self.snapshot(), before)
         protected = Client(enforce_csrf_checks=True)
-        protected.force_login(self.admin)
+        protected.force_login(self.manager)
         for kind, action, url, _ in self.routes():
             if action == "delete":
                 with self.subTest(kind=kind):

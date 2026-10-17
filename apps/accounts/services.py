@@ -101,7 +101,7 @@ def change_account_role(actor, account_id, role):
     account = _locked_target(account_id)
     if account.role == role:
         return account_data(account)
-    if role == AccountRole.CUSTOMER:
+    if role != AccountRole.ADMIN:
         _protect_final_admin(account, active_admin_ids)
     Account.objects.filter(pk=account.pk).update(role=role)
     account.refresh_from_db()

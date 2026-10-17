@@ -209,13 +209,31 @@ Tên hiển thị có thể dùng tiếng Việt, nhưng **URL technical paths p
 Prefix:
 
 ```text
-/admin-portal/
+/admin/
 ```
 
 Layout:
 
 ```text
-base_admin.html
+admin/portal/base.html
+```
+
+Custom portal templates live under `templates/admin/portal/` (TV3 naming,
+2026-10-17). Do not create `templates/admin/base.html`, `base_site.html`,
+`index.html` or `login.html`; those names belong to Django's built-in admin.
+
+### Manager
+
+Prefix:
+
+```text
+/manager/
+```
+
+Layout:
+
+```text
+manager/base.html
 ```
 
 ### CRM Management
@@ -246,21 +264,23 @@ Layout:
 base_customer.html
 ```
 
-Không dùng Django `/admin/` mặc định để thay thế giao diện quản trị được chấm điểm. Custom admin portal của project dùng `/admin-portal/`.
+Django `/admin/` mặc định được chuyển sang `/django-admin/`. Custom Admin UI của project dùng `/admin/` (chỉ dành riêng cho vai trò `ADMIN`), và Manager UI dùng `/manager/` (chỉ dành riêng cho vai trò `MANAGER`).
 
 ---
 
 ## 6. Phân quyền
 
-`accounts.role` trong schema chính thức chỉ có:
+`accounts.role` theo quyết định của chủ đồ án (2026-10-15) gồm:
 
 ```text
 ADMIN
+MANAGER
 CUSTOMER
 ```
 
 Quy tắc:
-- `ADMIN`: tài khoản quản trị hệ thống;
+- `ADMIN`: tài khoản quản trị hệ thống (Account management, database tools, CRM);
+- `MANAGER`: tài khoản quản lý (Catalog management, CRM modules navigation; không có account/database tools);
 - `CUSTOMER`: tài khoản khách hàng.
 
 Không tạo thêm giá trị role tiếng Việt hoặc legacy trong `accounts.role`.
@@ -345,7 +365,7 @@ Quy tắc:
 - password phải dùng `set_password()` / `check_password()` của Django;
 - không lưu plain-text password;
 - không expose `password_hash`;
-- role chỉ dùng `ADMIN`, `CUSTOMER`;
+- role dùng `ADMIN`, `MANAGER`, `CUSTOMER`;
 - status chỉ dùng `ACTIVE`, `LOCKED`;
 - `LOCKED` account phải bị chặn authentication;
 - không thêm physical business columns ngoài schema SQL nếu chưa có owner decision;
@@ -470,21 +490,22 @@ Không thêm/xóa foreign key tùy ý.
 
 Schema SQL chính thức là chuẩn kỹ thuật cho business tables.
 
-`accounts.role` chỉ hỗ trợ:
+`accounts.role` theo quyết định của chủ đồ án (2026-10-15) hỗ trợ:
 
 ```text
 ADMIN
+MANAGER
 CUSTOMER
 ```
 
-Không mở rộng role bằng cách thêm giá trị tùy ý vào database.
+Không mở rộng role bằng cách thêm giá trị tùy ý vào database ngoài 3 role trên.
 
 Nếu cần quyền nghiệp vụ chi tiết hơn:
 - dùng Django Groups/Permissions;
 - group/permission codename phải dùng English;
 - không thay đổi `accounts.role` nếu chưa có owner decision.
 
-Schema hiện tại chưa có một số đối tượng từng xuất hiện trong tài liệu mô tả, ví dụ supplier hoặc backup log table. Không tự tạo thêm table/column chỉ vì tài liệu cũ nhắc đến chúng.
+Schema hiện tại chưa có một số đối tượng từng xuất hiện trong tài liệu mô tả, ví dụ backup log table. Không tự tạo thêm table/column chỉ vì tài liệu cũ nhắc đến chúng.
 
 Khi task cần một đối tượng chưa có trong `database/crm_db.sql`:
 1. báo rõ schema hiện tại chưa có;
@@ -509,12 +530,15 @@ Các URL tham chiếu:
 
 /account/profile/
 
-/admin-portal/products/
-/admin-portal/categories/
-/admin-portal/brands/
-/admin-portal/accounts/
-/admin-portal/permissions/
-/admin-portal/backups/
+/admin/
+/admin/accounts/
+/admin/database/
+
+/manager/
+/manager/catalog/products/
+/manager/catalog/categories/
+/manager/catalog/brands/
+/manager/catalog/suppliers/
 
 /crm/customers/
 /crm/feedback/

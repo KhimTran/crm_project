@@ -1,0 +1,13 @@
+<div class="portal-brand">CRM <span>Manager Portal</span></div>
+<nav class="portal-nav" aria-label="Manager Modules">
+  <p class="portal-nav-heading">Catalog</p>
+  <a class="portal-nav-link {% if '/catalog/products/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:product_list' %}" {% if '/catalog/products/' in request.path %}aria-current="page"{% endif %}>Products</a>
+  <a class="portal-nav-link {% if '/catalog/suppliers/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:supplier_list' %}" {% if '/catalog/suppliers/' in request.path %}aria-current="page"{% endif %}>Suppliers</a>
+  <a class="portal-nav-link {% if '/catalog/categories/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:category_list' %}" {% if '/catalog/categories/' in request.path %}aria-current="page"{% endif %}>Categories</a>
+  <a class="portal-nav-link {% if '/catalog/brands/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:brand_list' %}" {% if '/catalog/brands/' in request.path %}aria-current="page"{% endif %}>Brands</a>
+  <p class="portal-nav-heading">CRM modules</p>
+  <a class="portal-nav-link {% if request.resolver_match.namespace == 'customers' %}active{% endif %}" href="{% url 'customers:list' %}" {% if request.resolver_match.namespace == 'customers' %}aria-current="page"{% endif %}>Customers</a>
+  <a class="portal-nav-link {% if request.resolver_match.namespace == 'customer_reports' %}active{% endif %}" href="{% url 'customer_reports:customers' %}" {% if request.resolver_match.namespace == 'customer_reports' %}aria-current="page"{% endif %}>Customer Report</a>
+  <a class="portal-nav-link {% if request.resolver_match.namespace == 'crm_feedbacks' %}active{% endif %}" href="{% url 'crm_feedbacks:list' %}" {% if request.resolver_match.namespace == 'crm_feedbacks' %}aria-current="page"{% endif %}>Feedback{% if new_feedback_count %} <span class="badge rounded-pill text-bg-warning" aria-label="{{ new_feedback_count }} new feedback">{{ new_feedback_count }}</span>{% endif %}</a>
+  <a class="portal-nav-link {% if request.resolver_match.namespace == 'surveys' %}active{% endif %}" href="{% url 'surveys:manage_list' %}" {% if request.resolver_match.namespace == 'surveys' %}aria-current="page"{% endif %}>Surveys</a>
+</nav>

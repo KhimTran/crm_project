@@ -57,7 +57,7 @@ class RoleRequiredTests(TestCase):
     @override_settings(LOGIN_URL="login")
     def test_anonymous_redirect_accepts_named_login_url(self):
         response = role_required("CUSTOMER")(self.view)(self.request(AnonymousUser()))
-        self.assertEqual(urlsplit(response.url).path, "/admin-portal/login/")
+        self.assertEqual(urlsplit(response.url).path, "/admin/login/")
 
     def test_admin_can_access_admin_view(self):
         request = self.request(self.admin)
@@ -76,7 +76,7 @@ class RoleRequiredTests(TestCase):
             (self.customer, "ADMIN", "/"),
             (self.manager, "ADMIN", "/crm/"),
             (self.service, "ADMIN", "/crm/"),
-            (self.admin, "CUSTOMER", "/admin-portal/"),
+            (self.admin, "CUSTOMER", "/admin/"),
         ):
             with self.subTest(permission=permission, user=user.email):
                 request = self.request(user)
@@ -195,7 +195,7 @@ class RoleRequiredTests(TestCase):
         for user, path in (
             (self.customer, "/"), (self.manager, "/crm/"),
             (self.manager, "/crm"), (self.service, "/crm/"),
-            (self.admin, "/admin-portal/"), (self.admin, "/admin-portal"),
+            (self.admin, "/admin/"), (self.admin, "/admin"),
         ):
             with self.subTest(user=user.email, path=path):
                 request = self.request(user, path + "?page=2")
@@ -207,15 +207,17 @@ class RoleRequiredTests(TestCase):
 
     def test_home_mapping_and_group_priority_over_customer(self):
         for user, destination in (
-            (self.admin, "/admin-portal/"), (self.manager, "/crm/"),
+            (self.admin, "/admin/"), (self.manager, "/crm/"),
             (self.service, "/crm/"), (self.customer, "/"),
         ):
             with self.subTest(user=user.email):
                 self.assertEqual(get_home_path(user), destination)
+        real_manager = Account.objects.create_user("real_manager@roles.test", "StrongPass!2026", role=AccountRole.MANAGER)
+        self.assertEqual(get_home_path(real_manager), "/manager/")
         self.manager.groups.add(self.service_group)
         self.assertEqual(get_home_path(self.manager), "/crm/")
         self.admin.groups.add(self.manager_group, self.service_group)
-        self.assertEqual(get_home_path(self.admin), "/admin-portal/")
+        self.assertEqual(get_home_path(self.admin), "/admin/")
 
     def test_anonymous_unknown_and_inactive_home_fall_back_to_root(self):
         for user in (AnonymousUser(), None, SimpleNamespace(is_authenticated=True)):

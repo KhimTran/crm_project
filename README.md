@@ -28,8 +28,9 @@ python manage.py runserver
 ```
 
 Giữ một hostname duy nhất khi demo, ví dụ `http://127.0.0.1:8000`.
-Account email bất biến, role chỉ ADMIN/CUSTOMER. Quyền CRM dùng Groups
-CRM_MANAGER/CUSTOMER_SERVICE; TV1 không cung cấp màn hình tự gán nhóm.
+Account email bất biến; role gồm ADMIN/MANAGER/CUSTOMER. Admin quản trị tài khoản
+và database; Manager quản lý Catalog và truy cập CRM. Các Groups
+CRM_MANAGER/CUSTOMER_SERVICE hiện có vẫn được giữ; TV1 không cung cấp màn hình tự gán nhóm.
 
 ## URLs TV1
 
@@ -49,16 +50,24 @@ CRM_MANAGER/CUSTOMER_SERVICE; TV1 không cung cấp màn hình tự gán nhóm.
 | `/password/reset/<uidb64>/<token>/` | Đặt mật khẩu qua token Django |
 | `/password/reset/complete/` | Xác nhận reset thành công |
 
-Admin Portal giữ nguyên `/admin-portal/login/`, `/admin-portal/logout/`,
-`/admin-portal/`; `/admin/`, `/api/docs`, `/api/auth/*`, `/api/accounts/*` vẫn tồn tại.
+Admin Portal dùng `/admin/login/`, `/admin/logout/`, `/admin/` cho ACTIVE ADMIN.
+Manager dùng `/manager/login/`, `/manager/logout/`, `/manager/` cho ACTIVE MANAGER.
+Django Admin mặc định ở `/django-admin/`; `/admin-portal/` đã bị loại bỏ.
+`/api/docs`, `/api/auth/*`, `/api/accounts/*` giữ nguyên.
 Tên URL `login`/`logout` cũ vẫn thuộc admin; TV1 dùng namespace `customer_auth`.
 LOGIN_URL mới là `customer_auth:login`, guard admin riêng vẫn dùng route admin.
 
-Đăng nhập không có `next`: ADMIN → `/admin-portal/`, nhóm CRM → `/crm/`,
+Đăng nhập không có `next`: ADMIN → `/admin/`, MANAGER → `/manager/`, nhóm CRM → `/crm/`,
 CUSTOMER → `/`. `next` chỉ nhận route GET nội bộ nằm trong allowlist và phù hợp
 quyền; bỏ qua URL ngoài site, route auth gây vòng lặp, route chưa có và thao tác POST.
 Tài khoản LOCKED không dùng được trang bảo vệ qua session cũ.
 Chỉ thông báo khóa tại login sau khi mật khẩu đã được xác minh.
+
+Template custom Admin ở `templates/admin/portal/`; không dùng trực tiếp
+`templates/admin/base.html`, `base_site.html`, `index.html` hoặc `login.html` để
+tránh che template Django Admin. Tên app `apps.admin_portal`, URL/namespace và
+static `admin_portal.css`/`admin_portal.js` giữ nguyên. Xem
+[bàn giao Admin/Manager và recovery](docs/admin_manager_review_fixes.md).
 
 ## Email và mật khẩu
 

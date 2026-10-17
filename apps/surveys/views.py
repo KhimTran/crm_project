@@ -21,7 +21,7 @@ from .services import (COMPLETED_MESSAGE, build_stats, check_ready_to_send, clos
                        filter_customers, is_survey_open, recipient_for_user, send_survey, send_to_audience,
                        start_survey, submit_survey)
 
-manager_required = role_required("ADMIN", "CRM_MANAGER")
+manager_required = role_required("ADMIN", "MANAGER", "CRM_MANAGER")
 
 
 @account_admin_required

@@ -82,8 +82,11 @@ class AccountServiceTests(TestCase):
             change_account_role(other, self.admin.pk, AccountRole.CUSTOMER)
         with self.assertRaises(LastActiveAdminError):
             change_account_role(self.admin, self.admin.pk, AccountRole.CUSTOMER)
+        with self.assertRaises(LastActiveAdminError):
+            change_account_role(self.admin, self.admin.pk, AccountRole.MANAGER)
+        self.assertEqual(change_account_role(self.admin, self.customer.pk, "MANAGER")["role"], AccountRole.MANAGER)
         with self.assertRaises(InvalidAccountRole):
-            change_account_role(self.admin, self.customer.pk, "MANAGER")
+            change_account_role(self.admin, self.customer.pk, "STAFF")
         self.assertEqual(change_account_role(self.admin, self.customer.pk, AccountRole.CUSTOMER)["role"], AccountRole.CUSTOMER)
         with self.assertRaises(LastActiveAdminError):
             _protect_final_admin(self.admin, [self.admin.pk])

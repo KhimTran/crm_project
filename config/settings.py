@@ -27,6 +27,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'apps.admin_portal.services.maintenance.DatabaseMaintenanceMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -101,3 +102,20 @@ EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
 EMAIL_TIMEOUT = 10
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@example.test')
 PASSWORD_RESET_TIMEOUT = 3600
+
+# Operational audit stays outside the database being restored and is ignored by Git.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {'database_operation': {'format': '{asctime} {levelname} {name} {message}', 'style': '{'}},
+    'handlers': {
+        'database_operations': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'database' / 'backups' / 'operations.log',
+            'encoding': 'utf-8',
+            'delay': True,
+            'formatter': 'database_operation',
+        },
+    },
+    'loggers': {'apps.admin_portal': {'handlers': ['database_operations'], 'level': 'INFO', 'propagate': False}},
+}

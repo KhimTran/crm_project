@@ -8,6 +8,7 @@ class SupplierForm(forms.ModelForm):
     class Meta:
         model = Supplier
         fields = ("supplier_code", "supplier_name", "address", "phone", "email", "status")
+        widgets = {"address": forms.Textarea(attrs={"rows": 4})}
 
     def clean_supplier_code(self):
         code = self.cleaned_data["supplier_code"].strip()
@@ -52,7 +53,7 @@ class ProductForm(forms.ModelForm):
             self.fields[field_name].queryset = model.objects.filter(active).order_by(
                 {"category": "category_name", "brand": "brand_name", "supplier": "supplier_name"}[field_name]
             )
-            self.fields[field_name].empty_label = "-- Chọn --"
+            self.fields[field_name].empty_label = "-- Select --"
 
     def clean_product_name(self):
         name = self.cleaned_data["product_name"].strip()
@@ -71,6 +72,7 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ("category_name", "description", "status")
+        widgets = {"description": forms.Textarea(attrs={"rows": 4})}
 
     def clean_category_name(self):
         name = self.cleaned_data["category_name"].strip()

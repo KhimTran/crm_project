@@ -1,0 +1,111 @@
+{% extends 'admin/portal/base.html' %}
+{% block title %}Database Tools · CRM Admin Portal{% endblock %}
+{% block page_title %}Database Tools{% endblock %}
+{% block content %}
+<div class="portal-section-intro">
+  <p class="text-muted mb-0">Manage system database backups, restorations, and development seed operations. Administrative actions require confirmation.</p>
+</div>
+
+<!-- Database Backup Panel -->
+<section class="portal-panel mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="h6 mb-1 fw-bold">Database Backup</h2>
+      <p class="text-muted mb-0 small">Create a full SQL snapshot of the database stored securely in <code>database/backups/</code>.</p>
+    </div>
+    <form method="post" action="{% url 'database_backup' %}">
+      {% csrf_token %}
+      <button class="btn btn-primary btn-sm" type="submit">
+        Create Backup Now
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- Available Backups and Restore Panel -->
+<section class="portal-panel mb-4">
+  <h2 class="h6 mb-2 fw-bold">Existing Backups &amp; Restoration</h2>
+  <p class="text-muted small mb-3">
+    Select an existing backup file to restore or download.
+    <strong class="text-danger">Warning:</strong> Restoring a backup replaces database contents with the snapshot data.
+    A verified recovery backup is required first. HTTP access is blocked during restoration; pause scheduled jobs,
+    management commands and direct database writers throughout the maintenance window.
+  </p>
+
+  {% if backups %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Backup Filename</th>
+          <th>Size</th>
+          <th>Created Time</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in backups %}
+        <tr>
+          <td><code class="text-dark">{{ b.filename }}</code></td>
+          <td>{{ b.size_display }}</td>
+          <td>{{ b.created_at|date:"Y-m-d H:i:s" }}</td>
+          <td class="text-end">
+            <a class="btn btn-outline-secondary btn-sm me-2" href="{% url 'database_download_backup' b.filename %}">
+              Download
+            </a>
+            {% if b.verified %}<button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#restore-form-{{ forloop.counter }}" aria-expanded="false">
+              Restore...
+            </button>{% else %}<span class="text-muted small">Unverified: create a new system backup to restore.</span>{% endif %}
+          </td>
+        </tr>
+        {% if b.verified %}<tr class="collapse" id="restore-form-{{ forloop.counter }}">
+          <td colspan="4" class="bg-light p-3 border-start border-danger border-3">
+            <div class="alert alert-warning mb-2 py-2">
+              <strong>DANGER:</strong> File <code>{{ b.filename }}</code> will overwrite database <code>{{ database_name }}</code>.
+              A failed import can apply partially; the recovery backup will be retained and access will remain blocked for operator recovery.
+              To proceed, type <code>RESTORE {{ b.filename }} TO {{ database_name }}</code> exactly.
+            </div>
+            <form method="post" action="{% url 'database_restore' %}" class="d-flex align-items-center gap-2">
+              {% csrf_token %}
+              <input type="hidden" name="filename" value="{{ b.filename }}">
+              <input type="hidden" name="target_database" value="{{ database_name }}">
+              <div>
+                <label class="form-label mb-1 small fw-semibold" for="confirm-{{ forloop.counter }}">Confirm file and database:</label>
+                <input class="form-control form-control-sm" id="confirm-{{ forloop.counter }}" name="restore_confirm" required placeholder="RESTORE {{ b.filename }} TO {{ database_name }}" autocomplete="off">
+                <label class="small mt-2"><input type="checkbox" name="maintenance_ack" required> Maintenance window confirmed; all external database writers are paused.</label>
+              </div>
+              <button class="btn btn-danger btn-sm text-nowrap" type="submit">
+                Execute Restore
+              </button>
+            </form>
+          </td>
+        </tr>{% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-secondary mb-0 py-3 text-center">
+    <p class="mb-0 text-muted">No backup files found in <code>database/backups/</code>. Click <strong>Create Backup Now</strong> above to generate one.</p>
+  </div>
+  {% endif %}
+</section>
+
+<!-- Seed Data Panel -->
+<section class="portal-panel">
+  <h2 class="h6 mb-1 fw-bold">Development Seed Data</h2>
+  {% if seed_available %}
+  <p class="text-muted small">Populate the database with reproducible test accounts, catalog items, and CRM records.</p>
+  <form method="post" action="{% url 'seed_data' %}" class="mt-3">
+    {% csrf_token %}
+    <label class="form-label small" for="seed-confirm">Type <code>SEED</code> to confirm:</label>
+    <div class="d-flex gap-2 align-items-center">
+      <input class="form-control form-control-sm portal-confirm-input" style="max-width: 180px;" id="seed-confirm" name="confirm" required placeholder="SEED" autocomplete="off">
+      <button class="btn btn-outline-primary btn-sm" type="submit">Run Seed Data</button>
+    </div>
+  </form>
+  {% else %}
+  <p class="text-muted mb-0 small">Seed Data is available only when <code>DEBUG=True</code> in development mode.</p>
+  {% endif %}
+</section>
+{% endblock %}

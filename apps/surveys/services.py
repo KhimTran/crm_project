@@ -18,13 +18,13 @@ COMPLETED_MESSAGE = "Bạn đã hoàn thành khảo sát này và không thể g
 
 
 def require_survey_manager(actor):
-    """ACTIVE ADMIN or ACTIVE account in group CRM_MANAGER may manage surveys."""
+    """ACTIVE ADMIN, ACTIVE MANAGER, or ACTIVE account in group CRM_MANAGER may manage surveys."""
     if not getattr(actor, "is_authenticated", False) or not getattr(actor, "pk", None):
-        raise AccountPermissionDenied("Survey management requires an ADMIN or CRM_MANAGER account")
+        raise AccountPermissionDenied("Survey management requires an ADMIN, MANAGER, or CRM_MANAGER account")
     account = Account.objects.filter(pk=actor.pk, status=AccountStatus.ACTIVE).first()
-    if account is None or not (account.role == AccountRole.ADMIN
+    if account is None or not (account.role in (AccountRole.ADMIN, AccountRole.MANAGER)
                                or account.groups.filter(name=MANAGER_GROUP).exists()):
-        raise AccountPermissionDenied("Survey management requires an ADMIN or CRM_MANAGER account")
+        raise AccountPermissionDenied("Survey management requires an ADMIN, MANAGER, or CRM_MANAGER account")
     return account
 
 

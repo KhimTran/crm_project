@@ -18,7 +18,7 @@ PAGE_SIZE = 10
 
 
 # tv4: 4.1.4 danh sách phản hồi cho quản lý CRM / CSKH, có bộ lọc và phân trang
-@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
 @portal_english
 def feedback_list(request):
     form = localize_form(FeedbackFilterForm(request.GET or None))
@@ -37,7 +37,7 @@ def feedback_list(request):
 
 
 # tv4: 4.1.4 xem chi tiết phản hồi; POST cập nhật trạng thái + trả lời khách hàng
-@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
 @portal_english
 def feedback_detail(request, feedback_id):
     feedback = get_object_or_404(feedback_queryset(), pk=feedback_id)

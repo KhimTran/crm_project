@@ -1150,3 +1150,113 @@ was used without printing credentials.
 - Evidence/details: docs/tv5_pr6_validation.md; screenshots/PDF/JSON outside Git.
   Native OS printer chooser/physical printing and other browser engines not tested.
   No remaining functional blocker in the tested scope; PR stays open for owner review.
+
+### Admin and Manager UI refactoring & MANAGER role addition — 2026-10-15
+
+- Owner decision: Add `MANAGER` role to `accounts.role` (alongside `ADMIN` and `CUSTOMER`). Valid stored values are `ADMIN`, `MANAGER`, and `CUSTOMER`.
+- UI & Routing separation:
+  - Custom Admin UI mounted at `/admin/` exclusively for active `ADMIN` accounts (`status=ACTIVE`, `role=ADMIN`). Contains Account administration (creation, listing, role assignment, lock/unlock, password reset, deletion), database tools (backup, restore, seed), and CRM module links.
+  - Manager UI mounted at `/manager/` for active `MANAGER` accounts (`status=ACTIVE`, `role=MANAGER`). Contains Catalog management (Products, Categories, Brands, Suppliers) and CRM navigation (Customers, Customer Reports, Feedback, Surveys). All account creation/deletion, role assignment, and database backup/restore features are completely removed from `/manager/`.
+  - Django built-in admin relocated to `/django-admin/`. Legacy `/admin-portal/` prefix deprecated and removed.
+  - Active `ADMIN` accounts access `/admin/`. Active `MANAGER` accounts access `/manager/`. `CUSTOMER` and `LOCKED` accounts remain strictly blocked (403) from both `/admin/` and `/manager/`.
+- Database & Model Migration:
+  - Updated `apps/accounts/constants.py` (`AccountRole.MANAGER`) and `normalize_account_role`.
+  - Updated `apps/accounts/models.py` `chk_accounts_role` CheckConstraint to include `'MANAGER'`.
+  - Created and applied migration `apps/accounts/migrations/0002_remove_account_chk_accounts_role_alter_account_role_and_more.py` on live MySQL `crm_db`. Aligned `database/crm_db.sql`.
+- Permissions & RBAC:
+  - Updated `apps/accounts/permissions.py`: added `require_active_manager`, `manager_required`. Updated `account_admin_required` (redirects to `admin_login`), `manager_required` (redirects to `manager_login`).
+  - Updated `apps/accounts/decorators.py`: home redirect routes `ADMIN` -> `/admin/`, `MANAGER` -> `/manager/`, CRM groups -> `/crm/`.
+  - Updated `apps/accounts/services.py`: `_protect_final_admin` triggers when demoting from `ADMIN` to any non-admin role (`role != AccountRole.ADMIN`).
+  - Updated `apps/catalog/views.py`: all 16 views protected with `@manager_required`.
+- Views, URLs & Templates:
+  - Created `apps/admin_portal/urls_admin.py` for `/admin/` and `apps/admin_portal/urls_manager.py` for `/manager/`.
+  - Separated view handlers: `admin_home`, `admin_login`, `admin_logout`, `database_tools`, `seed_data` for Admin; `manager_home`, `manager_login`, `manager_logout`, `catalog/` for Manager.
+  - Created `templates/manager/base.html`, `templates/manager/login.html`, `templates/manager/partials/sidebar.html`.
+  - Updated `templates/catalog/admin/list.html`, `form.html`, `simple_list.html` to extend `manager/base.html`.
+  - Updated `templates/admin_portal/partials/sidebar.html` strictly with Accounts and Database Tools (CRM modules completely removed).
+  - Implemented Database Backup (`apps/admin_portal/services/backup_service.py`), Download (`download_backup`), and Restore with `RESTORE` confirmation (`apps/admin_portal/services/restore_service.py`) in `templates/admin_portal/database.html`.
+  - Applied `catalog` migration `0002_product_image_url` to resolve OperationalError 1054 on `/manager/catalog/products/` and aligned `database/crm_db.sql`.
+  - Updated CRM module guards (`apps/customers/views.py`, `apps/feedback/views.py`, `apps/surveys/views.py`, `apps/surveys/services.py`, `apps/customers/portal_text.py`) to authorize the `MANAGER` role.
+- Verification:
+  - `manage.py check`: 0 issues.
+  - `manage.py showmigrations`: all migrations `[X]`.
+  - Full test suite: 301/301 passed in 185.654s on MySQL `test_crm_db` (`apps.accounts`, `apps.admin_portal`, `apps.catalog`, `apps.customers`, `apps.feedback`, `apps.surveys`, `apps.shop`).
+  - End-to-end client verification: `/manager/` redirects to `/manager/catalog/products/` with 200 OK; Admin sidebar contains strictly Accounts and Database Tools.
+
+### Admin/Manager review corrections — 2026-10-16
+
+- [x] Owner requested fixes for pre-restore backup, SQL migration history and
+  MANAGER self password change, preserving TV1/TV2/TV4/TV5 and existing layouts.
+  Clean detached checkout initially matched origin/develop accf64d. Fetched origin;
+  feature/admin-manager-ui still points at review commit 2559453 (no later fix).
+  Work continues locally on codex/admin-manager-review-fixes; no commit/push/merge.
+- [x] Scope: admin_portal backup/restore services, maintenance HTTP guard, views and
+  database template; Account password-change access/tests; demo export script/SQL;
+  regression tests and handoff docs. No model/migration changes. Restore now needs
+  file/database-specific confirmation, verified safety snapshot, exclusive access
+  and retained snapshot/recovery instructions after partial MySQL failure.
+- [x] Initial shared-server CREATE permission blocker resolved independently:
+  initialized temporary MySQL 8.4.11 with new datadir outside Git on loopback
+  port 33071, creating crm_db_review_export_20261016_8b99,
+  crm_db_review_import_20261016_8b99 and test_crm_review_20261016_8b99 there.
+  Owner subsequently granted shared-server permissions, but validation continued
+  on the temporary server. No shared database data/config/grants changed by agent.
+- [x] Source migrated all 26 migrations after plan/sqlmigrate review, then seed_data
+  and guarded mysqldump export: 23 tables, 42 demo accounts, 8 products, 68,673 bytes;
+  SHA-256 722d93143de4f0443e0d387d7ec6c726a6318326c8813402b1583ef8aa85fa2b.
+  Separate empty import target: all migrations [X], empty migrate --plan and
+  migrate --noinput no-op; login/CSRF/account list/product list/detail pass. Verified
+  14 signed INT business PKs, 17 business FKs, supplier FK, both survey UNIQUEs,
+  InnoDB/utf8mb4/Vietnamese data. No new/edited/faked migration.
+- [x] Real service backup/restore/recovery cycle plus CSRF-enforced HTTP restore
+  pass on import target only. Confirmed retained snapshot can recover pre-import
+  product data; safe HTTP result when imported session table removes current
+  session. Synthetic snapshots removed after successful verification. Windows
+  shared/exclusive lock contention passed across separate processes. External
+  writers still require operator pause; all workers must share same lock root.
+- [x] check: 0 issues; makemigrations --check --dry-run: No changes detected.
+  Focused apps.admin_portal + Account customer-auth suite: 47/47 pass (91.533s).
+  First run exposed incorrect new LOCKED-session purge assertion; fixed only test
+  expectation to check access/login denial and password preservation.
+- [x] Full MySQL suite: 324/324 pass (371.351s) including TV1/TV2/TV4/TV5.
+  Test runners and integration writes ran sequentially. Final diff check clean; no
+  SQLite schema claim, browser/mobile or multi-host verification. Runtime/private
+  settings remain outside Git; no operational backup/credentials committed.
+  Temporary MySQL server stopped after validation. Ready for reviewer sign-off;
+  changes remain uncommitted, no push or merge. Details, operation and recovery
+  procedure: docs/admin_manager_review_fixes.md.
+
+### Admin/Manager final publication and TV3 template names — 2026-10-17
+
+- [x] Owner authorized final audit, template rename, commit/push and PR into
+  develop; no merge. Read current AGENTS.md and all tracked/untracked changes.
+  Fetched origin: feature head remains 2559453, develop remains accf64d. All prior
+  restore/password fixes, tests and SQL are present in this worktree; no lost or
+  externally stored implementation. Initial 11 tracked changes + 3 new files
+  match the October 16 handoff; temporary runners/settings stay outside Git.
+- [x] git mv five templates/admin_portal files into templates/admin/portal;
+  update exact render/include/extends/context-processor/test references only.
+  New template-origin tests cover custom paths and Django admin base/base_site/
+  login/index. Kept app labels, models, migrations, DB tables, URLs/namespaces and
+  static filenames. README/project guidance/TV1 handoff and detailed report updated.
+- [x] SQL remains byte-identical to verified export (SHA-256 722d9314...85fa2b),
+  with both requested 0002 migrations. Reused isolated MySQL8.4.11 datadir on33071;
+  source all26 migrations applied; import plan empty and schema checks pass.
+  Prior actual import/restore evidence remains applicable to unchanged dump and
+  service code. Shared crm_db untouched; no new or modified migration.
+- [x] Focused suite after rename: 67/67 pass (114.045s), check0 issues and no model
+  changes. Actual in-app browser 1366x900/390x844 verifies Admin login/accounts/
+  database/confirmation/backup/mobile menu, Manager login/products/menu/password
+  form, and default Django admin login/index. Fixed only long backup success
+  message wrapping in shared partial; page overflow gone. Removed exact synthetic
+  Manager/sessions and verified UI backup files; all writes on private import DB.
+- [x] Final full MySQL suite: 327/327 pass (392.023s), including final message wrap
+  and three template-origin tests. Initial full attempt failed connection setup
+  after private process exit (no tests ran); restarted same datadir/server as a
+  hidden helper and reran. Final check0, no generated migration, diff checks clean.
+  No shared DB changes. SQL Git blob is LF-normalized (67,911 bytes,
+  SHA-256 f6acc57fe27dc1b49ea7c98dfc263d16dd07be8af4f4e45ccf42b59ac08eafda);
+  exactly equivalent to verified CRLF export. Private server stopped after QA.
+  Full implementation manifest/evidence: docs/admin_manager_review_fixes.md.
+  Publication is on the owner-requested codex branch with a PR into develop;
+  Git/PR metadata record the final SHA and state. No merge/auto-merge authorized.

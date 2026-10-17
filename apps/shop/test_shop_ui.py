@@ -170,8 +170,9 @@ class ShopNavigationTests(TestCase):
         self.assertEqual(list(response.context["page"].object_list), [self.product])
 
     def test_admin_login_remains_outside_customer_styles(self):
-        response = self.client.get("/admin-portal/login/")
-        self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "/static/css/customer.css")
-        self.assertNotContains(response, "/static/css/tv1.css")
-        self.assertNotContains(response, 'class="customer-layout"')
+        for path in ("/admin/login/", "/manager/login/"):
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 200)
+            self.assertNotContains(response, "/static/css/customer.css")
+            self.assertNotContains(response, "/static/css/tv1.css")
+            self.assertNotContains(response, 'class="customer-layout"')

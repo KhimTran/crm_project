@@ -218,9 +218,11 @@ class SurveyRegressionTests(TestCase):
                 self.assertContains(response, asset)
             for route in ("feedbacks:mine", "surveys:my_surveys", "shop:products"):
                 self.assertContains(response, f'href="{reverse(route)}"')
-        self.client.force_login(self.admin)
+        from apps.accounts.constants import AccountRole
+        manager = Account.objects.create_user("pr6-manager@example.test", "StrongPass!2026", role=AccountRole.MANAGER)
+        self.client.force_login(manager)
         response = self.client.get(reverse("surveys:manage_list"))
-        for route in ("crm_feedbacks:list", "surveys:manage_list", "customers:list", "customer_auth:logout"):
+        for route in ("crm_feedbacks:list", "surveys:manage_list", "customers:list"):
             self.assertContains(response, reverse(route))
         for route in ("catalog_admin:category_list", "catalog_admin:brand_list"):
             response = self.client.get(reverse(route))

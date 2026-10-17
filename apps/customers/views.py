@@ -27,11 +27,11 @@ PAGE_SIZE = 10
 
 # tv4: kiểm tra tài khoản là Admin hoặc thuộc nhóm Quản lý CRM (để hiện nút thêm/khóa/xóa; CSKH chỉ xem)
 def is_crm_manager(user):
-    return getattr(user, "role", None) == AccountRole.ADMIN or user.groups.filter(name="CRM_MANAGER").exists()
+    return getattr(user, "role", None) in (AccountRole.ADMIN, AccountRole.MANAGER) or user.groups.filter(name="CRM_MANAGER").exists()
 
 
 # tv4: danh sách khách hàng chưa xóa, tìm kiếm + bộ lọc (selectors.filter_customers), phân trang
-@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
 @portal_english
 def customer_list(request):
     form = localize_form(CustomerFilterForm(request.GET or None))
@@ -46,7 +46,7 @@ def customer_list(request):
 
 
 # tv4: tạo khách hàng và hiển thị mật khẩu tạm một lần.
-@role_required("ADMIN", "CRM_MANAGER")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER")
 @portal_english
 def customer_create(request):
     form = localize_form(CustomerCreateForm(request.POST or None))
@@ -90,7 +90,7 @@ def _get_active_customer_or_404(customer_id):
 
 
 # tv4: chi tiết khách hàng: thông tin, sở thích, số liệu liên quan, lịch sử phản hồi
-@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
 @portal_english
 def customer_detail(request, customer_id):
     customer = _get_active_customer_or_404(customer_id)
@@ -118,7 +118,7 @@ def _back_after_action(request, customer_id):
 
 
 # tv4: 4.1.3 xử lý nút khóa tài khoản khách hàng (POST), kèm lý do trong thông báo
-@role_required("ADMIN", "CRM_MANAGER")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER")
 @require_POST
 @portal_english
 def customer_lock(request, customer_id):
@@ -139,7 +139,7 @@ def customer_lock(request, customer_id):
 
 
 # tv4: mở khóa tài khoản khách hàng, chỉ nhận POST.
-@role_required("ADMIN", "CRM_MANAGER")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER")
 @require_POST
 @portal_english
 def customer_unlock(request, customer_id):
@@ -156,7 +156,7 @@ def customer_unlock(request, customer_id):
 
 
 # tv4: xác nhận và thực hiện xóa mềm khách hàng.
-@role_required("ADMIN", "CRM_MANAGER")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER")
 @portal_english
 def customer_delete(request, customer_id):
     customer = _get_active_customer_or_404(customer_id)
@@ -181,7 +181,7 @@ def customer_delete(request, customer_id):
 
 
 # tv4: 4.1.5 trang báo cáo khách hàng: biểu đồ Chart.js + bảng số liệu, có nút In
-@role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
 @portal_english
 def customer_report(request):
     charts = {
