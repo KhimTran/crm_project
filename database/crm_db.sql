@@ -749,6 +749,106 @@ LOCK TABLES `surveys` WRITE;
 INSERT INTO `surveys` VALUES (1,'Demo badminton survey',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1);
 /*!40000 ALTER TABLE `surveys` ENABLE KEYS */;
 UNLOCK TABLES;
+-- ===== BAT DAU: DU LIEU THAT (thay du lieu demo) =====
+-- Dan khoi nay ngay TRUOC dong: /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+SET FOREIGN_KEY_CHECKS=0;
+DELETE FROM `products`;
+DELETE FROM `suppliers`;
+DELETE FROM `categories`;
+DELETE FROM `brands`;
+
+LOCK TABLES `brands` WRITE;
+/*!40000 ALTER TABLE `brands` DISABLE KEYS */;
+REPLACE INTO `brands` VALUES (3,'Yonex','Thương hiệu cầu lông Nhật Bản','ACTIVE','2026-10-13 19:44:12','2026-10-14 15:03:34');
+REPLACE INTO `brands` VALUES (4,'Lining','Thương hiệu thể thao Trung Quốc','ACTIVE','2026-10-13 19:44:12','2026-10-14 15:03:34');
+REPLACE INTO `brands` VALUES (5,'Victor','Thương hiệu cầu lông Đài Loan','ACTIVE','2026-10-13 19:44:12','2026-10-14 15:03:34');
+REPLACE INTO `brands` VALUES (6,'Mizuno','Thương hiệu thể thao Nhật Bản','ACTIVE','2026-10-13 19:44:12','2026-10-14 15:03:34');
+REPLACE INTO `brands` VALUES (7,'Apacs','Thương hiệu cầu lông Malaysia','ACTIVE','2026-10-13 19:44:12','2026-10-14 15:03:34');
+/*!40000 ALTER TABLE `brands` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `categories`
+--
+
+LOCK TABLES `categories` WRITE;
+/*!40000 ALTER TABLE `categories` DISABLE KEYS */;
+REPLACE INTO `categories` VALUES (1,'Badminton rackets','Vợt cầu lông các dòng thiên công, thủ và toàn diện','ACTIVE','2026-10-05 09:47:24','2026-10-14 15:03:34');
+REPLACE INTO `categories` VALUES (5,'Shuttlecocks','Cầu lông thi đấu và tập luyện','ACTIVE','2026-10-13 19:44:12','2026-10-14 15:03:34');
+REPLACE INTO `categories` VALUES (6,'Badminton shoes','Giày cầu lông','ACTIVE','2026-10-13 19:44:12','2026-10-14 15:03:34');
+REPLACE INTO `categories` VALUES (7,'Badminton bags','Túi và balo đựng vợt','ACTIVE','2026-10-13 19:44:12','2026-10-14 09:55:10');
+REPLACE INTO `categories` VALUES (8,'Accessories','Quấn cán, dây cước và phụ kiện','ACTIVE','2026-10-13 19:44:12','2026-10-14 09:55:10');
+REPLACE INTO `categories` VALUES (9,'Badminton apparel','Quần áo cầu lông','ACTIVE','2026-10-14 10:04:21','2026-10-14 15:03:34');
+/*!40000 ALTER TABLE `categories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `suppliers`
+--
+
+LOCK TABLES `suppliers` WRITE;
+/*!40000 ALTER TABLE `suppliers` DISABLE KEYS */;
+REPLACE INTO `suppliers` VALUES (1,'SUP001','Yonex Vietnam',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
+REPLACE INTO `suppliers` VALUES (2,'SUP002','Lining Sports',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
+REPLACE INTO `suppliers` VALUES (3,'SUP003','Victor Distribution',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
+REPLACE INTO `suppliers` VALUES (4,'SUP004','Mizuno Sports',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
+REPLACE INTO `suppliers` VALUES (5,'SUP005','Kawasaki Badminton',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
+REPLACE INTO `suppliers` VALUES (6,'SUP006','Apacs Vietnam',NULL,NULL,NULL,'INACTIVE','2026-10-05 09:47:24','2026-10-09 10:23:36');
+REPLACE INTO `suppliers` VALUES (7,'SUP007','Fleet Sports',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
+REPLACE INTO `suppliers` VALUES (8,'SUP008','Protech Badminton',NULL,NULL,NULL,'INACTIVE','2026-10-05 09:47:24','2026-10-09 10:21:50');
+/*!40000 ALTER TABLE `suppliers` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `products`
+--
+
+LOCK TABLES `products` WRITE;
+/*!40000 ALTER TABLE `products` DISABLE KEYS */;
+REPLACE INTO `products` VALUES (78,'Yonex Astrox 88D Pro','Vợt thiên công, đầu nặng, hợp đánh đôi nam cuối sân',4200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:03:34',3,1,1,'https://i.imgur.com/Xs2XCJ6.jpeg');
+REPLACE INTO `products` VALUES (79,'Yonex Astrox 99 Pro','Vợt thiên công, đầu nặng, lực đập mạnh',4300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:10:38',3,1,1,'https://i.imgur.com/XFEFPT0.jpeg');
+REPLACE INTO `products` VALUES (80,'Yonex Arcsaber 11 Pro','Vợt cân bằng, kiểm soát cầu tốt',3800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:12:16',3,1,1,'https://i.imgur.com/9msX3aJ.jpeg');
+REPLACE INTO `products` VALUES (81,'Yonex Nanoflare 800 Pro','Vợt thiên tốc độ, đầu nhẹ, phản hồi nhanh',4000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:13:50',3,1,1,'https://i.imgur.com/8mCquG1.jpeg');
+REPLACE INTO `products` VALUES (82,'Yonex Duora 10','Vợt hai đầu, linh hoạt công thủ',3500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:13:40',3,1,1,'https://i.imgur.com/juLsHih.jpeg');
+REPLACE INTO `products` VALUES (83,'Yonex Power Cushion 65 Z3','Giày đệm êm, bám sân tốt',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:15:11',3,6,1,'https://i.imgur.com/GFxsPzr.jpeg');
+REPLACE INTO `products` VALUES (84,'Yonex Aerosensa 50','Cầu lông vũ thi đấu, hộp 12 quả',950000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:15:49',3,5,1,'https://i.imgur.com/6KdFcrG.jpeg');
+REPLACE INTO `products` VALUES (85,'Yonex Áo thi đấu nam','Áo thun thoáng khí cho thi đấu',650000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:16:26',3,9,1,'https://i.imgur.com/d2wCZYO.jpeg');
+REPLACE INTO `products` VALUES (86,'Lining Axforce 80','Vợt thiên công, khung cứng',3300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:17:23',4,1,2,'https://i.imgur.com/e0z4dBv.jpeg');
+REPLACE INTO `products` VALUES (87,'Lining Windstorm 72','Vợt nhẹ, linh hoạt, phù hợp người mới chơi',1900000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:18:07',4,1,2,'https://i.imgur.com/NjODJwE.jpeg');
+REPLACE INTO `products` VALUES (88,'Lining Aeronaut 9000','Vợt thiên công, đầu nặng',4000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:31',4,1,2,'https://i.imgur.com/93F6k1G.jpeg');
+REPLACE INTO `products` VALUES (89,'Lining Turbocharging 75','Vợt thiên tốc độ, nhẹ',2400000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:20:18',4,1,2,'https://i.imgur.com/NqFuEKf.jpeg');
+REPLACE INTO `products` VALUES (90,'Lining Bladex 900','Vợt cân bằng, bền',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:20:47',4,1,2,'https://i.imgur.com/CPs0pT4.jpeg');
+REPLACE INTO `products` VALUES (91,'Lining Saga II','Giày nhẹ, hỗ trợ di chuyển nhanh',1800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:21:23',4,6,2,'https://i.imgur.com/d5oihyp.jpeg');
+REPLACE INTO `products` VALUES (92,'Lining A+60','Cầu lông vũ tập luyện, hộp 12 quả',700000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:22:28',4,5,2,'https://i.imgur.com/Wu1mNuH.jpeg');
+REPLACE INTO `products` VALUES (93,'Lining Áo thi đấu nam','Áo thun thoáng khí, co giãn',450000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:22:38',4,9,2,'https://i.imgur.com/NFacQwV.jpeg');
+REPLACE INTO `products` VALUES (94,'Victor Auraspeed 90S','Vợt tốc độ, đầu nhẹ',3300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:23:33',5,1,3,'https://i.imgur.com/cjyx7bK.jpeg');
+REPLACE INTO `products` VALUES (95,'Victor Thruster Ryuga II','Vợt thiên công, đầu nặng',3600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:24:16',5,1,3,'https://i.imgur.com/uFe7miv.jpeg');
+REPLACE INTO `products` VALUES (96,'Victor Jetspeed S 12','Vợt tốc độ, đầu nhẹ',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:24:52',5,1,3,'https://i.imgur.com/LxQnsJ4.jpeg');
+REPLACE INTO `products` VALUES (97,'Victor Drive X 9X','Vợt cân bằng, đa dụng',3100000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:25:45',5,1,3,'https://i.imgur.com/AY9sy0U.jpeg');
+REPLACE INTO `products` VALUES (98,'Victor Brave Sword 12','Vợt thiên công, dễ kiểm soát',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:13',5,1,3,'https://i.imgur.com/wjB6oWu.jpeg');
+REPLACE INTO `products` VALUES (99,'Victor P9200','Giày ổn định, hỗ trợ cổ chân',2500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:55',5,6,3,'https://i.imgur.com/hl6DGNB.jpeg');
+REPLACE INTO `products` VALUES (100,'Victor Gold No.1','Cầu lông vũ, hộp 12 quả',800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:43',5,5,3,'https://i.imgur.com/WUR6gNc.jpeg');
+REPLACE INTO `products` VALUES (101,'Victor Áo thi đấu nam','Áo thun thoáng khí cho thi đấu',500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:31',5,9,3,'https://i.imgur.com/WrFioUJ.jpeg');
+REPLACE INTO `products` VALUES (102,'Mizuno Fortius 10 Quick','Vợt thiên tốc độ, đầu nhẹ',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:28:57',6,1,4,'https://i.imgur.com/HXpI9bt.jpeg');
+REPLACE INTO `products` VALUES (103,'Mizuno Fortius 30 Power','Vợt thiên công, đầu nặng',3000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:30:04',6,1,4,'https://i.imgur.com/xu5HUQn.jpeg');
+REPLACE INTO `products` VALUES (104,'Mizuno Altius 01 Speed','Vợt nhẹ, linh hoạt',2500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:30:35',6,1,4,'https://i.imgur.com/GsttcMO.jpeg');
+REPLACE INTO `products` VALUES (105,'Mizuno Altius 03 Feel','Vợt cân bằng, cảm giác cầu tốt',2600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:31:53',6,1,4,'https://i.imgur.com/vaAtEUX.jpeg');
+REPLACE INTO `products` VALUES (106,'Mizuno Acrospeed 5.0','Vợt tầm trung cho người mới',1800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:32:22',6,1,4,'https://i.imgur.com/4c4orId.jpeg');
+REPLACE INTO `products` VALUES (107,'Mizuno Wave Claw 2','Giày nhẹ, linh hoạt',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:49',6,6,4,'https://i.imgur.com/WSROf0I.jpeg');
+REPLACE INTO `products` VALUES (108,'Mizuno Cầu tập luyện','Cầu tập luyện, hộp 12 quả',600000.00,'INACTIVE','2026-10-14 10:04:21','2026-10-14 15:33:37',6,5,4,'');
+REPLACE INTO `products` VALUES (109,'Mizuno Áo thi đấu nam','Áo thun thoáng khí, thấm hút tốt',450000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:59:09',6,9,4,'https://i.imgur.com/aOJdEMv.jpeg');
+REPLACE INTO `products` VALUES (110,'Apacs Nano Fusion Speed 722','Vợt tầm trung, thiên tốc độ',2200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:35:59',7,1,6,'https://i.imgur.com/DtsE3lD.jpeg');
+REPLACE INTO `products` VALUES (111,'Apacs Feather Weight 55','Vợt siêu nhẹ cho người mới',1600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:36:38',7,1,6,'https://i.imgur.com/t9Ovk0U.jpeg');
+REPLACE INTO `products` VALUES (112,'Apacs Z-Ziggler','Vợt thiên công, cứng',2400000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:37:15',7,1,6,'https://i.imgur.com/6yXd346.jpeg');
+REPLACE INTO `products` VALUES (113,'Apacs Edgesaber 10','Vợt cân bằng, đa dụng',2000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:37:59',7,1,6,'https://i.imgur.com/jv3ufh2.jpeg');
+REPLACE INTO `products` VALUES (114,'Apacs Virtuoso Pro','Vợt thiên tốc độ, nhẹ',2300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:38:36',7,1,6,'https://i.imgur.com/02l3P1e.jpeg');
+REPLACE INTO `products` VALUES (115,'Apacs Cushion Pro','Giày đệm êm cho tập luyện',1500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:39:23',7,6,6,'https://i.imgur.com/eCAtV3F.jpeg');
+REPLACE INTO `products` VALUES (116,'Apacs Cầu lông vũ','Cầu lông vũ, hộp 12 quả',650000.00,'INACTIVE','2026-10-14 10:04:21','2026-10-14 15:40:09',7,5,6,'');
+REPLACE INTO `products` VALUES (117,'Apacs Áo thi đấu nam','Áo thun thoáng khí cho tập luyện',350000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:41:18',7,9,6,'https://i.imgur.com/uES1S6c.jpeg');
+/*!40000 ALTER TABLE `products` ENABLE KEYS */;
+UNLOCK TABLES;
+
+-- ===== KET THUC =====
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -760,3 +860,5 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-10-16 15:20:23
+
+
