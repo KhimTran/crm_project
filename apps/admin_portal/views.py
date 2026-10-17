@@ -109,8 +109,11 @@ def staff_login(request):
         if role == AccountRole.MANAGER:
             return redirect(_safe_staff_next(request, request.user))
         form = PortalLoginForm()
-        form.add_error(None, "Access Denied: Staff only.")
-        return render(request, "admin/portal/login.html", {"form": form, "next": next_url})
+        return render(request, "admin/portal/login.html", {
+            "form": form,
+            "next": next_url,
+            "access_denied": "Access Denied: Staff only.",
+        })
 
     form = PortalLoginForm(request.POST if request.method == "POST" else None)
     if request.method == "POST":

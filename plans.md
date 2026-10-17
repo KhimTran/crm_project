@@ -1260,3 +1260,42 @@ was used without printing credentials.
   Full implementation manifest/evidence: docs/admin_manager_review_fixes.md.
   Publication is on the owner-requested codex branch with a PR into develop;
   Git/PR metadata record the final SHA and state. No merge/auto-merge authorized.
+
+### Staff login with an authenticated CUSTOMER — 2026-10-17
+
+- [x] Re-read AGENTS.md, plans and current source; initial worktree clean on
+  codex/admin-manager-review-fixes at c865cd6. The reported unbound-form bug was
+  still present; no manual fix or uncommitted user changes were overwritten.
+- [x] Authenticated CUSTOMER denial keeps PortalLoginForm unbound and supplies
+  access_denied context to the staff-login alert. Removed only the invalid
+  add_error call in that branch; validated POST form errors, authentication,
+  sessions, roles, LOCKED/CSRF/safe-next behavior and routes remain unchanged.
+  No model/migration/SQL/database configuration or backup/restore changes.
+- [x] Added six regression tests in apps/admin_portal/test_staff_login.py:
+  authenticated CUSTOMER GET/POST on both staff-login routes, unbound/error-free
+  form, forged ADMIN credentials ignored with unchanged CUSTOMER session/role/
+  password hash, protected-route denial, anonymous GET/normal staff login and
+  enforced CSRF. Existing suites also cover LOCKED and safe next destinations.
+- [x] Django check: 0 issues. Django test runner passed 74/74 tests in 69.843s
+  using apps.admin_portal.test_staff_login, apps.admin_portal.tests,
+  apps.accounts.tests.test_customer_auth, apps.accounts.tests.test_decorators
+  and apps.accounts.tests.test_layouts, with --keepdb --noinput --verbosity=1.
+  Backend: MySQL 8.4.11 on 127.0.0.1:33071, private database
+  test_crm_review_20261016_8b99. External review_run.py/review_settings.py selected
+  that private server; no reset/flush/seed/import/restore of the owner's database.
+  Temporary settings stay outside Git. git diff --check passed. Full suite and
+  interactive browser checks were not run for this focused fix.
+  Initial verification was local only; the owner subsequently authorized
+  commit/push and a PR, with no merge.
+- [x] Publication check: PR #10 was already merged. Created
+  codex/fix-staff-login-customer from origin/develop at 384b3d4. Its base Git tree
+  is identical to the tested c865cd6 base; view/template/regression-test blobs
+  are unchanged from the 74-test run. No conflicts or logic changes, so retained
+  that test evidence without rerunning. Explicit commit scope includes the new
+  apps/admin_portal/test_staff_login.py plus views.py, staff-login template and
+  this plans entry; no temporary settings, credentials or logs.
+- [x] Read-only deployment inspection: D:/Desktop/crm_project is on develop at
+  384b3d4 with an uncommitted views.py edit removing the CUSTOMER-denial branch.
+  Preserve that local edit separately before a post-merge fast-forward; do not
+  automatically reapply it over this fix. Publication does not alter that
+  checkout or run migrations/seed/import/restore against any database.
