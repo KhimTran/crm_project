@@ -18,19 +18,22 @@
     </div>
     <p class="customer-required-note{% if in_admin_portal %} text-muted small{% endif %}">{% t "Các trường có dấu * là bắt buộc." "Fields marked * are required." %}</p>
 
-      {% for field in form %}
-          <div class="customer-create-field">
-            <label for="{{ field.id_for_label }}">{{ field.label }}:{% if field.field.required %} <span class="customer-required" aria-hidden="true">*</span>{% endif %}</label>
-            {% if field.name == 'password' %}
-              <div class="customer-password-control">
-                {{ field }}
-                <button type="button" class="{% if in_admin_portal %}btn btn-outline-secondary{% else %}crm-btn crm-btn-secondary{% endif %}" id="customer-password-toggle" aria-controls="{{ field.id_for_label }}" aria-pressed="false" data-show="{% t 'Hiện mật khẩu' 'Show password' %}" data-hide="{% t 'Ẩn mật khẩu' 'Hide password' %}" hidden>{% t "Hiện mật khẩu" "Show password" %}</button>
-              </div>
-            {% else %}{{ field }}{% endif %}
-            {% if field.help_text %}<div class="customer-field-help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>{% endif %}
-            <ul class="errorlist crm-errorlist" id="{{ field.auto_id }}_error" data-field-error="{{ field.name }}" {% if not field.errors %}hidden{% endif %}>{% for e in field.errors %}<li>{% t e %}</li>{% endfor %}</ul>
-          </div>
-      {% endfor %}
+    <div class="customer-create-split">
+      <div class="customer-create-box">
+        <h2>{% t "Thông tin tài khoản" "Account Information" %}</h2>
+        {% include "customers/_customer_create_field.html" with field=form.full_name %}
+        {% include "customers/_customer_create_field.html" with field=form.email %}
+        {% include "customers/_customer_create_field.html" with field=form.password %}
+        {% include "customers/_customer_create_field.html" with field=form.phone %}
+      </div>
+      <div class="customer-create-box">
+        <h2>{% t "Thông tin cá nhân" "Personal Information" %}</h2>
+        {% include "customers/_customer_create_field.html" with field=form.date_of_birth %}
+        {% include "customers/_customer_create_field.html" with field=form.gender %}
+        {% include "customers/_customer_create_field.html" with field=form.address %}
+        {% include "customers/_customer_create_field.html" with field=form.playing_level %}
+      </div>
+    </div>
 
     <div class="customer-create-actions">
       <button type="submit" class="{% if in_admin_portal %}btn btn-primary{% else %}crm-btn{% endif %}" data-saving="{% t 'Đang lưu…' 'Saving…' %}">{% t "Lưu khách hàng" "Save Customer" %}</button>

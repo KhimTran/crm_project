@@ -296,7 +296,8 @@ class SurveyReportFlowTests(TestCase):
         start = timezone.localtime() - timedelta(minutes=5)
         response = self.client.post(reverse("surveys:manage_create"), {
             "title": "Luồng đầy đủ", "start_at": start.strftime("%Y-%m-%dT%H:%M"),
-            "end_at": (start + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M"), "use_template": "on"})
+            "end_at": (start + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M"), "use_template": "on",
+            "objective": "SATISFACTION", "audience": "all"})
         self.assertEqual(response.status_code, 302)
         survey = Survey.objects.get(title="Luồng đầy đủ")
         Survey.objects.filter(pk=survey.pk).update(status="ACTIVE")

@@ -54,6 +54,8 @@ def prepare_questions(questions):
         if question.question_type == QuestionType.RATING:
             low, high = rating_bounds(question)
             question.rating_values = range(low, high + 1)
-            question.rating_max = high
+            question.rating_min, question.rating_max = low, high
+            question.rating_min_label = config.get("rating_min_label", "")
+            question.rating_max_label = config.get("rating_max_label", "")
         question.matrix_values = range(1, 6)
     return questions

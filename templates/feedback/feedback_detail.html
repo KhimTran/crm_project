@@ -8,11 +8,17 @@
 {% endblock %}
 
 {% block content %}
-<p class="crm-toolbar"><a href="{% url 'crm_feedbacks:list' %}">&laquo; {% t "Quay lại danh sách phản hồi" "Back to feedback" %}</a></p>
+<p class="crm-toolbar"><a class="crm-btn crm-btn-secondary crm-fb-back" href="{% url 'crm_feedbacks:list' %}"><span aria-hidden="true">&larr;</span> {% t "Quay lại danh sách phản hồi" "Back to feedback" %}</a></p>
 
 <div class="crm-feedback-grid">
   <section class="crm-card" aria-labelledby="fb-info">
     <h2 id="fb-info">{% t "Nội dung phản hồi" "Feedback Details" %}</h2>
+    <div class="crm-fb-summary">
+      <span class="crm-stars crm-fb-rating" aria-hidden="true">{{ feedback.rating }}★</span>
+      <span class="crm-badge fb-{{ feedback.status|lower }}">{% t feedback.status_label %}</span>
+      <span class="crm-fb-date">{{ feedback.created_at|date:datetime_fmt }}</span>
+    </div>
+    <blockquote class="crm-quote">{{ feedback.content|linebreaksbr }}</blockquote>
     <dl class="crm-dl">
       <dt>{% t "Khách hàng" "Customer" %}</dt>
       <dd>{% if feedback.customer.status == "DELETED" %}{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }} <span class="crm-badge locked">{% t "Đã xóa" "DELETED" %}</span>
@@ -25,7 +31,6 @@
       <dt>{% t "Người xử lý" "Handled By" %}</dt><dd>{{ feedback.handled_by.email|default:"–" }}</dd>
       <dt>{% t "Xử lý xong lúc" "Resolved At" %}</dt><dd>{{ feedback.resolved_at|date:datetime_fmt|default:"–" }}</dd>
     </dl>
-    <blockquote class="crm-quote">{{ feedback.content|linebreaksbr }}</blockquote>
   </section>
 
   <section class="crm-card" aria-labelledby="fb-handle">

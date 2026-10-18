@@ -67,13 +67,16 @@ class LifecycleTests(SurveyFixture):
         self.client.force_login(self.manager)
         start = timezone.localtime() - timedelta(minutes=5)
         response = self.client.post(reverse("surveys:manage_create"), {
-            "title": "Luồng mới", "start_at": start.strftime(DT), "end_at": (start + timedelta(days=3)).strftime(DT)})
+            "title": "Luồng mới", "start_at": start.strftime(DT), "end_at": (start + timedelta(days=3)).strftime(DT),
+            "objective": "SATISFACTION", "audience": "all"})
         survey = Survey.objects.get(title="Luồng mới")
-        self.assertRedirects(response, reverse("surveys:manage_detail", args=[survey.pk]))
+        self.assertRedirects(response, reverse("surveys:manage_edit", args=[survey.pk]))  # lưu xong ở lại trình soạn
         self.assertEqual((survey.status, survey.template_key, survey.surveyquestion_set.count()), ("DRAFT", None, 0))
-        self.client.post(reverse("surveys:question_add", args=[survey.pk]), {
-            "question_text": "Bạn hài lòng?", "question_type": "SINGLE_CHOICE", "is_required": "on",
-            "options_text": "Có\nKhông"})
+        self.client.post(reverse("surveys:manage_edit", args=[survey.pk]), {
+            "title": "Luồng mới", "objective": "SATISFACTION", "audience": "all", "action": "save",
+            "start_at": start.date().isoformat(), "end_at": (start + timedelta(days=3)).date().isoformat(),
+            "questions_json": json.dumps([{"text": "Bạn hài lòng?", "type": "SINGLE_CHOICE", "required": True,
+                                           "options": ["Có", "Không"]}])})
         question = survey.surveyquestion_set.get()
         self.client.post(reverse("surveys:manage_send", args=[survey.pk]),
                          {"audience": "pick", "customer_ids": [self.an.pk], "action": "send"})
@@ -107,7 +110,7 @@ class LifecycleTests(SurveyFixture):
         start = timezone.localtime()
         self.client.post(reverse("surveys:manage_create"), {
             "title": "Mẫu", "start_at": start.strftime(DT), "end_at": (start + timedelta(days=3)).strftime(DT),
-            "use_template": "on"})
+            "use_template": "on", "objective": "SATISFACTION", "audience": "all"})
         self.assertEqual(Survey.objects.get(title="Mẫu").surveyquestion_set.count(), 8)
 
     def test_publish_blocked_without_questions(self):
@@ -165,9 +168,11 @@ class LifecycleTests(SurveyFixture):
         recipients = self.publish(self.an)
         submit_survey(self.an.account, recipients[self.an.pk].pk, self.answers())
         self.client.force_login(self.manager)
-        url = reverse("surveys:question_edit", args=[self.survey.pk, self.single.pk])
-        self.client.post(url, {"question_text": "Đổi", "question_type": "SINGLE_CHOICE", "options_text": "A\nB"})
-        self.client.post(reverse("surveys:question_delete", args=[self.survey.pk, self.single.pk]))
+        today = timezone.localdate()
+        self.client.post(reverse("surveys:manage_edit", args=[self.survey.pk]), {
+            "title": "Đổi", "objective": "OTHER", "audience": "all", "action": "save",
+            "start_at": today.isoformat(), "end_at": today.isoformat(),
+            "questions_json": json.dumps([{"text": "Đổi", "type": "SINGLE_CHOICE", "options": ["A", "B"]}])})
         self.single.refresh_from_db()
         self.assertEqual(self.single.question_text, "Một")
         self.assertEqual(list(self.single.surveyoption_set.values_list("option_text", flat=True)), ["Có", "Không"])

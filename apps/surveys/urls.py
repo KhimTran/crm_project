@@ -10,8 +10,8 @@ urlpatterns = [
     path("recipients/<int:recipient_id>/result/", views.result, name="result"),
     # TV5 - CRM management (ADMIN or CRM_MANAGER)
     path("manage/", views.manage_list, name="manage_list"),
-    path("manage/results/", views.survey_results, name="results"),
     path("manage/new/",views.manage_create, name="manage_create"),
+    path("manage/audience-count/", views.manage_audience_count, name="manage_audience_count"),
     path("manage/<int:survey_id>/", views.manage_detail, name="manage_detail"),
     path("manage/<int:survey_id>/edit/", views.manage_edit, name="manage_edit"),
     path("manage/<int:survey_id>/delete/", views.manage_delete, name="manage_delete"),
@@ -19,11 +19,6 @@ urlpatterns = [
     path("manage/<int:survey_id>/clone/", views.manage_clone, name="manage_clone"),
     path("manage/<int:survey_id>/audience/", views.manage_send, name="manage_send"),
     path("manage/<int:survey_id>/stats/", views.manage_stats, name="manage_stats"),
-    path("manage/<int:survey_id>/questions/new/", views.question_add, name="question_add"),
-    path("manage/<int:survey_id>/questions/<int:question_id>/edit/", views.question_edit, name="question_edit"),
-    path("manage/<int:survey_id>/questions/<int:question_id>/delete/", views.question_delete, name="question_delete"),
-    path("manage/<int:survey_id>/questions/<int:question_id>/move/<str:direction>/", views.question_move,
-         name="question_move"),
     # TV5 - customer
     path("mine/", views.my_surveys, name="my_surveys"),
 ]

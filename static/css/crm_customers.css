@@ -60,6 +60,12 @@
   .customer-create-page .customer-password-control { flex-wrap: wrap; }
   .customer-create-page .customer-password-control input { flex-basis: 100%; }
 }
+.customer-create-page .customer-create-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; margin-bottom: 1rem; }
+.customer-create-page .customer-create-box { min-width: 0; padding: 1.25rem; border: 1px solid #d8e1ea; border-radius: 8px; background: #fff; }
+.customer-create-page .customer-create-box h2 { margin: 0 0 1rem; font-size: 1.1rem; font-weight: 700; }
+@media (max-width: 768px) {
+  .customer-create-page .customer-create-split { grid-template-columns: 1fr; }
+}
 .customer-create-page .customer-required { color: #a93333; }
 .customer-create-page .customer-required-note { margin-bottom: 1rem; }
 /* Full Name column: one line, no underline until hover (portal and CRM layouts). */

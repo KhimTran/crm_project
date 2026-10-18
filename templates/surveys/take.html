@@ -21,7 +21,7 @@
       {% if question.max_selections %}<p class="sv-help">Chọn tối đa {{ question.max_selections }} đáp án; không cần chọn đủ.</p>{% endif %}
     {% elif question.question_type == 'RATING' %}
       <div class="sv-rating">{% for n in question.rating_values %}<label><input type="radio" name="q{{ question.pk }}" value="{{ n }}"> {{ n }}</label>{% endfor %}</div>
-      <span class="sv-help">{% if question.rating_max == 10 %}1: Chắc chắn không. · 10: Chắc chắn sẽ giới thiệu.{% else %}1 = rất không hài lòng, 5 = rất hài lòng{% endif %}</span>
+      <span class="sv-help">{% if question.rating_min_label or question.rating_max_label %}{{ question.rating_min }}: {{ question.rating_min_label|default:"—" }} · {{ question.rating_max }}: {{ question.rating_max_label|default:"—" }}{% elif question.rating_max == 10 %}1: Chắc chắn không. · 10: Chắc chắn sẽ giới thiệu.{% else %}1 = rất không hài lòng, 5 = rất hài lòng{% endif %}</span>
     {% elif question.question_type == 'MATRIX' %}
       <p class="sv-help">1: Rất tệ · 5: Rất tốt. Có thể chọn Không sử dụng ở từng tiêu chí.</p>
       <div class="sv-form">
@@ -37,7 +37,7 @@
       <textarea name="q{{ question.pk }}" rows="3" maxlength="2000" placeholder="{{ question.placeholder }}" style="width:100%"></textarea>
     {% endif %}
     {% if question.other_option_id %}<div class="sv-form" data-other-input hidden>
-      <label for="other-{{ question.pk }}">Thương hiệu khác (tối đa 200 ký tự)</label>
+      <label for="other-{{ question.pk }}">{% if question.config.key %}Thương hiệu khác{% else %}Nội dung khác{% endif %} (tối đa 200 ký tự)</label>
       <input type="text" name="other{{ question.pk }}" id="other-{{ question.pk }}" maxlength="200" disabled>
     </div>{% endif %}
   </fieldset>

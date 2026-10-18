@@ -61,6 +61,50 @@ SHORT_LABELS = {
 _DEFAULT_OPTIONS = {q["key"]: q.get("options", []) for q in _QUESTIONS}
 
 
+# tv4: bản tiếng Anh của bộ 8 câu hỏi mặc định, dùng khi Admin/Manager xem khảo sát trong portal quản lý
+EN_TEXT = {
+    SECTIONS[0]: "Part 1: Customer Profile & Needs",
+    SECTIONS[1]: "Part 2: Product & Service Quality",
+    SECTIONS[2]: "Part 3: Product Direction & Open Feedback",
+    "Hôm nay bạn đã mua sản phẩm hoặc sử dụng dịch vụ nào tại shop?": "Which products or services did you buy or use at the shop today?",
+    "Vợt cầu lông.": "Badminton rackets",
+    "Giày cầu lông.": "Badminton shoes",
+    "Quần áo / Balo / Bao vợt.": "Apparel / Backpacks / Racket bags",
+    "Phụ kiện (Ống cầu, quấn cán, vớ, băng bảo vệ...).": "Accessories (shuttlecocks, grips, socks, supports...)",
+    "Dịch vụ đan / căng cước vợt.": "Racket stringing service",
+    "Phong cách hoặc tần suất chơi cầu lông hiện tại của bạn là gì?": "What is your current playing style or frequency?",
+    "Người mới bắt đầu chơi (Newbie).": "Beginner",
+    "Chơi phong trào, rèn luyện sức khỏe (1–3 buổi/tuần).": "Recreational (1–3 sessions/week)",
+    "Chơi nâng cao / Đánh giải phong trào (> 3 buổi/tuần).": "Advanced / local tournaments (> 3 sessions/week)",
+    "Mua làm quà tặng cho người khác.": "Buying as a gift",
+    "Nhìn chung, bạn hài lòng như thế nào với trải nghiệm tại shop hôm nay?": "Overall, how satisfied are you with your experience at the shop today?",
+    "Bạn đánh giá chi tiết các yếu tố sau của shop ở mức độ nào?": "How do you rate each of the following aspects of the shop?",
+    "Sản phẩm: Độ đa dạng mẫu mã & cam kết chính hãng.": "Products: variety of models & guaranteed authenticity.",
+    "Tư vấn: Nhân viên hiểu rõ thông số vợt/giày, tư vấn đúng trình độ và lối đánh (công/thủ).":
+        "Advice: staff know racket/shoe specs and advise by skill level and play style (attack/defence).",
+    "Dịch vụ đan vợt: Căng chuẩn số kg, đi dây đẹp, thời gian chờ lấy vợt nhanh.":
+        "Stringing: accurate tension, neat stringing, fast turnaround.",
+    "Giá cả: Mức giá hợp lý, chương trình khuyến mãi/tích điểm hấp dẫn.": "Pricing: fair prices, attractive promotions and loyalty points.",
+    "Điều gì làm bạn ưng ý nhất khi mua đồ tại shop?": "What do you like most about shopping here?",
+    "Hàng chuẩn chính hãng.": "Authentic products",
+    "Thợ đan vợt mát tay, chuẩn kg.": "Skilled stringer, accurate tension",
+    "Tư vấn nhiệt tình, không chèo kéo.": "Friendly advice, no pressure",
+    "Giao hàng nhanh.": "Fast delivery",
+    "Giá tốt / Tặng kèm phụ kiện xịn.": "Good prices / free quality accessories",
+    "Bạn mong muốn shop nhập thêm nhiều mẫu mới của thương hiệu nào trong thời gian tới?": "Which brands would you like the shop to stock more of?",
+    "Yonex.": "Yonex", "Lining.": "Lining", "Victor.": "Victor", "Mizuno.": "Mizuno",
+    "Các hãng tầm trung/giá rẻ (Kumpoo, Felet, Vicleo, Kawasaki...).": "Mid-range / budget brands (Kumpoo, Felet, Vicleo, Kawasaki...)",
+    "Khác.": "Other",
+    "Bạn có sẵn sàng giới thiệu shop cho đồng đội hoặc hội nhóm đánh cầu của mình không?": "How likely are you to recommend the shop to your teammates or club?",
+    "Bạn có góp ý gì thêm để shop cải thiện dịch vụ phục vụ anh em lông thủ tốt hơn không?": "Any other suggestions to help the shop serve players better?",
+    # nhãn ngắn dùng cho biểu đồ/báo cáo
+    "Vợt cầu lông": "Rackets", "Giày cầu lông": "Shoes", "Quần áo / Balo": "Apparel / Backpacks", "Phụ kiện": "Accessories",
+    "Đan / căng cước": "Stringing", "Người mới chơi": "Beginner", "Khách chơi phong trào": "Recreational",
+    "Khách chơi nâng cao": "Advanced", "Mua làm quà tặng": "Gift buyers", "Tư vấn": "Advice",
+    "Dịch vụ đan vợt": "Stringing", "Giá cả": "Pricing", "Hãng tầm trung / giá rẻ": "Mid-range / budget",
+}
+
+
 # tv4: nhãn ngắn của lựa chọn cho báo cáo
 def short_label(key, index, text):
     """Report label for option ``index`` (0-based) of question ``key``."""

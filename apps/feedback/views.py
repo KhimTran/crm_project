@@ -54,7 +54,7 @@ def feedback_detail(request, feedback_id):
         else:
             messages.success(request, say(f"Đã cập nhật phản hồi #{feedback.feedback_id}: {feedback.status_label}.",
                                           f"Feedback #{feedback.feedback_id} updated: {tr(feedback.status_label)}."))
-            return redirect("crm_feedbacks:detail", feedback_id=feedback.pk)
+            return redirect("crm_feedbacks:list")
     return render(request, "feedback/feedback_detail.html", {"feedback": feedback, "form": form})
 
 

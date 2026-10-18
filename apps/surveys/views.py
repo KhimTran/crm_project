@@ -1,5 +1,6 @@
 import json
 import re
+import uuid
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -18,8 +19,8 @@ from apps.accounts.errors import AccountPermissionDenied
 from apps.accounts.permissions import account_admin_required
 from apps.customers.models import Customer
 from apps.customers.portal_text import localize_form, localize_rows, portal_english, say, tr
-from .constants import RECIPIENT_COMPLETED, SurveyStatus
-from .forms import AudienceForm, QuestionForm, SurveyCreateForm, SurveyForm
+from .constants import BUILDER_TYPES, CHOICE_TYPES, RECIPIENT_COMPLETED, SHOP_NAME, QuestionType, SurveyStatus
+from .forms import AudienceForm, BuilderQuestionForm, SurveyBuilderForm
 from .configuration import populate_questionnaire, prepare_questions
 from .questionnaire import TEMPLATE_KEY
 from .models import Survey, SurveyQuestion, SurveyRecipient
@@ -119,124 +120,348 @@ def _send_error(message):
 def _localized_stats(stats):
     for item in stats["items"]:
         item["rows"] = localize_rows(item["rows"])
+        item["section"] = tr(item["section"])
+        item["question_text"] = tr(item["question"].question_text)
+        for criterion in item["criteria"]:
+            criterion["label"] = tr(criterion["label"])
+            criterion["rows"] = localize_rows(criterion["rows"])
     return stats
 
 
-# tv4: lưu câu hỏi; nếu khảo sát vừa được gửi/có câu trả lời (kiểm tra lại khi khóa dòng) thì báo lỗi thay vì 500
-def _save_question(request, form, survey):
-    try:
-        form.save_for(survey)
-    except ValidationError as exc:
-        messages.error(request, tr(exc.messages[0]))
-        return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return None
-
-
-def _draft_or_redirect(request, survey):
-    if (survey.status != SurveyStatus.DRAFT or survey.surveyrecipient_set.exists()
-            or survey.surveyquestion_set.filter(surveyanswer__isnull=False).exists()):
-        messages.error(request, tr("Chỉ sửa được khảo sát ở trạng thái Nháp."))
-        return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return None
-
-
+# tv4: trang Surveys – đọc danh sách khảo sát (mới nhất trước); nút Xem/Sửa/Xóa dùng view manage_detail/edit/delete có sẵn
 @manager_required
 @require_GET
 @portal_english
 def manage_list(request):
     close_expired()
-    qs = Survey.objects.annotate(
-        sent=Count("surveyrecipient", distinct=True),
-        done=Count("surveyrecipient", filter=Q(surveyrecipient__status=RECIPIENT_COMPLETED), distinct=True),
-    ).order_by("-survey_id")
-    status = request.GET.get("status", "")
-    if status in SurveyStatus.values:
-        qs = qs.filter(status=status)
-    q = request.GET.get("q", "").strip()
-    if q:
-        qs = qs.filter(title__icontains=q)
-    surveys = list(qs)
-    for survey in surveys:  # chưa trả lời, tỷ lệ phản hồi (None khi chưa mời ai) và nhãn trạng thái
-        survey.pending = survey.sent - survey.done
-        survey.rate = round(survey.done * 100 / survey.sent, 1) if survey.sent else None
-        survey.status_label = tr(SurveyStatus(survey.status).label) if survey.status in SurveyStatus.values else survey.status
-    return render(request, "surveys/manage_list.html",
-                  {"surveys": surveys, "status": status, "q": q, "overview": survey_overview(),
-                   "statuses": [(value, tr(label)) for value, label in SurveyStatus.choices]})
+    items = list(Survey.objects.annotate(sent=Count("surveyrecipient", distinct=True)).order_by("-survey_id"))
+    for survey in items:  # chỉ Nháp chưa gửi cho ai mới sửa/xóa được (cùng quy tắc với manage_delete)
+        survey.editable = survey.status == SurveyStatus.DRAFT and not survey.sent
+    return render(request, "surveys/manage_list.html", {"items": items})
 
 
-# tv4: 4.1.7 trang Survey Results riêng (tách khỏi Customer Report), số liệu từ bộ 8 câu hỏi đã phát hành.
-@manager_required
-@require_GET
-@portal_english
-def survey_results(request):
-    from .survey_report import build_report, published_questionnaire_surveys
+# ───────────────────────── tv4: trình soạn khảo sát (trang tạo + trang sửa dùng chung) ─────────────────────────
+BUILDER_MAX_QUESTIONS = 50
+BUILDER_TOKENS = "survey_builder_tokens"  # khóa session: mã form tạo khảo sát → survey_id (chống gửi trùng)
+# lỗi của QuestionForm → ô tương ứng trên trình soạn
+BUILDER_FIELDS = {"question_text": "text", "question_type": "type", "options_text": "options", "is_required": "text",
+                  "max_selections": "max_selections", "rating_min": "rating", "rating_max": "rating",
+                  "rating_min_label": "rating", "rating_max_label": "rating", "other_option_position": "options",
+                  "placeholder": "placeholder", "section": "text", "__all__": "text"}
 
-    surveys = published_questionnaire_surveys().order_by("-survey_id").only("survey_id", "title")
-    selected_survey, survey_error = None, ""
-    if request.GET.get("survey_id"):
-        try:
-            selected_survey = surveys.filter(pk=int(request.GET["survey_id"])).first()
-        except (ValueError, OverflowError):
-            pass
-        if selected_survey is None:
-            survey_error = say("Khảo sát được chọn không tồn tại, chưa phát hành hoặc không thuộc bộ 8 câu hỏi.",
-                               "The selected survey does not exist, is unpublished or is not an 8-question survey.")
-    report = None if survey_error else build_report(selected_survey)
-    charts = None
-    if report:
-        charts = {
-            "purchases": [{"label": r["label"], "n": r["n"], "pct": r["pct"]} for r in report["purchases"]["rows"]],
-            "brands": [{"label": r["label"], "n": r["n"], "share_pct": r["share_pct"],
-                        "respondent_pct": r["respondent_pct"]} for r in report["brands"]["rows"]],
-            "trend": [{"label": r["label"], "avg": r["avg"], "n": r["n"]} for r in report["csat_trend"]],
-            "labels": {"respondents": say("người chọn", "respondents"),
-                       "share": say("lượt chọn", "of selections"),
-                       "respondent_share": say("người trả lời có chọn hãng này", "of respondents chose this brand"),
-                       "csat": say("CSAT trung bình", "Average CSAT"),
-                       "responses": say("lượt trả lời", "responses")},
-        }
-    return render(request, "surveys/results_report.html", {
-        "generated_at": timezone.localtime(), "surveys": surveys, "selected_survey": selected_survey,
-        "survey_error": survey_error, "report": report, "charts": charts,
-    })
+
+# tv4: đọc danh sách câu hỏi do trình soạn (JS) gửi lên dạng JSON
+def _parse_builder_questions(raw, instances=None):
+    """Trả về (form hợp lệ theo thứ tự, lỗi theo câu {"0": {ô: [lỗi]}}, lỗi chung, dữ liệu thô để nạp lại trình soạn).
+
+    ``instances``: câu hỏi đã lưu của bộ 8 câu – sửa tại chỗ theo đúng thứ tự, không thêm/bớt/đổi thứ tự."""
+    try:
+        items = json.loads(raw or "[]")
+    except ValueError:
+        items = None
+    if not isinstance(items, list) or not all(isinstance(item, dict) for item in items):
+        return [], {}, [say("Dữ liệu câu hỏi không hợp lệ.", "The question data is invalid.")], []
+    if len(items) > BUILDER_MAX_QUESTIONS:
+        return [], {}, [say(f"Khảo sát tối đa {BUILDER_MAX_QUESTIONS} câu hỏi.",
+                            f"A survey can have at most {BUILDER_MAX_QUESTIONS} questions.")], items
+    if instances is not None and len(items) != len(instances):
+        return [], {}, [say("Bộ câu hỏi cố định phải giữ đủ số câu và thứ tự.",
+                            "The fixed questionnaire must keep all of its questions and their order.")], items
+    forms_, errors = [], {}
+    for index, item in enumerate(items):
+        kind = str(item.get("type", ""))
+        problems = {}
+        labels, other = [], False
+        if kind in (*CHOICE_TYPES, QuestionType.MATRIX):
+            raw_options = item.get("options") if isinstance(item.get("options"), list) else []
+            labels = [option.strip() if isinstance(option, str) else "" for option in raw_options]
+            other = kind in CHOICE_TYPES and bool(item.get("other"))
+            if other:
+                labels.append(str(item.get("other_label") or say("Khác", "Other")).strip())
+            if any(not label for label in labels):
+                problems.setdefault("options", []).append(say("Phương án trả lời không được để trống.",
+                                                              "Answer options cannot be empty."))
+            folded = [label.casefold() for label in labels if label]
+            if len(set(folded)) != len(folded):
+                problems.setdefault("options", []).append(say("Các phương án trả lời không được trùng nhau.",
+                                                              "Answer options must be different."))
+        data = {"question_text": str(item.get("text", "")).strip(), "question_type": kind,
+                "options_text": "\n".join(labels), "section": str(item.get("section") or "")}
+        for name in ("max_selections", "rating_min", "rating_max", "rating_min_label", "rating_max_label", "placeholder"):
+            value = item.get(name)
+            data[name] = "" if value is None or isinstance(value, bool) else str(value).strip()
+        if kind != QuestionType.MULTI_CHOICE:
+            data["max_selections"] = ""
+        if instances is not None:  # bộ 8 câu: thang điểm giữ chữ chú thích cố định của phiên bản
+            data["rating_min_label"] = data["rating_max_label"] = ""
+        if other:
+            data["other_option_position"] = str(len(labels))
+        if item.get("required"):
+            data["is_required"] = "on"
+        form = localize_form(BuilderQuestionForm(data, instance=instances[index] if instances is not None else None))
+        if not form.is_valid():
+            for field, field_errors in form.errors.items():
+                bucket = problems.setdefault(BUILDER_FIELDS.get(field, "text"), [])
+                bucket.extend(message for message in (tr(m) for m in field_errors) if message not in bucket)
+        if problems:
+            errors[str(index)] = problems
+        else:
+            forms_.append(form)
+    return forms_, errors, [], items
+
+
+# tv4: câu hỏi đã lưu → dữ liệu của trình soạn (thứ tự theo sort_order; lựa chọn "Khác" tách riêng)
+def _builder_items(survey):
+    items = []
+    for question in (SurveyQuestion.objects.filter(survey=survey).prefetch_related("surveyoption_set")
+                     .order_by("sort_order", "question_id")):
+        config = question.config or {}
+        options = sorted(question.surveyoption_set.all(), key=lambda o: (o.sort_order, o.option_id))
+        other = next((o for o in options if o.pk == config.get("other_option_id")), None)
+        items.append({
+            "text": question.question_text, "type": question.question_type, "required": question.is_required,
+            "options": [o.option_text for o in options if o is not other],
+            "other": other is not None, "other_label": other.option_text if other else "",
+            "max_selections": config.get("max_selections"), "rating_min": config.get("rating_min", 1),
+            "rating_max": config.get("rating_max", 5), "rating_min_label": config.get("rating_min_label", ""),
+            "rating_max_label": config.get("rating_max_label", ""), "placeholder": config.get("placeholder", ""),
+            "section": config.get("section", ""), "key": config.get("key", ""),
+        })
+    return items
+
+
+# tv4: quy tắc backend: chỉ khảo sát Nháp, chưa gửi cho ai và chưa có câu trả lời mới sửa được
+def _survey_locked(survey):
+    return (survey.status != SurveyStatus.DRAFT or survey.surveyrecipient_set.exists()
+            or survey.surveyquestion_set.filter(surveyanswer__isnull=False).exists())
+
+
+# tv4: lọc danh sách khách nhận khảo sát theo lựa chọn đối tượng (dùng chung cho trang tạo và trang gửi)
+def _audience_customers(data):
+    if data["audience"] == "pick":
+        return eligible_customers().filter(customer_id__in=data["customer_ids"])
+    return filter_customers(data["audience"], data["age_groups"], data["playing_levels"], data["preferences"])
+
+
+# tv4: form đối tượng nhận cho trình soạn: nạp lựa chọn đã lưu cùng bản Nháp, nhãn theo ảnh mẫu
+def _builder_audience_form(data, survey):
+    saved = survey.audience if survey is not None and survey.audience else None
+    form = AudienceForm(data, initial=saved)
+    form.fields["audience"].choices = [("all", say("Tất cả khách hàng", "All customers")),
+                                       ("filter", say("Nhóm khách hàng", "Customer group")),
+                                       ("pick", say("Chọn khách hàng cụ thể", "Specific customers"))]
+    return localize_form(form)
+
+
+# tv4: đối tượng nhận lưu vào cột surveys.audience
+def _audience_data(data):
+    return {"audience": data["audience"], "age_groups": list(data.get("age_groups") or []),
+            "playing_levels": list(data.get("playing_levels") or []), "preferences": list(data.get("preferences") or []),
+            "customer_ids": [int(value) for value in data.get("customer_ids") or []] if data["audience"] == "pick" else []}
+
+
+# tv4: chữ dùng trong trình soạn (JS) – dịch ở server để Admin Portal hiện tiếng Anh
+def _builder_labels():
+    pairs = {
+        "untitled": ("(Chưa nhập nội dung câu hỏi)", "(Untitled question)"),
+        "untitledSurvey": ("Tiêu đề khảo sát", "Survey title"),
+        "emptyList": ("Chưa có câu hỏi nào. Bấm \"Thêm câu hỏi\" để bắt đầu.", "No questions yet. Click \"Add Question\" to start."),
+        "text": ("Nội dung câu hỏi", "Question text"), "textHint": ("Nhập nội dung câu hỏi", "Enter the question"),
+        "type": ("Loại câu hỏi", "Question type"), "options": ("Các phương án trả lời", "Answer options"),
+        "criteria": ("Các tiêu chí đánh giá", "Criteria"), "option": ("Phương án", "Option"),
+        "optionHint": ("Nhập phương án", "Enter an option"), "addOption": ("Thêm phương án", "Add option"),
+        "editOption": ("Sửa phương án", "Edit option"), "deleteOption": ("Xóa phương án", "Delete option"),
+        "required": ("Bắt buộc trả lời", "Required"), "requiredBadge": ("Bắt buộc", "Required"),
+        "advanced": ("Tùy chọn nâng cao", "Advanced options"),
+        "limit": ("Giới hạn số lựa chọn tối đa", "Limit maximum selections"),
+        "limitLabel": ("Số lựa chọn tối đa", "Maximum selections"),
+        "other": ("Thêm lựa chọn \"Khác\" kèm ô nhập", "Add an \"Other\" option with a text box"),
+        "otherLabel": ("Nhãn lựa chọn Khác", "Other option label"), "otherDefault": ("Khác", "Other"),
+        "otherInput": ("Nội dung khác", "Other answer"),
+        "duplicate": ("Nhân bản câu hỏi", "Duplicate question"), "remove": ("Xóa câu hỏi", "Delete question"),
+        "confirmRemove": ("Xóa câu hỏi này?", "Delete this question?"),
+        "confirmType": ("Đổi sang loại này sẽ bỏ các phương án đã nhập. Tiếp tục?",
+                        "Switching to this type removes the options you entered. Continue?"),
+        "ratingMin": ("Điểm tối thiểu", "Minimum score"), "ratingMax": ("Điểm tối đa", "Maximum score"),
+        "ratingMinLabel": ("Nhãn điểm thấp nhất", "Lowest score label"),
+        "ratingMaxLabel": ("Nhãn điểm cao nhất", "Highest score label"),
+        "ratingMinHint": ("VD: Rất không hài lòng", "e.g. Very dissatisfied"),
+        "ratingMaxHint": ("VD: Rất hài lòng", "e.g. Very satisfied"),
+        "placeholder": ("Gợi ý trong ô trả lời", "Answer box hint"),
+        "placeholderHint": ("VD: Nhập ý kiến của bạn...", "e.g. Type your answer..."),
+        "answerHint": ("Nhập câu trả lời của bạn...", "Type your answer..."),
+        "drag": ("Kéo để đổi thứ tự (hoặc dùng phím mũi tên lên/xuống)", "Drag to reorder (or use the up/down arrow keys)"),
+        "toggle": ("Mở/đóng câu hỏi", "Expand/collapse question"),
+        "matrixHint": ("1: Rất tệ · 5: Rất tốt", "1: Very poor · 5: Very good"),
+        "choose": ("-- Chọn --", "-- Select --"),
+        "chooseMax": ("Chọn tối đa {n} đáp án", "Choose up to {n} answers"),
+        # kiểm tra phía trình duyệt (server vẫn kiểm tra lại)
+        "errRequired": ("Vui lòng nhập thông tin này.", "This field is required."),
+        "errText": ("Vui lòng nhập nội dung câu hỏi.", "Enter the question text."),
+        "errOptionsMin": ("Cần ít nhất 2 phương án trả lời.", "Add at least 2 answer options."),
+        "errOptionsEmpty": ("Phương án trả lời không được để trống.", "Answer options cannot be empty."),
+        "errOptionsDup": ("Các phương án trả lời không được trùng nhau.", "Answer options must be different."),
+        "errLimit": ("Số lựa chọn tối đa phải từ 1 đến {n}.", "Maximum selections must be between 1 and {n}."),
+        "errRating": ("Điểm tối thiểu phải nhỏ hơn điểm tối đa (trong khoảng 1–10).",
+                      "The minimum score must be lower than the maximum (between 1 and 10)."),
+        "errEndDate": ("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.", "The end date must be on or after the start date."),
+        "errPastDate": ("Ngày bắt đầu không được ở quá khứ.", "The start date cannot be in the past."),
+        "errFilter": ("Hãy chọn ít nhất một điều kiện lọc, hoặc chọn \"Tất cả khách hàng\".",
+                      "Choose at least one filter, or choose \"All customers\"."),
+        "errPick": ("Hãy chọn ít nhất một khách hàng.", "Select at least one customer."),
+        "errNoQuestions": ("Khảo sát chưa có câu hỏi nào.", "The survey has no questions yet."),
+        "errFix": ("Vui lòng kiểm tra lại các ô được đánh dấu.", "Please check the highlighted fields."),
+        "errCount": ("Không đếm được số khách nhận. Vui lòng thử lại.", "Could not count the recipients. Please try again."),
+        "countLoading": ("Đang đếm số khách hàng sẽ nhận...", "Counting recipients..."),
+        "countText": ("Khảo sát sẽ được gửi tới {n} khách hàng. Sau khi phát hành, câu hỏi không thể sửa nữa.",
+                      "The survey will be sent to {n} customer(s). Questions cannot be edited after publishing."),
+        "countZero": ("Không có khách hàng nào phù hợp với đối tượng đã chọn.", "No customers match the selected audience."),
+        "saving": ("Đang lưu...", "Saving..."),
+        "noMatch": ("Không tìm thấy khách hàng phù hợp.", "No matching customers."),
+        "selectedCount": ("Đã chọn {n} khách hàng", "{n} customer(s) selected"),
+    }
+    return {key: say(vi, en) for key, (vi, en) in pairs.items()}
+
+
+# tv4: ghi nhớ mã form đã tạo khảo sát để lần gửi lặp (bấm 2 lần, F5) không tạo bản trùng
+def _remember_builder_token(request, token, survey_id):
+    tokens = dict(request.session.get(BUILDER_TOKENS, {}))
+    tokens[token] = survey_id
+    request.session[BUILDER_TOKENS] = dict(list(tokens.items())[-20:])
+
+
+# tv4: lưu thông tin, đối tượng và toàn bộ câu hỏi (theo thứ tự kéo thả) trong một transaction; phát hành nếu được yêu cầu
+def _save_builder(request, survey, form, audience_form, question_forms, *, fixed, use_template, publish):
+    with transaction.atomic():
+        if survey is not None and _survey_locked(Survey.objects.select_for_update().get(pk=survey.pk)):
+            raise ValidationError("Không sửa câu hỏi của khảo sát đã gửi hoặc đã có câu trả lời.")
+        saved = form.save(commit=False)
+        if survey is None:
+            saved.created_by = request.user
+            saved.status = SurveyStatus.DRAFT
+        saved.audience = _audience_data(audience_form.cleaned_data)
+        saved.save()
+        if use_template:
+            populate_questionnaire(saved)
+        else:
+            if not fixed:  # Nháp chưa gửi: chưa có câu trả lời nào trỏ tới nên dựng lại theo thứ tự kéo thả
+                SurveyQuestion.objects.filter(survey=saved).delete()
+            for question_form in question_forms:  # bộ 8 câu: form gắn với câu đã lưu nên sửa tại chỗ
+                question_form.save_for(saved)
+        result = send_to_audience(request.user, saved, _audience_customers(audience_form.cleaned_data)) if publish else None
+    return saved, result
+
+
+# tv4: trang tạo/sửa khảo sát (bố cục 2 cột: thông tin + câu hỏi | trạng thái + xem trước)
+def _survey_builder(request, survey):
+    posted = request.method == "POST"
+    locked = survey is not None and _survey_locked(survey)
+    if posted and locked:
+        messages.error(request, tr("Chỉ sửa được khảo sát ở trạng thái Nháp."))
+        return redirect("surveys:manage_edit", survey_id=survey.pk)
+    fixed = survey is not None and survey.template_key == TEMPLATE_KEY
+    mode = "create" if survey is None else "readonly" if locked else "fixed" if fixed else "edit"
+    form = localize_form(SurveyBuilderForm(request.POST if posted else None, instance=survey))
+    audience_form = _builder_audience_form(request.POST if posted else None, survey)
+    items = _builder_items(survey) if survey is not None else []
+    question_errors, general_errors = {}, []
+    token = request.POST.get("form_token", "") if posted else uuid.uuid4().hex
+    if not re.fullmatch(r"[0-9a-f]{32}", token):
+        token = uuid.uuid4().hex
+    if posted:
+        action = request.POST.get("action")
+        action = action if action in ("save", "save_add", "publish") else "save"
+        if survey is None:
+            done = request.session.get(BUILDER_TOKENS, {}).get(token)
+            if done and Survey.objects.filter(pk=done).exists():
+                messages.info(request, say("Khảo sát này đã được lưu trước đó.", "This survey has already been saved."))
+                return redirect("surveys:manage_edit", survey_id=done)
+        # tương thích: tạo bằng bộ 8 câu mẫu chỉ còn ở backend (trang không còn ô chọn này)
+        use_template = survey is None and bool(request.POST.get("use_template"))
+        question_forms = []
+        if not use_template:
+            instances = (list(SurveyQuestion.objects.filter(survey=survey).order_by("sort_order", "question_id"))
+                         if fixed else None)
+            question_forms, question_errors, general_errors, items = _parse_builder_questions(
+                request.POST.get("questions_json"), instances)
+        valid = all([form.is_valid(), audience_form.is_valid()]) and not question_errors and not general_errors
+        if valid and action == "publish" and not (fixed or use_template or question_forms):
+            general_errors.append(say("Khảo sát chưa có câu hỏi nào.", "The survey has no questions yet."))
+            valid = False
+        if valid:
+            try:
+                saved, result = _save_builder(request, survey, form, audience_form, question_forms, fixed=fixed,
+                                              use_template=use_template, publish=action == "publish")
+            except ValidationError as exc:
+                general_errors.extend(_send_error(message) for message in exc.messages)
+                form.instance.pk = survey.pk if survey is not None else None  # bản lưu đã rollback
+            except AccountPermissionDenied as exc:
+                general_errors.append(str(exc))
+                form.instance.pk = survey.pk if survey is not None else None
+            else:
+                if survey is None:
+                    _remember_builder_token(request, token, saved.pk)
+                if result is not None:
+                    note = say(f" (bỏ qua {result['skipped']} người đã nhận trước đó)",
+                               f" ({result['skipped']} previous recipient(s) skipped)") if result["skipped"] else ""
+                    messages.success(request, say(f"Đã phát hành khảo sát cho {result['created']} khách hàng{note}.",
+                                                  f"Survey published to {result['created']} customer(s){note}."))
+                    return redirect("surveys:manage_detail", survey_id=saved.pk)
+                if use_template:
+                    messages.success(request, say("Đã tạo khảo sát với bộ 8 câu hỏi phiên bản 1.",
+                                                  "Survey created with the 8-question questionnaire, version 1."))
+                else:
+                    messages.success(request, say("Đã lưu khảo sát Nháp.", "Draft survey saved."))
+                url = reverse("surveys:manage_edit", args=[saved.pk])
+                return redirect(url + "?add=1" if action == "save_add" and not (fixed or use_template) else url)
+    if mode == "readonly":  # chỉ xem: khóa mọi ô (vẫn mở/đóng được từng câu hỏi để xem)
+        for field in (*form.fields.values(), *audience_form.fields.values()):
+            field.disabled = True
+    status = survey.status if survey is not None else SurveyStatus.DRAFT
+    selected ={str(value) for value in (audience_form["customer_ids"].value() or [])}
+    customers = [{"id": c.customer_id, "name": c.full_name, "phone": c.phone or "", "email": c.account.email,
+                  "checked": str(c.customer_id) in selected}
+                 for c in eligible_customers().select_related("account").order_by("full_name", "customer_id")]
+    types = [{"value": value, "label": say(label, english), "badge": say(badge, badge_en)}
+             for (value, label, badge), (english, badge_en) in zip(BUILDER_TYPES, [
+                 ("Multiple choice (pick 1)", "Single choice"), ("Multiple answers", "Multiple answers"),
+                 ("Rating scale", "Rating"), ("Free text", "Free text"), ("Criteria rating", "Criteria")])]
+    if not any(item.get("type") == QuestionType.MATRIX for item in items):
+        types = [t for t in types if t["value"] != QuestionType.MATRIX]  # ma trận chỉ giữ cho câu cũ đã có
+    builder = {"mode": mode, "isNew": survey is None, "addOnLoad": request.GET.get("add") == "1" and mode == "edit",
+               "countUrl": reverse("surveys:manage_audience_count"), "today": timezone.localdate().isoformat(),
+               "types": types, "labels": _builder_labels(), "errors": question_errors, "maxQuestions": BUILDER_MAX_QUESTIONS}
+    heading = say("Tạo khảo sát mới", "Create Survey") if survey is None else say("Chỉnh sửa khảo sát", "Edit Survey")
+    return render(request, "surveys/manage_create.html", {
+        "form": form, "audience_form": audience_form, "survey": survey, "mode": mode, "heading": heading,
+        "builder_items": items, "builder": builder, "general_errors": general_errors, "form_token": token,
+        "customers": customers, "status": status, "shop_name": SHOP_NAME,
+        "status_label": tr(SurveyStatus(status).label) if status in SurveyStatus.values else status})
 
 
 @manager_required
 @portal_english
 def manage_create(request):
-    form = localize_form(SurveyCreateForm(request.POST if request.method == "POST" else None))
-    if request.method == "POST" and form.is_valid():
-        survey = form.save(commit=False)
-        survey.created_by = request.user
-        survey.status = SurveyStatus.DRAFT
-        use_template = form.cleaned_data["use_template"]
-        with transaction.atomic():
-            survey.save()
-            if use_template:
-                populate_questionnaire(survey)
-        if use_template:
-            messages.success(request, say("Đã tạo khảo sát với bộ 8 câu hỏi phiên bản 1.",
-                                          "Survey created with the 8-question questionnaire, version 1."))
-        else:
-            messages.success(request, say("Đã tạo khảo sát Nháp. Hãy thêm câu hỏi trước khi gửi.",
-                                          "Draft survey created. Add questions before sending it."))
-        return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return render(request, "surveys/manage_form.html", {"form": form, "heading": say("Tạo khảo sát mới", "Create Survey")})
+    return _survey_builder(request, None)
 
 
 @manager_required
 @portal_english
 def manage_edit(request, survey_id):
-    survey = get_object_or_404(Survey, pk=survey_id)
-    if (blocked := _draft_or_redirect(request, survey)):
-        return blocked
-    form = localize_form(SurveyForm(request.POST or None, instance=survey))
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, say("Đã cập nhật khảo sát.", "Survey updated."))
-        return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return render(request, "surveys/manage_form.html", {"form": form, "heading": say("Sửa khảo sát", "Edit Survey")})
+    return _survey_builder(request, get_object_or_404(Survey, pk=survey_id))
+
+
+# tv4: số khách sẽ nhận khảo sát theo đối tượng đang chọn (cho hộp xác nhận Phát hành)
+@manager_required
+@require_GET
+@portal_english
+def manage_audience_count(request):
+    form = localize_form(AudienceForm(request.GET))
+    if not form.is_valid():
+        errors = [tr(message) for message in form.non_field_errors()]
+        return JsonResponse({"errors": errors or [say("Đối tượng nhận chưa hợp lệ.", "The audience selection is invalid.")]},
+                            status=400)
+    return JsonResponse({"count": _audience_customers(form.cleaned_data).count()})
 
 
 @manager_required
@@ -253,6 +478,24 @@ def manage_delete(request, survey_id):
     return redirect("surveys:manage_list")
 
 
+# tv4: dữ liệu biểu đồ cho từng câu hỏi ở trang xem khảo sát (Chọn một → tròn, còn lại → cột; câu tự do không có biểu đồ)
+def _question_charts(stats):
+    charts = {}
+    for item in stats["items"]:
+        q, kind = item["question"], None
+        if item["no_data"] or q.question_type == QuestionType.TEXT:
+            continue
+        if q.question_type == QuestionType.MATRIX:
+            kind, labels = "bar-h", [c["label"].split(":")[0] for c in item["criteria"]]  # tên ngắn trước dấu ":"
+            values, pcts, top = [c["avg"] or 0 for c in item["criteria"]], [None] * len(labels), 5
+        else:
+            kind = {QuestionType.SINGLE_CHOICE: "doughnut", QuestionType.MULTI_CHOICE: "bar-h"}.get(q.question_type, "bar")
+            labels, values = [r["label"] for r in item["rows"]], [r["n"] for r in item["rows"]]
+            pcts, top = [r["pct"] for r in item["rows"]], None
+        charts[str(q.question_id)] = {"kind": kind, "labels": labels, "values": values, "pcts": pcts, "max": top}
+    return charts
+
+
 @manager_required
 @require_GET
 @portal_english
@@ -262,80 +505,13 @@ def manage_detail(request, survey_id):
     questions = prepare_questions(list(SurveyQuestion.objects.filter(survey=survey).prefetch_related("surveyoption_set")
                                       .order_by("sort_order", "question_id")))
     recipients = SurveyRecipient.objects.filter(survey=survey)
+    stats = _localized_stats(build_stats(survey))
     return render(request, "surveys/manage_detail.html", {
+        "stats": stats, "charts": _question_charts(stats),
         "survey": survey, "questions": questions, "is_draft": survey.status == SurveyStatus.DRAFT and not recipients.exists(),
         "status_label": tr(SurveyStatus(survey.status).label) if survey.status in SurveyStatus.values else survey.status,
         "fixed_questionnaire": survey.template_key == TEMPLATE_KEY,
         "sent": recipients.count(), "done": recipients.filter(status=RECIPIENT_COMPLETED).count()})
-
-
-@manager_required
-@portal_english
-def question_add(request, survey_id):
-    survey = get_object_or_404(Survey, pk=survey_id)
-    if (blocked := _draft_or_redirect(request, survey)):
-        return blocked
-    if survey.template_key == TEMPLATE_KEY:
-        return HttpResponseBadRequest("Bộ câu hỏi phiên bản này gồm đúng 8 câu; hãy tạo khảo sát mới khi đổi cấu trúc.")
-    form = localize_form(QuestionForm(request.POST or None))
-    if request.method == "POST" and form.is_valid():
-        if (blocked := _save_question(request, form, survey)):
-            return blocked
-        messages.success(request, say("Đã thêm câu hỏi.", "Question added."))
-        return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return render(request, "surveys/question_form.html", {"form": form, "survey": survey, "heading": say("Thêm câu hỏi", "Add Question")})
-
-
-@manager_required
-@portal_english
-def question_edit(request, survey_id, question_id):
-    survey = get_object_or_404(Survey, pk=survey_id)
-    if (blocked := _draft_or_redirect(request, survey)):
-        return blocked
-    question = get_object_or_404(SurveyQuestion, pk=question_id, survey=survey)
-    form = localize_form(QuestionForm(request.POST or None, instance=question))
-    if request.method == "POST" and form.is_valid():
-        if (blocked := _save_question(request, form, survey)):
-            return blocked
-        messages.success(request, say("Đã cập nhật câu hỏi.", "Question updated."))
-        return redirect("surveys:manage_detail", survey_id=survey.pk)
-    return render(request, "surveys/question_form.html", {"form": form, "survey": survey, "heading": say("Sửa câu hỏi", "Edit Question")})
-
-
-@manager_required
-@require_POST
-@portal_english
-def question_delete(request, survey_id, question_id):
-    survey = get_object_or_404(Survey, pk=survey_id)
-    if (blocked := _draft_or_redirect(request, survey)):
-        return blocked
-    if survey.template_key == TEMPLATE_KEY:
-        return HttpResponseBadRequest("Giữ đủ 8 câu của phiên bản khảo sát.")
-    get_object_or_404(SurveyQuestion, pk=question_id, survey=survey).delete()
-    messages.success(request, say("Đã xóa câu hỏi.", "Question deleted."))
-    return redirect("surveys:manage_detail", survey_id=survey.pk)
-
-
-@manager_required
-@require_POST
-@portal_english
-def question_move(request, survey_id, question_id, direction):
-    survey = get_object_or_404(Survey, pk=survey_id)
-    if (blocked := _draft_or_redirect(request, survey)):
-        return blocked
-    if survey.template_key == TEMPLATE_KEY:
-        return HttpResponseBadRequest("Giữ đúng thứ tự 8 câu của phiên bản khảo sát.")
-    questions = list(SurveyQuestion.objects.filter(survey=survey).order_by("sort_order", "question_id"))
-    index = next((i for i, q in enumerate(questions) if q.pk == question_id), None)
-    if index is not None:
-        other = index - 1 if direction == "up" else index + 1
-        if 0 <= other < len(questions):
-            questions[index], questions[other] = questions[other], questions[index]
-        for position, question in enumerate(questions, start=1):  # renumber so sort_order never collides
-            if question.sort_order != position:
-                question.sort_order = position
-                question.save(update_fields=["sort_order"])
-    return redirect("surveys:manage_detail", survey_id=survey.pk)
 
 
 @manager_required
@@ -347,11 +523,7 @@ def manage_send(request, survey_id):
     preview = None
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data
-        if data["audience"] == "pick":
-            customers = eligible_customers().filter(customer_id__in=data["customer_ids"])
-        else:
-            customers = filter_customers(data["audience"], data["age_groups"],
-                                         data["playing_levels"], data["preferences"])
+        customers = _audience_customers(data)
         if request.POST.get("action") == "send" and not errors:
             try:
                 result = send_to_audience(request.user, survey, customers)

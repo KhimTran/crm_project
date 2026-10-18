@@ -78,7 +78,7 @@ class CustomerFeedbackTests(TestCase):
         response = manager_client.post(detail_url, {
             "status": FeedbackStatus.RESOLVED, "manager_note": reply,
         }, follow=True)
-        self.assertRedirects(response, detail_url)
+        self.assertRedirects(response, reverse("crm_feedbacks:list"))
         feedback.refresh_from_db()
         self.assertEqual(feedback.status, FeedbackStatus.RESOLVED)
         self.assertEqual(feedback.handled_by, self.manager)

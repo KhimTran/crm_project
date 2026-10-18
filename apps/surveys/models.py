@@ -6,6 +6,8 @@ class Survey(models.Model):
     survey_id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=200)
     template_key = models.CharField(max_length=64, null=True, blank=True)
+    objective = models.CharField(max_length=30, null=True, blank=True)  # SurveyObjective; khảo sát cũ để trống
+    audience = models.JSONField(default=dict, blank=True)  # đối tượng nhận đã chọn khi lưu Nháp (xem AudienceForm)
     description = models.TextField(null=True, blank=True)
     start_at = models.DateTimeField(null=True, blank=True)
     end_at = models.DateTimeField(null=True, blank=True)

@@ -64,7 +64,8 @@ class QuestionnaireTests(TestCase):
         self.client.force_login(self.manager)
         response = self.client.post(reverse("surveys:manage_create"), {
             "title": "New version", "start_at": timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
-            "end_at": (timezone.localtime() + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M"), "use_template": "on"})
+            "end_at": (timezone.localtime() + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M"), "use_template": "on",
+            "objective": "SATISFACTION", "audience": "all"})
         self.assertEqual(response.status_code, 302)
         survey = Survey.objects.get(title="New version")
         self.assertEqual(survey.template_key, TEMPLATE_KEY)
@@ -220,10 +221,31 @@ class QuestionnaireTests(TestCase):
         self.assertFalse(question.is_required)
         self.assertEqual(question.config["max_selections"], 3)
         self.client.force_login(self.manager)
-        for name, args in (("question_delete", [draft.pk, question.pk]),
-                           ("question_move", [draft.pk, question.pk, "up"]), ("question_add", [draft.pk])):
-            self.assertEqual(self.client.post(reverse("surveys:" + name, args=args)).status_code, 400)
+        # trình soạn: bộ 8 câu không thêm/bớt câu được; sửa nội dung thì giữ loại câu, cấu hình và thứ tự
+        url = reverse("surveys:manage_edit", args=[draft.pk])
+        page = self.client.get(url)
+        self.assertEqual(page.context["mode"], "fixed")
+        items = page.context["builder_items"]
+        today = timezone.localdate()
+        base = {"title": "Draft", "objective": "SATISFACTION", "audience": "all", "action": "save",
+                "start_at": today.isoformat(), "end_at": today.isoformat()}
+        response = self.client.post(url, {**base, "questions_json": json.dumps(items[:7])})
+        self.assertContains(response, "The fixed questionnaire must keep all of its questions and their order.")
         self.assertEqual(draft.surveyquestion_set.count(), 8)
+        items[0]["text"] = "Câu 1 đã sửa"
+        items[4]["options"][0] = "Hàng chính hãng 100%."
+        response = self.client.post(url, {**base, "questions_json": json.dumps(items)})
+        self.assertRedirects(response, url, fetch_redirect_response=False)
+        rows = list(draft.surveyquestion_set.order_by("sort_order"))
+        self.assertEqual(len(rows), 8)
+        self.assertEqual(rows[0].question_text, "Câu 1 đã sửa")
+        self.assertEqual((rows[4].config["key"], rows[4].config["max_selections"]), ("highlights", 3))
+        self.assertEqual(rows[4].surveyoption_set.order_by("sort_order").first().option_text, "Hàng chính hãng 100%.")
+        brands = rows[5]
+        self.assertEqual(brands.surveyoption_set.get(pk=brands.config["other_option_id"]).option_text, "Khác.")
+        items[3]["type"] = "TEXT"  # đổi loại câu bị server từ chối
+        response = self.client.post(url, {**base, "questions_json": json.dumps(items)})
+        self.assertIn("3", response.context["builder"]["errors"])
 
     def test_customer_service_opens_report_without_survey_results(self):
         staff = Account.objects.create_user("staff@questionnaire.test", "SurveyFixture!2026")

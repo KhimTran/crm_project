@@ -157,7 +157,7 @@ class FeedbackViewTests(FeedbackTestData):
         url = reverse("crm_feedbacks:detail", args=[self.feedback.pk])
         response = self.client.post(url, {"status": FeedbackStatus.RESOLVED,
                                           "manager_note": "Shop sẽ căng lại miễn phí."}, follow=True)
-        self.assertRedirects(response, url)
+        self.assertRedirects(response, reverse("crm_feedbacks:list"))
         self.assertContains(response, "Đã cập nhật phản hồi")
         self.feedback.refresh_from_db()
         self.assertEqual(self.feedback.status, FeedbackStatus.RESOLVED)

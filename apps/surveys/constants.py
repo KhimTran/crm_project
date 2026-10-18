@@ -23,6 +23,26 @@ class QuestionType(models.TextChoices):
 
 CHOICE_TYPES = (QuestionType.SINGLE_CHOICE, QuestionType.MULTI_CHOICE)
 
+
+# tv4: mục tiêu khảo sát (cột surveys.objective, migration 0004)
+class SurveyObjective(models.TextChoices):
+    SATISFACTION = "SATISFACTION", "Đánh giá mức độ hài lòng"
+    NEW_PRODUCT = "NEW_PRODUCT", "Thăm dò sản phẩm mới"
+    SHOPPING_NEEDS = "SHOPPING_NEEDS", "Nhu cầu mua sắm"
+    OTHER = "OTHER", "Khác"
+
+
+# tv4: nhãn loại câu hỏi trên trình soạn khảo sát: (giá trị, nhãn ô chọn, nhãn badge) – chỉ dùng ở trang tạo/sửa
+BUILDER_TYPES = [
+    (QuestionType.SINGLE_CHOICE, "Trắc nghiệm (Chọn 1)", "Trắc nghiệm (1)"),
+    (QuestionType.MULTI_CHOICE, "Chọn nhiều đáp án", "Chọn nhiều đáp án"),
+    (QuestionType.RATING, "Thang điểm", "Thang điểm"),
+    (QuestionType.TEXT, "Câu trả lời tự do", "Câu trả lời tự do"),
+    (QuestionType.MATRIX, "Đánh giá theo tiêu chí", "Theo tiêu chí"),
+]
+
+SHOP_NAME = "Cửa hàng cầu lông"  # cùng tên với khung trang khách hàng (layouts/base_customer.html)
+
 RECIPIENT_SENT = "SENT"
 RECIPIENT_OPENED = "OPENED"
 RECIPIENT_COMPLETED = "COMPLETED"

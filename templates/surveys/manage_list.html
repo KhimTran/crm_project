@@ -1,42 +1,91 @@
 {% extends crm_layout %}
-{% load static portal_text %}
+{% load portal_text %}
 {% block title %}{% t "Khảo sát" "Surveys" %}{% endblock %}
-{% block page_title %}{% t "Khảo sát khách hàng" "Surveys" %}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
+{% block page_title %}{% t "Khảo sát" "Surveys" %}{% endblock %}
 {% block content %}
-<div class="sv-grid">
-  <div class="sv-card sv-kpi"><b>{{ overview.published }}</b>{% t "Khảo sát đã phát hành" "Published Surveys" %}</div>
-  <div class="sv-card sv-kpi"><b>{{ overview.responses }}</b>{% t "Lượt trả lời hợp lệ" "Valid Responses" %}</div>
-  <div class="sv-card sv-kpi"><b>{% if overview.rate is not None %}{{ overview.rate }}%{% else %}—{% endif %}</b>{% t "Tỷ lệ phản hồi" "Response Rate" %}
-    <span class="sv-help">{% if overview.rate is not None %}{{ overview.done }} / {{ overview.invited }} {% t "lời mời" "invitations" %}{% else %}{% t "Chưa có dữ liệu" "No data yet" %}{% endif %}</span></div>
+
+<div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
+  <p class="text-muted mb-0">{% t "Quản lý các khảo sát gửi đến khách hàng." "Manage the surveys sent to customers." %}</p>
+  <a class="btn btn-primary" href="{% url 'surveys:manage_create' %}">{% t "Tạo khảo sát" "Create Survey" %}</a>
 </div>
-<div class="sv-toolbar">
-  <form method="get" class="sv-actions">
-    <input type="text" name="q" value="{{ q }}" placeholder="{% t 'Tìm theo tiêu đề' 'Search by title...' %}">
-    <select name="status">
-      <option value="">{% t "Tất cả trạng thái" "All statuses" %}</option>
-      {% for value, label in statuses %}<option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
-    </select>
-    <button class="sv-btn sv-ghost">{% t "Lọc" "Search" %}</button>
+
+{# tv4: thanh tìm kiếm/lọc chỉ để xem giao diện, chưa lọc thật #}
+<section class="portal-panel">
+  <form method="get" class="row g-3 align-items-end">
+    <div class="col-12 col-md-6 col-lg-5">
+      <label class="form-label" for="survey-query">{% t "Tìm khảo sát" "Search surveys" %}</label>
+      <input class="form-control" id="survey-query" name="q" placeholder="{% t 'Tìm theo tên khảo sát...' 'Search by survey name...' %}">
+    </div>
+    <div class="col-12 col-md-4 col-lg-3">
+      <label class="form-label" for="survey-status">{% t "Trạng thái" "Status" %}</label>
+      <select class="form-select" id="survey-status" name="status">
+        <option value="">{% t "Tất cả trạng thái" "All statuses" %}</option>
+        <option value="DRAFT">{% t "Nháp" "Draft" %}</option>
+        <option value="ACTIVE">{% t "Đã phát hành" "Published" %}</option>
+        <option value="CLOSED">{% t "Đã đóng" "Closed" %}</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-auto d-flex align-items-center gap-2 flex-wrap">
+      <button class="btn btn-outline-primary" type="submit">{% t "Tìm" "Search" %}</button>
+      <a class="btn btn-outline-secondary" href="{% url 'surveys:manage_list' %}">{% t "Xóa lọc" "Clear" %}</a>
+    </div>
   </form>
-  <a class="sv-btn" href="{% url 'surveys:manage_create' %}">{% t "+ Tạo khảo sát" "Create Survey" %}</a>
-</div>
-<div class="sv-table-scroll" role="region" aria-label="{% t 'Danh sách khảo sát' 'Survey list' %}" tabindex="0">
-<table class="sv-table sv-survey-list">
-  <thead><tr><th>{% t "Tiêu đề" "Title" %}</th><th>{% t "Thời gian" "Schedule" %}</th><th>{% t "Trạng thái" "Status" %}</th><th>{% t "Đã làm / Đã gửi" "Completed / Sent" %}</th><th>{% if in_admin_portal %}Actions{% endif %}</th></tr></thead>
-  <tbody>
-  {% for s in surveys %}
-    <tr>
-      <td><a href="{% url 'surveys:manage_detail' s.survey_id %}">{{ s.title }}</a></td>
-      <td>{{ s.start_at|date:datetime_fmt|default:"—" }} → {{ s.end_at|date:datetime_fmt|default:"—" }}</td>
-      <td><span class="sv-badge {{ s.status }}">{{ s.status_label }}</span></td>
-      <td>{{ s.done }} / {{ s.sent }}
-        <div class="sv-help">{% t "Chưa trả lời" "Pending" %} {{ s.pending }} · {% if s.rate is not None %}{{ s.rate }}%{% else %}{% t "Chưa có dữ liệu" "No data yet" %}{% endif %}</div></td>
-      <td><a class="sv-btn sv-ghost sv-small" href="{% url 'surveys:manage_stats' s.survey_id %}">{% t "Thống kê" "Statistics" %}</a></td>
-    </tr>
-  {% empty %}<tr><td colspan="5">{% t "Chưa có khảo sát nào." "No surveys found." %}</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-</div>
+</section>
+
+{% if not items %}
+<section class="portal-panel portal-empty"><p class="mb-0">{% t "Chưa có khảo sát nào." "No surveys yet." %}</p></section>
+{% else %}
+<section class="portal-panel p-0">
+  <div class="table-responsive">
+    <table class="table portal-table align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">{% t "Tên khảo sát" "Name" %}</th>
+          <th scope="col">{% t "Mô tả" "Description" %}</th>
+          <th scope="col">{% t "Trạng thái" "Status" %}</th>
+          <th scope="col">{% t "Thời gian" "Schedule" %}</th>
+          <th scope="col">{% t "Thao tác" "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.survey_id }}</td>
+          <td>{{ item.title }}</td>
+          <td class="portal-description" {% if item.description %}title="{{ item.description }}"{% endif %}>{{ item.description|truncatechars:80|default:'—' }}</td>
+          <td>
+            {% if item.status == 'ACTIVE' %}<span class="portal-badge status-active">{% t "Đã phát hành" "Published" %}</span>
+            {% elif item.status == 'CLOSED' %}<span class="portal-badge status-locked">{% t "Đã đóng" "Closed" %}</span>
+            {% else %}<span class="portal-badge role-customer">{% t "Nháp" "Draft" %}</span>{% endif %}
+          </td>
+          <td>{% if item.start_at %}{{ item.start_at|date:"d/m/Y" }} – {{ item.end_at|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+          <td>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'surveys:manage_detail' item.survey_id %}">{% t "Xem" "View" %}</a>
+              {% if item.editable %}
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'surveys:manage_edit' item.survey_id %}">{% t "Sửa" "Edit" %}</a>
+              <form method="post" action="{% url 'surveys:manage_delete' item.survey_id %}" onsubmit="return confirm('{% t "Xóa khảo sát này?" "Delete this survey?" %}');">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" type="submit">{% t "Xóa" "Delete" %}</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<nav class="portal-pagination" aria-label="{% t 'Trang khảo sát' 'Survey pages' %}">
+  <span class="text-muted small">{% t "Trang 1 / 1" "Page 1 of 1" %} · {{ items|length }} {% t "khảo sát" "surveys" %}</span>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-sm btn-outline-secondary disabled" href="#" aria-disabled="true">{% t "Trước" "Previous" %}</a>
+    <a class="btn btn-sm btn-outline-secondary disabled" href="#" aria-disabled="true">{% t "Sau" "Next" %}</a>
+  </div>
+</nav>
+
 {% endblock %}
