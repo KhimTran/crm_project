@@ -3,10 +3,13 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.db.models.deletion import ProtectedError
 
+from apps.customers.constants import CustomerStatus
+from apps.customers.models import Customer
 from .constants import AccountRole, AccountStatus, normalize_account_role, normalize_account_status
 from .errors import (
     AccountAlreadyActive, AccountAlreadyLocked, AccountDeleteProtectedError,
     AccountNotFound, AccountPermissionDenied, CannotDeleteOwnAccount, CannotLockOwnAccount,
+    CannotDemoteAdmin, CannotDemoteOwnAccount, CannotModifyOtherAdmin, CannotPromoteToAdmin,
     DuplicateAccountEmail, InvalidAccountRole, LastActiveAdminError, PasswordValidationError,
 )
 from .models import Account
@@ -34,15 +37,28 @@ def _protect_final_admin(account, active_admin_ids):
 
 
 def _has_protected_references(account_id):
-    # The SQL schema uses RESTRICT for customers/surveys and SET NULL for feedbacks.
-    # Even SET NULL would erase handler attribution, so all three block hard delete.
-    references = (("customers", "account_id"), ("feedbacks", "handled_by"),
+    # The SQL schema uses RESTRICT for surveys and SET NULL for feedbacks.
+    # Even SET NULL would erase handler attribution, so both block hard delete.
+    references = (("feedbacks", "handled_by"),
                   ("surveys", "created_by"), ("django_admin_log", "user_id"))
     existing_tables = set(connection.introspection.table_names())
     with connection.cursor() as cursor:
         for table, column in references:
             if table in existing_tables:
                 cursor.execute(f"SELECT 1 FROM `{table}` WHERE `{column}` = %s LIMIT 1", [account_id])
+                if cursor.fetchone() is not None:
+                    return True
+    return False
+
+
+def _has_customer_protected_references(customer_id):
+    # Customer profile is protected if there are business records (feedbacks or survey recipients)
+    references = (("feedbacks", "customer_id"), ("survey_recipients", "customer_id"))
+    existing_tables = set(connection.introspection.table_names())
+    with connection.cursor() as cursor:
+        for table, column in references:
+            if table in existing_tables:
+                cursor.execute(f"SELECT 1 FROM `{table}` WHERE `{column}` = %s LIMIT 1", [customer_id])
                 if cursor.fetchone() is not None:
                     return True
     return False
@@ -60,6 +76,12 @@ def create_account(actor, *, email, role, status, password):
         account = Account.objects.create_user(email, password, role=role, status=status)
     except IntegrityError as exc:
         raise DuplicateAccountEmail("Email is already in use") from exc
+    if role == AccountRole.CUSTOMER:
+        Customer.objects.create(
+            account=account,
+            full_name="",
+            status=CustomerStatus.ACTIVE,
+        )
     return account_data(account)
 
 
@@ -72,6 +94,8 @@ def lock_account(actor, account_id):
     account = _locked_target(account_id)
     if actor.pk == account.account_id:
         raise CannotLockOwnAccount("An admin cannot lock their own account")
+    if account.role == AccountRole.ADMIN:
+        raise CannotModifyOtherAdmin("Không thể khóa tài khoản của một ADMIN khác")
     if account.status == AccountStatus.LOCKED:
         raise AccountAlreadyLocked("Account is already locked")
     _protect_final_admin(account, active_admin_ids)
@@ -101,10 +125,23 @@ def change_account_role(actor, account_id, role):
     account = _locked_target(account_id)
     if account.role == role:
         return account_data(account)
+
+    if account.role != AccountRole.ADMIN and role == AccountRole.ADMIN:
+        raise CannotPromoteToAdmin("Không thể nâng quyền tài khoản thường thành ADMIN")
+
+    if account.role == AccountRole.ADMIN and role != AccountRole.ADMIN:
+        if actor.pk == account.account_id:
+            raise CannotDemoteOwnAccount("Không thể tự hạ quyền ADMIN của chính mình")
+        raise CannotDemoteAdmin("Không thể hạ quyền của một ADMIN khác")
+
     if role != AccountRole.ADMIN:
         _protect_final_admin(account, active_admin_ids)
     Account.objects.filter(pk=account.pk).update(role=role)
     account.refresh_from_db()
+
+    if role == AccountRole.CUSTOMER and not Customer.objects.filter(account=account).exists():
+        Customer.objects.create(account=account, full_name="", status=CustomerStatus.ACTIVE)
+
     return account_data(account)
 
 
@@ -112,6 +149,8 @@ def change_account_role(actor, account_id, role):
 def reset_account_password(actor, account_id, new_password):
     require_active_admin(actor, for_update=True)
     account = _locked_target(account_id)
+    if account.role == AccountRole.ADMIN and actor.pk != account.account_id:
+        raise CannotModifyOtherAdmin("Không thể đặt lại mật khẩu của một ADMIN khác")
     try:
         validate_password(new_password, account)
     except (ValidationError, TypeError, ValueError) as exc:
@@ -130,11 +169,22 @@ def delete_account(actor, account_id):
     account = _locked_target(account_id)
     if actor.pk == account.account_id:
         raise CannotDeleteOwnAccount("An admin cannot delete their own account")
+    if account.role == AccountRole.ADMIN:
+        raise CannotModifyOtherAdmin("Không thể xóa tài khoản của một ADMIN khác")
     _protect_final_admin(account, active_admin_ids)
+
     if _has_protected_references(account.account_id):
         raise AccountDeleteProtectedError("Account has business records; lock it instead")
+
+    customer = Customer.objects.filter(account=account).first()
+    if customer is not None:
+        if _has_customer_protected_references(customer.customer_id):
+            raise AccountDeleteProtectedError("Account has business records; lock it instead")
+        customer.delete()
+
     try:
         account.delete()
     except (ProtectedError, IntegrityError) as exc:
         raise AccountDeleteProtectedError("Account has business records; lock it instead") from exc
     return {"account_id": account_id}
+

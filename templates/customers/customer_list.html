@@ -30,7 +30,7 @@
       {% for c in page %}
         <tr>
           <td>{{ c.customer_code }}</td>
-          <td><a href="{% url 'customers:detail' c.customer_id %}">{{ c.full_name }}</a></td>
+          <td><a href="{% url 'customers:detail' c.customer_id %}">{{ c.full_name|default:"(Chưa cập nhật)" }}</a></td>
           <td>{{ c.account.email }}</td>
           <td>{{ c.phone|default:"–" }}</td>
           <td>{% t c.playing_level_label|default:"–" %}</td>
@@ -45,7 +45,7 @@
             {% if c.account.status == "ACTIVE" %}
               <form method="post" action="{% url 'customers:lock' c.customer_id %}">
                 {% csrf_token %}
-                <input type="text" name="reason" maxlength="255" placeholder="{% t 'Lý do khóa' 'Lock reason' %}" aria-label="{% t 'Lý do khóa' 'Lock reason for' %} {{ c.full_name }}">
+                <input type="text" name="reason" maxlength="255" placeholder="{% t 'Lý do khóa' 'Lock reason' %}" aria-label="{% t 'Lý do khóa' 'Lock reason for' %} {{ c.full_name|default:c.customer_code }}">
                 <button type="submit" class="crm-btn crm-btn-secondary">{% t "Khóa" "Lock" %}</button>
               </form>
             {% else %}

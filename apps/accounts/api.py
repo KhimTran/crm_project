@@ -8,9 +8,11 @@ from pydantic import ConfigDict
 from .errors import (
     AccountAlreadyActive, AccountAlreadyLocked, AccountDeleteProtectedError,
     AccountNotFound, AccountPermissionDenied, AccountServiceError,
-    CannotDeleteOwnAccount, CannotLockOwnAccount, DuplicateAccountEmail,
-    InvalidAccountRole, LastActiveAdminError, PasswordValidationError,
+    CannotDeleteOwnAccount, CannotLockOwnAccount, CannotDemoteAdmin,
+    CannotDemoteOwnAccount, CannotModifyOtherAdmin, CannotPromoteToAdmin,
+    DuplicateAccountEmail, InvalidAccountRole, LastActiveAdminError, PasswordValidationError,
 )
+
 from .forms import AccountCreateForm
 from .permissions import require_active_admin
 from .selectors import get_account, list_account_page
@@ -78,7 +80,9 @@ def _run(action, *args, **kwargs):
         raise HttpError(404, "Account not found") from exc
     except (DuplicateAccountEmail, AccountAlreadyActive, AccountAlreadyLocked,
             AccountDeleteProtectedError, CannotDeleteOwnAccount,
-            CannotLockOwnAccount, LastActiveAdminError) as exc:
+            CannotLockOwnAccount, LastActiveAdminError,
+            CannotPromoteToAdmin, CannotDemoteAdmin, CannotDemoteOwnAccount,
+            CannotModifyOtherAdmin) as exc:
         raise HttpError(409, str(exc)) from exc
     except (InvalidAccountRole, PasswordValidationError, ValidationError, ValueError) as exc:
         raise HttpError(400, "Invalid account input") from exc

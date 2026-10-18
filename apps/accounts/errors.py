@@ -44,3 +44,20 @@ class AccountDeleteProtectedError(AccountServiceError):
 
 class DuplicateAccountEmail(AccountServiceError):
     pass
+
+
+class CannotPromoteToAdmin(AccountServiceError):
+    pass
+
+
+class CannotDemoteAdmin(AccountServiceError):
+    pass
+
+
+class CannotDemoteOwnAccount(AccountServiceError):
+    pass
+
+
+class CannotModifyOtherAdmin(AccountServiceError):
+    pass
+
