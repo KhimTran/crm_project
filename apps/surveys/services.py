@@ -12,6 +12,8 @@ from apps.customers.models import Customer, CustomerPreference
 from .constants import (AGE_GROUPS, CHOICE_TYPES, MANAGER_GROUP, QuestionType, RECIPIENT_COMPLETED,
                         RESPONSE_SUBMITTED, SurveyStatus)
 from .models import Survey, SurveyAnswer, SurveyOption, SurveyQuestion, SurveyRecipient, SurveyResponse
+from .configuration import rating_bounds
+from .questionnaire import NOT_USED
 
 
 COMPLETED_MESSAGE = "Bạn đã hoàn thành khảo sát này và không thể gửi lại."
@@ -28,24 +30,47 @@ def require_survey_manager(actor):
     return account
 
 
+# tv4: khách được mời khảo sát: hồ sơ chưa bị xóa mềm và tài khoản đang hoạt động (không khóa)
+def eligible_customers():
+    return Customer.objects.filter(status="ACTIVE", account__status=AccountStatus.ACTIVE)
+
+
 def send_survey(actor, survey, customer_ids):
+    """Mời khách hàng và phát hành khảo sát (Nháp → Đang mở) trong cùng một transaction.
+
+    Chỉ phát hành khi khảo sát sẵn sàng (``check_ready_to_send``) và có ít nhất một người nhận
+    hợp lệ. Khách bị khóa/đã xóa bị từ chối; khách đã được mời được bỏ qua (không tạo lời mời trùng).
+    """
     require_survey_manager(actor)
     ids = list(dict.fromkeys(int(value) for value in customer_ids))
-    found = set(Customer.objects.filter(customer_id__in=ids, status="ACTIVE").values_list("customer_id", flat=True))
-    if len(found) != len(ids):
-        raise ValidationError("Danh sách khách hàng có ID không hợp lệ hoặc đã bị xóa.")
-    created = 0
+    if not ids:
+        raise ValidationError("Chưa có khách hàng nào phù hợp để nhận khảo sát.")
     with transaction.atomic():
+        locked = Survey.objects.select_for_update().get(pk=survey.pk)
+        errors = check_ready_to_send(locked)
+        if errors:
+            raise ValidationError(errors)
+        found = set(eligible_customers().filter(customer_id__in=ids).values_list("customer_id", flat=True))
+        if len(found) != len(ids):
+            raise ValidationError("Danh sách khách hàng có ID không hợp lệ, đã bị xóa hoặc bị khóa.")
+        created = 0
         for customer_id in ids:
             _, was_created = SurveyRecipient.objects.get_or_create(
-                survey=survey, customer_id=customer_id, defaults={"status": "SENT"}
+                survey=locked, customer_id=customer_id, defaults={"status": "SENT"}
             )
             created += was_created
+        if locked.status == SurveyStatus.DRAFT:
+            locked.status = SurveyStatus.ACTIVE
+            locked.save(update_fields=["status", "updated_at"])
+        survey.status = locked.status
     return {"created": created, "skipped": len(ids) - created}
 
 
 def recipient_for_user(user, recipient_id, *, lock=False):
+    """Lời mời của chính khách đang đăng nhập; tài khoản phải là CUSTOMER đang hoạt động (đọc lại DB)."""
     if not getattr(user, "is_authenticated", False):
+        raise PermissionDenied
+    if not Account.objects.filter(pk=user.pk, role=AccountRole.CUSTOMER, status=AccountStatus.ACTIVE).exists():
         raise PermissionDenied
     query = SurveyRecipient.objects.select_related("survey", "customer")
     if lock:
@@ -53,6 +78,8 @@ def recipient_for_user(user, recipient_id, *, lock=False):
     recipient = query.get(pk=recipient_id)
     if recipient.customer.account_id != user.pk or recipient.customer.status != "ACTIVE":
         raise PermissionDenied
+    if recipient.survey.status == SurveyStatus.DRAFT:
+        raise PermissionDenied  # bản nháp không bao giờ lộ cho khách
     return recipient
 
 
@@ -153,7 +180,7 @@ def _check_answer_shapes(questions, answers):
         question = questions[item["question_id"]]
         per_question[question.pk] += 1
         qtype = question.question_type
-        if per_question[question.pk] > 1 and qtype != QuestionType.MULTI_CHOICE:
+        if per_question[question.pk] > 1 and qtype not in (QuestionType.MULTI_CHOICE, QuestionType.MATRIX):
             raise ValidationError("Mỗi câu hỏi chỉ được trả lời một lần.")
         if qtype in CHOICE_TYPES:
             field = "option_id"
@@ -164,15 +191,45 @@ def _check_answer_shapes(questions, answers):
                 raise ValidationError("Không được chọn trùng một đáp án.")
             picked.add((question.pk, option_id))
             value = option_id
+            if option_id == (question.config or {}).get("other_option_id"):
+                other = item.get("answer_text")
+                if not isinstance(other, str) or not other.strip() or len(other.strip()) > 200:
+                    raise ValidationError("Vui lòng nhập nội dung Khác (tối đa 200 ký tự).")
+                if set(item) != {"question_id", "option_id", "answer_text"}:
+                    raise ValidationError("Câu trả lời Khác chứa trường không phù hợp.")
+                normalized.append({"question_id": question.pk, "option_id": value, "answer_text": other.strip()})
+                continue
         elif qtype == QuestionType.RATING:
             field = "rating_value"
             value = item.get(field)
-            if type(value) is not int or not 1 <= value <= 5:
-                raise ValidationError("Điểm đánh giá phải là số nguyên từ 1 đến 5.")
+            low, high = rating_bounds(question)
+            if type(value) is not int or not low <= value <= high:
+                raise ValidationError(f"Điểm đánh giá phải là số nguyên từ {low} đến {high}.")
+        elif qtype == QuestionType.MATRIX:
+            criterion = item.get("option_id")
+            if not _valid_identifier(criterion) or not question.surveyoption_set.filter(pk=criterion).exists():
+                raise ValidationError("Tiêu chí phải thuộc câu hỏi đánh giá này.")
+            if (question.pk, criterion) in picked:
+                raise ValidationError("Mỗi tiêu chí chỉ được trả lời một lần.")
+            picked.add((question.pk, criterion))
+            if set(item) == {"question_id", "option_id", "rating_value"}:
+                score = item["rating_value"]
+                if type(score) is not int or not 1 <= score <= 5:
+                    raise ValidationError("Điểm từng tiêu chí phải là số nguyên từ 1 đến 5.")
+                normalized.append({"question_id": question.pk, "option_id": criterion, "rating_value": score})
+            elif set(item) == {"question_id", "option_id", "answer_text"} and item["answer_text"] == NOT_USED:
+                normalized.append({"question_id": question.pk, "option_id": criterion, "answer_text": NOT_USED})
+            else:
+                raise ValidationError("Tiêu chí cần điểm 1–5 hoặc Không sử dụng, không phải cả hai.")
+            continue
         elif qtype == QuestionType.TEXT:
             field = "answer_text"
             value = item.get(field)
-            if not isinstance(value, str) or not value.strip():
+            if isinstance(value, str) and not value.strip() and not question.is_required and (question.config or {}).get("key") == "suggestions":
+                if set(item) != {"question_id", field}:
+                    raise ValidationError("Câu trả lời chứa trường không phù hợp với loại câu hỏi.")
+                continue
+            if not isinstance(value, str) or not value.strip() or len(value.strip()) > 2000:
                 raise ValidationError("Câu trả lời tự do phải có nội dung sau khi bỏ khoảng trắng.")
             value = value.strip()
         else:
@@ -180,6 +237,14 @@ def _check_answer_shapes(questions, answers):
         if set(item) != {"question_id", field}:
             raise ValidationError("Câu trả lời chứa trường không phù hợp với loại câu hỏi.")
         normalized.append({"question_id": question.pk, field: value})
+    for question in questions.values():
+        maximum = (question.config or {}).get("max_selections")
+        if question.question_type == QuestionType.MULTI_CHOICE and maximum is not None:
+            if type(maximum) is not int or maximum < 1 or per_question[question.pk] > maximum:
+                raise ValidationError(f"Câu hỏi này chỉ được chọn tối đa {maximum} đáp án.")
+        if question.question_type == QuestionType.MATRIX and question.is_required:
+            if per_question[question.pk] != question.surveyoption_set.count():
+                raise ValidationError("Vui lòng đánh giá hoặc chọn Không sử dụng cho từng tiêu chí bắt buộc.")
     return normalized
 
 
@@ -206,6 +271,13 @@ def check_ready_to_send(survey):
     for q in questions:
         if q.question_type in CHOICE_TYPES and SurveyOption.objects.filter(question=q).count() < 2:
             errors.append(f"Câu \"{q.question_text}\" cần ít nhất 2 lựa chọn.")
+        if q.question_type == QuestionType.MATRIX and not q.surveyoption_set.exists():
+            errors.append(f'Câu "{q.question_text}" cần có tiêu chí đánh giá.')
+        if q.question_type == QuestionType.RATING:
+            try:
+                rating_bounds(q)
+            except ValidationError as exc:
+                errors.extend(exc.messages)
     if survey.status == SurveyStatus.CLOSED:
         errors.append("Khảo sát đã đóng, không thể gửi.")
     if survey.end_at is None or survey.end_at <= timezone.now():
@@ -215,19 +287,65 @@ def check_ready_to_send(survey):
 
 def send_to_audience(actor, survey, customers):
     """Send to a queryset of customers and open the survey on first send."""
-    ids = list(customers.values_list("customer_id", flat=True))
-    with transaction.atomic():
-        result = send_survey(actor, survey, ids)
-        if survey.status == SurveyStatus.DRAFT:
-            survey.status = SurveyStatus.ACTIVE
-            survey.save(update_fields=["status", "updated_at"])
-    return result
+    return send_survey(actor, survey, customers.values_list("customer_id", flat=True))
 
 
 def close_survey(actor, survey):
+    """Đóng thủ công khảo sát đang mở; bản Nháp thì xóa thay vì đóng, đã đóng thì giữ nguyên."""
     require_survey_manager(actor)
-    survey.status = SurveyStatus.CLOSED
-    survey.save(update_fields=["status", "updated_at"])
+    with transaction.atomic():
+        locked = Survey.objects.select_for_update().get(pk=survey.pk)
+        if locked.status == SurveyStatus.DRAFT:
+            raise ValidationError("Khảo sát Nháp chưa phát hành nên không cần đóng.")
+        if locked.status != SurveyStatus.CLOSED:
+            locked.status = SurveyStatus.CLOSED
+            locked.save(update_fields=["status", "updated_at"])
+        survey.status = locked.status
+
+
+# tv4: nhân bản khảo sát thành bản Nháp mới (chép câu hỏi/phương án/cấu hình, không chép người nhận/câu trả lời)
+@transaction.atomic
+def clone_survey(actor, survey):
+    account = require_survey_manager(actor)
+    suffix = " (bản sao)"
+    copy = Survey.objects.create(
+        title=survey.title[:200 - len(suffix)] + suffix, template_key=survey.template_key,
+        description=survey.description, start_at=survey.start_at, end_at=survey.end_at,
+        status=SurveyStatus.DRAFT, created_by=account)
+    for question in SurveyQuestion.objects.filter(survey=survey).order_by("sort_order", "question_id"):
+        config = dict(question.config or {})
+        new_question = SurveyQuestion.objects.create(
+            survey=copy, question_text=question.question_text, question_type=question.question_type,
+            is_required=question.is_required, sort_order=question.sort_order, config=config)
+        new_ids = {option.pk: SurveyOption.objects.create(question=new_question, option_text=option.option_text,
+                                                          sort_order=option.sort_order).pk
+                   for option in question.surveyoption_set.order_by("sort_order", "option_id")}
+        if "other_option_id" in config:  # trỏ "Khác" sang phương án tương ứng của bản sao
+            if config["other_option_id"] in new_ids:
+                config["other_option_id"] = new_ids[config["other_option_id"]]
+            else:
+                config.pop("other_option_id")
+            new_question.config = config
+            new_question.save(update_fields=["config"])
+    return copy
+
+
+# tv4: 4.1.7 tổng quan kết quả khảo sát (chỉ khảo sát đã phát hành, không tính Nháp)
+def survey_overview():
+    """published = số khảo sát có status khác DRAFT;
+    responses = số lượt trả lời hợp lệ (SurveyResponse SUBMITTED) của các khảo sát đó;
+    rate = lời mời đã hoàn thành / tổng lời mời × 100, None khi chưa có lời mời nào.
+    Không có số liệu "đã mở form" vì đó không phải lượt trả lời."""
+    published = Survey.objects.exclude(status=SurveyStatus.DRAFT)
+    invitations = SurveyRecipient.objects.filter(survey__in=published)
+    invited = invitations.count()
+    done = invitations.filter(status=RECIPIENT_COMPLETED).count()
+    return {
+        "published": published.count(),
+        "responses": SurveyResponse.objects.filter(recipient__survey__in=published, status=RESPONSE_SUBMITTED).count(),
+        "invited": invited, "done": done,
+        "rate": round(done * 100 / invited, 1) if invited else None,
+    }
 
 
 # ───────────────────────── TV5: audience filter ─────────────────────────
@@ -272,33 +390,77 @@ def filter_customers(audience="all", age_groups=(), playing_levels=(), preferenc
 
 
 # ───────────────────────── TV5: statistics ─────────────────────────
+def _distribution(answers, values, respondents, *, stars=False):
+    counts = dict(answers.values_list("rating_value").annotate(n=Count("response", distinct=True)))
+    return [{"label": f"{value} sao" if stars else str(value), "n": counts.get(value, 0),
+             "pct": round(counts.get(value, 0) * 100 / respondents, 1) if respondents else None}
+            for value in values]
+
+
 def build_stats(survey):
+    """Thống kê kết quả của MỘT khảo sát (4.1.7); chỉ tính lượt trả lời SUBMITTED của khảo sát này.
+
+    - rate = lời mời COMPLETED / tổng lời mời × 100; None khi chưa mời ai.
+    - Chọn một / chọn nhiều: n = số lượt trả lời chọn phương án; pct = n / số lượt trả lời hợp lệ
+      của câu đó. Câu chọn nhiều có thể có tổng > 100%.
+    - Thang điểm: phân bố + trung bình trên các điểm nằm trong thang của câu.
+    - Ma trận: mỗi tiêu chí tính trung bình trên điểm 1–5; "Không sử dụng" và chưa trả lời bị loại
+      khỏi mẫu và đếm riêng.
+    - Tự do: câu trả lời không rỗng, mới nhất trước.
+    Khi câu chưa có ai trả lời: ``no_data`` = True, mọi pct = None (không hiển thị 0% giả).
+    """
     sent = SurveyRecipient.objects.filter(survey=survey).count()
     done = SurveyRecipient.objects.filter(survey=survey, status=RECIPIENT_COMPLETED).count()
-    submitted = SurveyAnswer.objects.filter(response__status=RESPONSE_SUBMITTED)
+    total = SurveyResponse.objects.filter(recipient__survey=survey, status=RESPONSE_SUBMITTED).count()
+    submitted = SurveyAnswer.objects.filter(response__status=RESPONSE_SUBMITTED,
+                                           response__recipient__survey=survey)
     items = []
     for q in SurveyQuestion.objects.filter(survey=survey).order_by("sort_order", "question_id"):
         answers = submitted.filter(question=q)
-        respondents = answers.values("response").distinct().count()
-        item = {"question": q, "respondents": respondents, "rows": [], "texts": [], "avg": None}
+        item = {"question": q, "rows": [], "texts": [], "other_texts": [], "criteria": [], "avg": None,
+                "section": (q.config or {}).get("section", ""), "multi": q.question_type == QuestionType.MULTI_CHOICE}
         if q.question_type in CHOICE_TYPES:
+            valid = answers.filter(option__question=q)
+            respondents = valid.values("response").distinct().count()
             for option in SurveyOption.objects.filter(question=q).order_by("sort_order", "option_id"):
-                n = answers.filter(option=option).count()
+                n = valid.filter(option=option).values("response").distinct().count()
                 item["rows"].append({"label": option.option_text, "n": n,
-                                     "pct": round(n * 100 / respondents, 1) if respondents else 0})
+                                     "pct": round(n * 100 / respondents, 1) if respondents else None})
+            other_id = (q.config or {}).get("other_option_id")
+            if other_id:
+                item["other_texts"] = list(valid.filter(option_id=other_id).exclude(answer_text__isnull=True)
+                                          .exclude(answer_text="").select_related("response__recipient__customer")
+                                          .order_by("-answer_id")[:200])
         elif q.question_type == QuestionType.RATING:
-            counts = {i: 0 for i in range(1, 6)}
-            for row in answers.exclude(rating_value__isnull=True).values("rating_value").annotate(n=Count("answer_id")):
-                if row["rating_value"] in counts:
-                    counts[row["rating_value"]] = row["n"]
-            avg = answers.aggregate(a=Avg("rating_value"))["a"]
+            low, high = rating_bounds(q)
+            valid = answers.filter(rating_value__gte=low, rating_value__lte=high, option__isnull=True)
+            respondents = valid.values("response").distinct().count()
+            item["scale_max"] = high
+            avg = valid.aggregate(a=Avg("rating_value"))["a"]
             item["avg"] = round(avg, 2) if avg is not None else None
-            item["rows"] = [{"label": f"{k} sao", "n": v,
-                             "pct": round(v * 100 / respondents, 1) if respondents else 0}
-                            for k, v in counts.items()]
+            item["rows"] = _distribution(valid, range(low, high + 1), respondents, stars=not q.config)
+        elif q.question_type == QuestionType.MATRIX:
+            valid = answers.filter(option__question=q).filter(
+                Q(rating_value__range=(1, 5), answer_text__isnull=True) |
+                Q(rating_value__isnull=True, answer_text=NOT_USED))
+            respondents = valid.values("response").distinct().count()
+            for criterion in q.surveyoption_set.order_by("sort_order", "option_id"):
+                values = valid.filter(option=criterion)
+                scores = values.filter(rating_value__range=(1, 5))
+                scored = scores.values("response").distinct().count()
+                unused = values.filter(answer_text=NOT_USED).values("response").distinct().count()
+                avg = scores.aggregate(a=Avg("rating_value"))["a"]
+                item["criteria"].append({"label": criterion.option_text, "scored": scored, "not_used": unused,
+                    "unanswered": max(total - scored - unused, 0), "avg": round(avg, 2) if avg is not None else None,
+                    "rows": _distribution(scores, range(1, 6), scored)})
         else:
-            item["texts"] = list(answers.exclude(answer_text__isnull=True).exclude(answer_text="")
-                                 .select_related("response__recipient__customer").order_by("-answer_id")[:200])
+            from django.db.models.functions import Trim
+            valid = answers.annotate(content=Trim("answer_text")).exclude(content__isnull=True).exclude(content="")
+            respondents = valid.values("response").distinct().count()
+            item["texts"] = list(valid.select_related("response__recipient__customer").order_by("-answer_id")[:200])
+        item["respondents"] = respondents
+        item["no_data"] = respondents == 0
+        item["unanswered"] = max(total - respondents, 0)
         items.append(item)
-    return {"sent": sent, "done": done, "pending": sent - done,
-            "rate": round(done * 100 / sent, 1) if sent else 0, "items": items}
+    return {"sent": sent, "done": done, "pending": sent - done, "responses": total,
+            "rate": round(done * 100 / sent, 1) if sent else None, "items": items}

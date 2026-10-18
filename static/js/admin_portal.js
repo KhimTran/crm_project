@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.querySelector("#confirmAccountDetails").textContent = action === "Delete Account"
             ? `${button.dataset.accountRole} · ${button.dataset.accountStatus}` : "";
         modal.querySelector("#confirmWarning").textContent = action === "Delete Account"
-            ? "Deletion is permanent and may be blocked when related records exist." : `Confirm ${action.toLowerCase()}?`;
+            ? "CUSTOMER accounts with a profile are locked and their profiles marked deleted; history is preserved. Other accounts are permanently deleted only when no protected records exist." : `Confirm ${action.toLowerCase()}?`;
         const submit = modal.querySelector("#confirmSubmit");
         submit.textContent = action;
         submit.className = action === "Delete Account" ? "btn btn-danger" : "btn btn-primary";

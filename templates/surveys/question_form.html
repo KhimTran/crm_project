@@ -18,7 +18,17 @@
     var type = document.getElementById('id_question_type'), box = document.getElementById('id_options_text');
     if (!type || !box) return;
     var wrap = box.closest('p') || box.parentElement;
-    function toggle() { wrap.style.display = type.value.indexOf('_CHOICE') > -1 ? '' : 'none'; }
+    function show(name, visible) {
+      var input = document.getElementById('id_' + name);
+      if (input) (input.closest('p') || input.parentElement).hidden = !visible;
+    }
+    function toggle() {
+      var choice = type.value.indexOf('_CHOICE') > -1;
+      wrap.hidden = !choice && type.value !== 'MATRIX';
+      show('max_selections', type.value === 'MULTI_CHOICE');
+      show('rating_min', type.value === 'RATING'); show('rating_max', type.value === 'RATING');
+      show('other_option_position', choice); show('placeholder', type.value === 'TEXT');
+    }
     type.addEventListener('change', toggle); toggle();
   })();
 </script>

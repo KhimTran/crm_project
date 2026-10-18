@@ -4,6 +4,12 @@
 {% block page_title %}{% t "Khảo sát khách hàng" "Surveys" %}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 {% block content %}
+<div class="sv-grid">
+  <div class="sv-card sv-kpi"><b>{{ overview.published }}</b>{% t "Khảo sát đã phát hành" "Published Surveys" %}</div>
+  <div class="sv-card sv-kpi"><b>{{ overview.responses }}</b>{% t "Lượt trả lời hợp lệ" "Valid Responses" %}</div>
+  <div class="sv-card sv-kpi"><b>{% if overview.rate is not None %}{{ overview.rate }}%{% else %}—{% endif %}</b>{% t "Tỷ lệ phản hồi" "Response Rate" %}
+    <span class="sv-help">{% if overview.rate is not None %}{{ overview.done }} / {{ overview.invited }} {% t "lời mời" "invitations" %}{% else %}{% t "Chưa có dữ liệu" "No data yet" %}{% endif %}</span></div>
+</div>
 <div class="sv-toolbar">
   <form method="get" class="sv-actions">
     <input type="text" name="q" value="{{ q }}" placeholder="{% t 'Tìm theo tiêu đề' 'Search by title...' %}">
@@ -23,8 +29,9 @@
     <tr>
       <td><a href="{% url 'surveys:manage_detail' s.survey_id %}">{{ s.title }}</a></td>
       <td>{{ s.start_at|date:datetime_fmt|default:"—" }} → {{ s.end_at|date:datetime_fmt|default:"—" }}</td>
-      <td><span class="sv-badge {{ s.status }}">{{ s.get_status_display|default:s.status }}</span></td>
-      <td>{{ s.done }} / {{ s.sent }}</td>
+      <td><span class="sv-badge {{ s.status }}">{{ s.status_label }}</span></td>
+      <td>{{ s.done }} / {{ s.sent }}
+        <div class="sv-help">{% t "Chưa trả lời" "Pending" %} {{ s.pending }} · {% if s.rate is not None %}{{ s.rate }}%{% else %}{% t "Chưa có dữ liệu" "No data yet" %}{% endif %}</div></td>
       <td><a class="sv-btn sv-ghost sv-small" href="{% url 'surveys:manage_stats' s.survey_id %}">{% t "Thống kê" "Statistics" %}</a></td>
     </tr>
   {% empty %}<tr><td colspan="5">{% t "Chưa có khảo sát nào." "No surveys found." %}</td></tr>

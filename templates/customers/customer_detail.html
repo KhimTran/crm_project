@@ -9,7 +9,7 @@
 
 {% block content %}
 <div class="crm-toolbar">
-  <a href="{% url 'customers:list' %}">&laquo; {% t "Quay lại danh sách khách hàng" "Back to customers" %}</a>
+  <a class="{% if in_admin_portal %}btn btn-outline-secondary btn-sm customer-back-link{% else %}crm-btn crm-btn-secondary crm-btn-sm{% endif %}" href="{% url 'customers:list' %}">{% if in_admin_portal %}&larr;{% else %}&laquo;{% endif %} {% t "Quay lại danh sách khách hàng" "Back to customers" %}</a>
   {% if can_manage %}
     <div class="crm-row-actions">
       {% if customer.account.status == "ACTIVE" %}

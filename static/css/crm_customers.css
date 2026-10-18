@@ -35,3 +35,34 @@
 .crm-section { margin-top: 1rem; }
 .crm-section h2, .crm-card h2 { margin-top: 0; font-size: 1.1rem; }
 @media (max-width: 760px) { .crm-form-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Customers list/create only; keep the existing CRM and portal controls. */
+.customers-page, .customer-create-page, .customer-create-field { min-width: 0; }
+.customer-create-page .customer-create-field { margin-bottom: 1rem; }
+.customer-create-page input, .customer-create-page select { max-width: 100%; }
+.crm-layout .customer-create-page input, .crm-layout .customer-create-page select { display: block; width: 100%; }
+.customer-create-page .customer-create-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.customer-create-page .customer-password-control { display: flex; align-items: start; gap: .5rem; }
+.customer-create-page .customer-password-control input { width: 100%; min-width: 0; flex: 1; }
+.customer-create-page .customer-password-control button { flex-shrink: 0; }
+.customer-create-page .customer-field-help { font-size: .875rem; color: #536984; }
+.customer-create-page .customer-field-help ul { display: block; margin: .5rem 0 0; padding-left: 1.2rem; list-style: disc; }
+.customer-create-page .crm-errorlist { display: block; }
+.customer-create-page [hidden] { display: none !important; }
+.customer-create-page [aria-invalid="true"] { border-color: #a93333; }
+.customer-create-page .crm-actions, .customers-page .crm-actions, .customers-page .crm-pagination { flex-wrap: wrap; }
+.customer-create-page button:disabled { opacity: .65; cursor: wait; }
+.customer-create-page input:focus-visible, .customer-create-page button:focus-visible,
+.customers-page .customer-table-region:focus-visible { outline: 2px solid #85bdcf; outline-offset: 2px; }
+.customers-page .crm-table { min-width: 960px; }
+.customers-page .crm-row-actions { min-width: 230px; }
+@media (max-width: 420px) {
+  .customer-create-page .customer-password-control { flex-wrap: wrap; }
+  .customer-create-page .customer-password-control input { flex-basis: 100%; }
+}
+.customer-create-page .customer-required { color: #a93333; }
+.customer-create-page .customer-required-note { margin-bottom: 1rem; }
+/* Full Name column: one line, no underline until hover (portal and CRM layouts). */
+.customers-page .crm-table td:nth-child(2) { white-space: nowrap; }
+.customers-page .crm-table td:nth-child(2) a { font-weight: 600; text-decoration: none; }
+.customers-page .crm-table td:nth-child(2) a:hover, .customers-page .crm-table td:nth-child(2) a:focus-visible { text-decoration: underline; }

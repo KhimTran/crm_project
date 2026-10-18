@@ -146,7 +146,7 @@ def account_reset_password(request, account_id):
 @require_POST
 def account_delete(request, account_id):
     try:
-        delete_account(request.user, account_id)
+        result = delete_account(request.user, account_id)
     except AccountPermissionDenied:
         return HttpResponseForbidden("Account administration is restricted")
     except AccountNotFound as exc:
@@ -154,5 +154,6 @@ def account_delete(request, account_id):
     except AccountServiceError as exc:
         messages.error(request, str(exc))
         return redirect("accounts_admin:list")
-    messages.success(request, "Account deleted")
+    messages.success(request, "Customer deleted and account locked; history preserved"
+                     if result.get("customer_deleted") else "Account deleted")
     return redirect("accounts_admin:list")

@@ -1,9 +1,8 @@
 """Survey vocabulary shared by services, forms, views and templates.
 
-NOTE (TV5): the official schema does not yet freeze these enum values
-(see AGENTS.md "Rating range và question types cần thống nhất").
-They match what apps.surveys.services and seed_data already use
-(ACTIVE / SINGLE_CHOICE / SENT / COMPLETED / SUBMITTED). Confirm with the owner.
+Existing lifecycle values are retained. The owner approved MATRIX and stored
+questionnaire settings on 2026-10-18. Legacy RATING questions default to 1–5;
+configured versioned questions may use 1–10, with bounds checked per question.
 """
 from django.db import models
 
@@ -18,6 +17,7 @@ class QuestionType(models.TextChoices):
     SINGLE_CHOICE = "SINGLE_CHOICE", "Một lựa chọn"
     MULTI_CHOICE = "MULTI_CHOICE", "Nhiều lựa chọn"
     RATING = "RATING", "Thang điểm 1–5"
+    MATRIX = "MATRIX", "Đánh giá theo tiêu chí"
     TEXT = "TEXT", "Trả lời tự do"
 
 

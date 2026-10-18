@@ -60,6 +60,9 @@ def create_account(actor, *, email, role, status, password):
         account = Account.objects.create_user(email, password, role=role, status=status)
     except IntegrityError as exc:
         raise DuplicateAccountEmail("Email is already in use") from exc
+    if role == AccountRole.CUSTOMER:
+        from apps.customers.provisioning import ensure_customer_profile
+        ensure_customer_profile(account.pk)
     return account_data(account)
 
 
@@ -131,6 +134,19 @@ def delete_account(actor, account_id):
     if actor.pk == account.account_id:
         raise CannotDeleteOwnAccount("An admin cannot delete their own account")
     _protect_final_admin(account, active_admin_ids)
+    if account.role == AccountRole.CUSTOMER:
+        from apps.customers.constants import CustomerStatus
+        from apps.customers.models import Customer
+        from apps.customers.services import delete_customer
+
+        customer = Customer.objects.select_for_update().filter(account_id=account.pk).first()
+        if customer is not None:
+            # Customer deletion preserves all business history and the account FK.
+            if customer.status != CustomerStatus.DELETED:
+                delete_customer(customer.pk)
+            elif account.status != AccountStatus.LOCKED:
+                Account.objects.filter(pk=account.pk).update(status=AccountStatus.LOCKED)
+            return {"account_id": account_id, "customer_deleted": True}
     if _has_protected_references(account.account_id):
         raise AccountDeleteProtectedError("Account has business records; lock it instead")
     try:

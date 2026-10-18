@@ -172,10 +172,14 @@ class AccountApiTests(TestCase):
         self.assertEqual(self.send("delete", self.url()).status_code, 200)
         self.assertFalse(get_user_model().objects.filter(pk=self.customer.pk).exists())
 
-    def test_fk_protected_delete_preserves_business_data(self):
+    def test_customer_delete_preserves_business_data_and_locks_account(self):
         profile = Customer.objects.create(account=self.customer, full_name="Demo customer")
         response = self.send("delete", self.url())
-        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.status_code, 200)
+        profile.refresh_from_db()
+        self.customer.refresh_from_db()
+        self.assertEqual(profile.status, "DELETED")
+        self.assertEqual(self.customer.status, "LOCKED")
         self.assertNotIn("SQL", response.content.decode())
         self.assertTrue(get_user_model().objects.filter(pk=self.customer.pk).exists())
         self.assertTrue(Customer.objects.filter(pk=profile.pk, account=self.customer).exists())

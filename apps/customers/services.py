@@ -1,5 +1,3 @@
-import secrets
-
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -18,38 +16,23 @@ from .errors import (
 from .models import Customer, CustomerPreference
 
 
-# tv4: sinh mật khẩu tạm ngẫu nhiên cho khách hàng do quản lý tạo
-def generate_temporary_password():
-    # token_urlsafe có thể trùng mật khẩu quá phổ biến/giống email nên thử lại vài lần ở nơi gọi.
-    return secrets.token_urlsafe(9)
-
-
-# tv4: 4.1.1 tạo tài khoản CUSTOMER + hồ sơ khách hàng + sở thích trong một transaction
 @transaction.atomic
-def create_customer(*, email, full_name, phone, date_of_birth=None, gender=None, address=None,
+def create_customer(*, email, password, full_name, phone, date_of_birth=None, gender=None, address=None,
                     playing_level=None, play_styles=(), brands=()):
-    """4.1.1: tạo Account (role CUSTOMER, mật khẩu tạm) + Customer + sở thích trong một transaction.
-
-    Trả về (customer, temporary_password); mật khẩu chỉ có ở đây, không lưu dạng thô.
-    """
+    """Create a CUSTOMER account and profile atomically using Django password validation/hashing."""
     email = AccountManager.normalize_account_email(email)
     if Account.objects.filter(email=email).exists():
         raise DuplicateCustomerEmail("Email đã được sử dụng")
     if phone and Customer.objects.filter(phone=phone).exclude(status=CustomerStatus.DELETED).exists():
         raise DuplicateCustomerPhone("Số điện thoại đã được sử dụng")
 
-    account = None
-    for _ in range(5):
-        password = generate_temporary_password()
-        try:
+    try:
+        with transaction.atomic():
             account = Account.objects.create_user(email, password, role=AccountRole.CUSTOMER)
-            break
-        except ValidationError:
-            continue
-        except IntegrityError as exc:
+    except (IntegrityError, ValidationError) as exc:
+        if Account.objects.filter(email=email).exists():
             raise DuplicateCustomerEmail("Email đã được sử dụng") from exc
-    if account is None:
-        raise RuntimeError("Không thể tạo mật khẩu tạm hợp lệ")
+        raise
 
     customer = Customer.objects.create(
         account=account,
@@ -66,7 +49,7 @@ def create_customer(*, email, full_name, phone, date_of_birth=None, gender=None,
     preferences += [CustomerPreference(customer=customer, preference_type=PreferenceType.BRAND, preference_value=v)
                     for v in brands]
     CustomerPreference.objects.bulk_create(preferences)
-    return customer, password
+    return customer
 
 
 # tv4: lấy khách hàng chưa bị xóa và khóa dòng (select_for_update) để thao tác an toàn

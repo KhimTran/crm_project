@@ -14,10 +14,12 @@ from apps.customers.services import (
 from apps.feedback.models import Feedback
 from apps.surveys.models import Survey, SurveyRecipient, SurveyResponse
 
+PASSWORD = "CrmFixture!2026"
+
 
 # tv4: tạo nhanh một khách hàng kèm mật khẩu để test đăng nhập
 def make_customer(n=1):
-    return create_customer(email=f"kh{n}@example.com", full_name=f"Khách {n}", phone=f"09000000{n:02d}")
+    return create_customer(password=PASSWORD, email=f"kh{n}@example.com", full_name=f"Khách {n}", phone=f"09000000{n:02d}"), PASSWORD
 
 
 # tv4: test 4.1.3 khóa / mở khóa chặn và khôi phục đăng nhập

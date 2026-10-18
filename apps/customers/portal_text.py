@@ -26,6 +26,7 @@ EN = {
     "Dưới 18": "Under 18", "Từ 55": "55+", "Chưa khai báo": "Not specified",
     # Nhãn form
     "Họ tên": "Full Name", "Số điện thoại": "Phone", "Ngày sinh": "Date of Birth", "Giới tính": "Gender",
+    "Mật khẩu": "Password",
     "Địa chỉ": "Address", "Trình độ chơi": "Playing Level", "Thương hiệu yêu thích": "Favorite Brands",
     "-- Chọn --": "-- Select --", "Lý do khóa": "Lock Reason", "Từ khóa": "Keyword", "Tên, SĐT, email": "Name, phone, email",
     "Nhóm tuổi": "Age Group", "Trình độ": "Playing Level", "Tài khoản": "Account", "Tất cả": "All",
@@ -71,6 +72,14 @@ EN = {
         "The closing time has passed or is not set; please update the schedule.",
     "Chỉ sửa được khảo sát ở trạng thái Nháp.": "Only Draft surveys can be edited.",
     "Danh sách khách hàng có ID không hợp lệ hoặc đã bị xóa.": "The customer list contains invalid or deleted IDs.",
+    "Chọn từng khách hàng": "Pick individual customers", "Khách hàng": "Customers",
+    "Hãy chọn ít nhất một khách hàng.": "Select at least one customer.",
+    "Chưa có khách hàng nào phù hợp để nhận khảo sát.": "No eligible customers to receive the survey.",
+    "Danh sách khách hàng có ID không hợp lệ, đã bị xóa hoặc bị khóa.":
+        "The customer list contains invalid, deleted or locked customers.",
+    "Khảo sát Nháp chưa phát hành nên không cần đóng.": "A Draft survey has not been published, so it cannot be closed.",
+    "Không sửa câu hỏi của khảo sát đã gửi hoặc đã có câu trả lời.":
+        "Questions cannot be changed once the survey has been sent or answered.",
 }
 
 

@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.contrib.auth.models import Group
 from django.test import TestCase
@@ -11,6 +11,8 @@ from apps.customers import reports
 from apps.customers.models import Customer
 from apps.customers.services import create_customer, delete_customer, lock_customer
 from apps.feedback.models import Feedback
+
+PASSWORD = "CrmFixture!2026"
 
 TODAY = date(2026, 10, 5)
 
@@ -26,14 +28,14 @@ class CustomerReportTests(TestCase):
     def setUpTestData(cls):
         cls.manager = Account.objects.create_user("manager@example.com", "Quanly@12345")
         cls.manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
-        cls.an, _ = create_customer(email="an@example.com", full_name="An", phone="0900000001",
+        cls.an = create_customer(password=PASSWORD, email="an@example.com", full_name="An", phone="0900000001",
                                     date_of_birth=date(2008, 10, 5), gender="MALE", playing_level="BEGINNER",
                                     play_styles=["Tấn công"], brands=["Yonex"])
-        cls.binh, _ = create_customer(email="binh@example.com", full_name="Bình", phone="0900000002",
+        cls.binh = create_customer(password=PASSWORD, email="binh@example.com", full_name="Bình", phone="0900000002",
                                       date_of_birth=date(1995, 3, 1), gender="FEMALE", playing_level="BEGINNER",
                                       brands=["Yonex", "Victor"])
-        cls.cuong, _ = create_customer(email="cuong@example.com", full_name="Cường", phone="0900000003")
-        cls.deleted, _ = create_customer(email="xoa@example.com", full_name="Đã xóa", phone="0900000004",
+        cls.cuong = create_customer(password=PASSWORD, email="cuong@example.com", full_name="Cường", phone="0900000003")
+        cls.deleted = create_customer(password=PASSWORD, email="xoa@example.com", full_name="Đã xóa", phone="0900000004",
                                          date_of_birth=date(1990, 1, 1), gender="MALE", brands=["Yonex"])
         delete_customer(cls.deleted.pk)
         lock_customer(cls.cuong.pk)
@@ -107,12 +109,80 @@ class CustomerReportTests(TestCase):
         self.client.force_login(self.manager)
         response = self.client.get(reverse("customer_reports:customers"))
         self.assertContains(response, "Báo cáo khách hàng")
-        self.assertContains(response, 'id="report-data"')
+        self.assertNotContains(response, 'id="report-data"')
         self.assertContains(response, "chart.umd.min.js")
         self.assertContains(response, "In báo cáo")
-        self.assertContains(response, "Astrox 88D")
+        # Kết quả khảo sát đã chuyển sang trang riêng surveys:results.
+        self.assertContains(response, 'id="customer-report-data"')
+        self.assertContains(response, "Khách hàng theo nhóm tuổi")
+        # Đã gỡ khỏi trang: sở thích Nhóm sản phẩm, điểm hài lòng theo sản phẩm, phản hồi theo tháng.
+        self.assertNotContains(response, "Astrox 88D")
+        self.assertNotContains(response, 'id="chart-satisfaction"')
+        self.assertNotContains(response, 'id="r-feedback"')
+        self.assertNotContains(response, "Nhóm sản phẩm")
+        self.assertNotContains(response, "Kết quả khảo sát")
+        self.assertNotContains(response, "Tổng số khảo sát")
+        survey_page = self.client.get(reverse("surveys:results"))
+        self.assertContains(survey_page, 'id="report-survey"')
 
     def test_customer_cannot_open_report(self):
         Account.objects.create_user("shopper@example.com", "Khach@12345")
         self.client.login(email="shopper@example.com", password="Khach@12345")
         self.assertEqual(self.client.get(reverse("customer_reports:customers")).status_code, 302)
+
+    # tv4: 4.1.5 mở rộng: tỷ lệ khóa/hoạt động, số KH đã xóa, phản hồi theo tháng/trạng thái, TG xử lý TB
+    def test_extended_customer_metrics(self):
+        accounts = reports.account_status_report()
+        self.assertEqual((accounts["total"], accounts["active"], accounts["locked"]), (3, 2, 1))
+        self.assertEqual((accounts["active_pct"], accounts["locked_pct"]), (66.7, 33.3))
+        self.assertEqual(reports.deleted_count(), 1)
+        feedback = list(Feedback.objects.filter(customer=self.an).order_by("feedback_id"))
+        created = timezone.make_aware(datetime(2026, 10, 2, 8, 0))
+        Feedback.objects.filter(pk=feedback[0].pk).update(
+            status="RESOLVED", created_at=created, resolved_at=created + timedelta(hours=3))
+        Feedback.objects.filter(pk=feedback[1].pk).update(
+            status="RESOLVED", created_at=created, resolved_at=created + timedelta(hours=5))
+        Feedback.objects.filter(pk=feedback[2].pk).update(status="IN_PROGRESS", created_at=created)
+        self.assertEqual(reports.avg_resolution_hours(), 4.0)
+        months = reports.feedback_by_month(months=6, today=TODAY)
+        self.assertEqual(months[-1], {"label": "10/2026", "count": 3, "new": 0, "in_progress": 1, "resolved": 2})
+        self.assertEqual(sum(r["count"] for r in months[:-1]), 0)
+        status = {r["label"]: (r["count"], r["pct"]) for r in reports.feedback_status_report()}
+        self.assertEqual(status, {"Mới": (0, 0.0), "Đang xử lý": (1, 33.3), "Đã xử lý": (2, 66.7)})
+
+
+# tv4: 4.1.5 ranh giới nhóm tuổi, thiếu ngày sinh, KH đã xóa, sở thích lấy từ hồ sơ (không từ khảo sát)
+class CustomerReportBoundaryTests(TestCase):
+    def test_age_group_boundaries(self):
+        births = {"16": date(2009, 10, 6), "18 hôm nay": date(2008, 10, 5), "24": date(2001, 10, 6),
+                  "25 hôm nay": date(2001, 10, 5), "55": date(1971, 10, 5), "thiếu": None}
+        for i, (name, dob) in enumerate(births.items()):
+            create_customer(password=PASSWORD, email=f"age{i}@example.com", full_name=name,
+                            phone=f"09100000{i:02d}", date_of_birth=dob)
+        age = counts(reports.age_group_report(today=TODAY))
+        self.assertEqual((age["Dưới 18"], age["18–24"], age["25–34"], age["Từ 55"], age[reports.UNKNOWN_LABEL]),
+                         (1, 2, 1, 1, 1))
+
+    def test_empty_report_has_no_fake_numbers(self):
+        self.assertEqual(reports.account_status_report()["locked_pct"], None)
+        self.assertIsNone(reports.avg_resolution_hours())
+        self.assertEqual(reports.feedback_status_report()[0]["pct"], None)
+        manager = Account.objects.create_user("empty-manager@example.com", "Quanly@12345", role="MANAGER")
+        self.client.force_login(manager)
+        page = self.client.get(reverse("customer_reports:customers")).content.decode()
+        self.assertTrue("Chưa có dữ liệu" in page or "No data yet" in page)
+        self.assertNotIn("NaN", page)
+        self.assertNotIn("None%", page)
+
+    def test_preferences_come_from_profile_not_survey_answers(self):
+        from apps.surveys.models import Survey, SurveyAnswer, SurveyOption, SurveyQuestion, SurveyRecipient, SurveyResponse
+        customer = create_customer(password=PASSWORD, email="pref@example.com", full_name="Pref", phone="0920000001",
+                                   brands=["Lining"])
+        survey = Survey.objects.create(title="KS", status="ACTIVE", created_by=customer.account)
+        question = SurveyQuestion.objects.create(survey=survey, question_text="Hãng?", question_type="SINGLE_CHOICE")
+        option = SurveyOption.objects.create(question=question, option_text="Yonex")
+        recipient = SurveyRecipient.objects.create(survey=survey, customer=customer, status="COMPLETED")
+        response = SurveyResponse.objects.create(recipient=recipient, status="SUBMITTED", submitted_at=timezone.now())
+        SurveyAnswer.objects.create(response=response, question=question, option=option)
+        groups = {g["type"]: counts(g["rows"]) for g in reports.preference_report()}
+        self.assertEqual(groups, {"BRAND": {"Lining": 1}})

@@ -9,7 +9,10 @@ from apps.customers.errors import DuplicateCustomerEmail, DuplicateCustomerPhone
 from apps.customers.models import Customer, CustomerPreference
 from apps.customers.services import create_customer
 
+PASSWORD = "CrmFixture!2026"
+
 VALID = {
+    "password": PASSWORD,
     "full_name": "Nguyễn Văn An",
     "email": "an.nguyen@example.com",
     "phone": "0901234567",
@@ -17,15 +20,14 @@ VALID = {
     "gender": "MALE",
     "address": "Quận 5, TP.HCM",
     "playing_level": "RECREATIONAL",
-    "play_styles": ["Tấn công", "Đánh đôi"],
-    "brands": ["Yonex"],
 }
 
 
 # tv4: test 4.1.1 service tạo khách hàng, trùng email / SĐT
 class CreateCustomerServiceTests(TestCase):
     def test_creates_account_customer_and_preferences(self):
-        customer, password = create_customer(
+        password = PASSWORD
+        customer = create_customer(password=PASSWORD,
             email="  An.Nguyen@Example.com ", full_name="Nguyễn Văn An", phone="0901234567",
             playing_level="BEGINNER", play_styles=["Tấn công"], brands=["Yonex", "Victor"])
         account = customer.account
@@ -42,20 +44,20 @@ class CreateCustomerServiceTests(TestCase):
                                  (PreferenceType.BRAND, "Yonex"), (PreferenceType.BRAND, "Victor")})
 
     def test_duplicate_email_is_rejected(self):
-        create_customer(email="a@example.com", full_name="A", phone="0901111111")
+        create_customer(password=PASSWORD, email="a@example.com", full_name="A", phone="0901111111")
         with self.assertRaises(DuplicateCustomerEmail):
-            create_customer(email="A@example.com", full_name="B", phone="0902222222")
+            create_customer(password=PASSWORD, email="A@example.com", full_name="B", phone="0902222222")
 
     def test_duplicate_phone_is_rejected_and_nothing_is_created(self):
-        create_customer(email="a@example.com", full_name="A", phone="0901111111")
+        create_customer(password=PASSWORD, email="a@example.com", full_name="A", phone="0901111111")
         with self.assertRaises(DuplicateCustomerPhone):
-            create_customer(email="b@example.com", full_name="B", phone="0901111111")
+            create_customer(password=PASSWORD, email="b@example.com", full_name="B", phone="0901111111")
         self.assertFalse(Account.objects.filter(email="b@example.com").exists())
 
     def test_deleted_customer_phone_can_be_reused(self):
-        customer, _ = create_customer(email="a@example.com", full_name="A", phone="0901111111")
+        customer = create_customer(password=PASSWORD, email="a@example.com", full_name="A", phone="0901111111")
         Customer.objects.filter(pk=customer.pk).update(status=CustomerStatus.DELETED)
-        create_customer(email="b@example.com", full_name="B", phone="0901111111")
+        create_customer(password=PASSWORD, email="b@example.com", full_name="B", phone="0901111111")
 
 
 # tv4: test 4.1.1 trang thêm khách hàng và phân quyền
@@ -87,13 +89,15 @@ class CustomerCreateViewTests(TestCase):
         self.assertContains(response, "Thêm khách hàng")
         self.assertContains(response, 'name="full_name"')
 
-    def test_manager_creates_customer_and_sees_temp_password_once(self):
+    def test_manager_creates_customer_without_disclosing_password(self):
         self.client.force_login(self.manager)
         response = self.client.post(self.url, VALID, follow=True)
         self.assertRedirects(response, reverse("customers:list"))
         customer = Customer.objects.get(phone="0901234567")
         self.assertEqual(customer.account.email, "an.nguyen@example.com")
-        self.assertContains(response, "Mật khẩu tạm")
+        self.assertTrue(customer.account.check_password(PASSWORD))
+        self.assertNotContains(response, PASSWORD)
+        self.assertNotContains(response, "Mật khẩu tạm")
         self.assertContains(response, customer.customer_code)
         again = self.client.get(reverse("customers:list"))
         self.assertNotContains(again, "Mật khẩu tạm")
@@ -117,8 +121,8 @@ class CustomerCreateViewTests(TestCase):
 
     def test_list_searches_and_hides_deleted(self):
         self.client.force_login(self.manager)
-        keep, _ = create_customer(email="keep@example.com", full_name="Trần Thị Bình", phone="0903333333")
-        gone, _ = create_customer(email="gone@example.com", full_name="Lê Văn Cường", phone="0904444444")
+        keep = create_customer(password=PASSWORD, email="keep@example.com", full_name="Trần Thị Bình", phone="0903333333")
+        gone = create_customer(password=PASSWORD, email="gone@example.com", full_name="Lê Văn Cường", phone="0904444444")
         Customer.objects.filter(pk=gone.pk).update(status=CustomerStatus.DELETED)
         response = self.client.get(reverse("customers:list"), {"q": "Bình"})
         self.assertContains(response, "Trần Thị Bình")

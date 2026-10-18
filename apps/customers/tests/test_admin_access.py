@@ -5,6 +5,8 @@ from django.urls import reverse
 
 from apps.customers.services import create_customer
 
+PASSWORD = "CrmFixture!2026"
+
 
 # tv4: Admin vào được trang khách hàng / phản hồi từ sidebar Admin Portal
 class AdminAccessTests(TestCase):
@@ -13,7 +15,7 @@ class AdminAccessTests(TestCase):
     # tv4: tạo admin đăng nhập sẵn và một khách hàng mẫu
     def setUp(self):
         self.admin = get_user_model().objects.create_superuser("admin@example.test", self.password)
-        self.customer, _ = create_customer(email="kh1@example.com", full_name="Khách 1", phone="0900000001")
+        self.customer = create_customer(password=PASSWORD, email="kh1@example.com", full_name="Khách 1", phone="0900000001")
         self.client.login(email=self.admin.email, password=self.password)
 
     # Admin Portal sidebar chỉ có Accounts và Database Tools, không chứa CRM modules
@@ -60,7 +62,7 @@ class AdminAccessTests(TestCase):
 
         for url, text in ((reverse("crm_feedbacks:list"), "Customer Feedback"),
                           (reverse("customers:detail", args=[self.customer.pk]), "Customer Information"),
-                          (reverse("customer_reports:customers"), "Customers by Age Group")):
+                          (reverse("surveys:results"), "Total Surveys")):
             self.assertContains(self.client.get(url), text)
 
         response = self.client.post(reverse("customers:create"), {"full_name": "A", "email": "x@example.com",

@@ -152,8 +152,10 @@ class AccountForeignKeyDeleteTests(TransactionTestCase):
         customer = get_user_model().objects.create_user("customer@example.com", self.password)
         from apps.customers.models import Customer
         Customer.objects.create(account=customer, full_name="Customer")
-        with self.assertRaises(AccountDeleteProtectedError):
-            delete_account(admin, customer.pk)
+        delete_account(admin, customer.pk)
+        customer.refresh_from_db()
+        self.assertEqual(customer.status, AccountStatus.LOCKED)
+        self.assertEqual(Customer.objects.get(account=customer).status, "DELETED")
         self.assertTrue(get_user_model().objects.filter(pk=customer.pk).exists())
         with connection.cursor() as cursor:
             cursor.execute("SELECT account_id FROM customers WHERE account_id = %s", [customer.pk])
@@ -190,7 +192,8 @@ class AccountForeignKeyDeleteTests(TransactionTestCase):
             customer=customer, product=product, rating=5,
             content="Good", status="NEW", handled_by=handler,
         )
-        with self.assertRaises(AccountDeleteProtectedError):
-            delete_account(admin, handler.pk)
+        delete_account(admin, handler.pk)
         feedback.refresh_from_db()
         self.assertEqual(feedback.handled_by_id, handler.pk)
+        customer.refresh_from_db()
+        self.assertEqual(customer.status, "DELETED")
