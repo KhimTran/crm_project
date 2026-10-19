@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
@@ -25,11 +26,11 @@ class SurveyAdminPortalTests(TestCase):
     def test_admin_sees_survey_pages_in_admin_portal_english(self):
         sid = self.survey.pk
         for url, text in ((reverse("surveys:manage_list"), "Create Survey"),
-                          (reverse("surveys:manage_create"), "Opens At"),
+                          (reverse("surveys:manage_create"), "Start Date"),
                           (reverse("surveys:manage_detail", args=[sid]), "Send Survey"),
                           (reverse("surveys:manage_send", args=[sid]), "The survey has no questions yet."),
                           (reverse("surveys:manage_stats", args=[sid]), "Response Rate"),
-                          (reverse("surveys:question_add", args=[sid]), "Question Type")):
+                          (reverse("surveys:manage_edit", args=[sid]), "Edit Survey")):
             response = self.client.get(url)
             self.assertTemplateUsed(response, "admin/portal/base.html")
             self.assertContains(response, text, msg_prefix=url)
@@ -38,11 +39,13 @@ class SurveyAdminPortalTests(TestCase):
     def test_form_errors_and_messages_are_english(self):
         response = self.client.post(reverse("surveys:manage_create"), {
             "title": "X", "start_at": "2026-10-10T10:00", "end_at": "2026-10-09T10:00"})
-        self.assertContains(response, "The closing time must be after the opening time.")
+        self.assertContains(response, "The end date must be on or after the start date.")
 
-        response = self.client.post(reverse("surveys:question_add", args=[self.survey.pk]), {
-            "question_text": "Q", "question_type": "SINGLE_CHOICE", "options_text": "A"})
-        self.assertContains(response, "Enter at least 2 different options.")
+        today = timezone.localdate()
+        response = self.client.post(reverse("surveys:manage_edit", args=[self.survey.pk]), {
+            "title": "X", "objective": "OTHER", "audience": "all", "start_at": today.isoformat(),
+            "end_at": today.isoformat(), "questions_json": json.dumps([{"text": "Q", "type": "SINGLE_CHOICE", "options": ["A"]}])})
+        self.assertIn("Enter at least 2 different options.", response.context["builder"]["errors"]["0"]["options"])
 
         response = self.client.post(reverse("surveys:manage_delete", args=[self.survey.pk]), follow=True)
         self.assertContains(response, "Survey deleted.")

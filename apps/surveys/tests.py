@@ -1,6 +1,8 @@
 import json
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
@@ -16,9 +18,11 @@ class SurveyUniquenessTests(TestCase):
         self.admin = model.objects.create_superuser("survey-admin@example.com", "StrongPass!2026")
         self.account = model.objects.create_user("survey-customer@example.com", "StrongPass!2026")
         self.customer = Customer.objects.create(account=self.account, full_name="Demo customer")
-        self.survey = Survey.objects.create(title="Demo", status="ACTIVE", created_by=self.admin)
+        self.survey = Survey.objects.create(title="Demo", status="ACTIVE", created_by=self.admin,
+                                            end_at=timezone.now() + timedelta(days=7))
         self.question = SurveyQuestion.objects.create(survey=self.survey, question_text="Choose", question_type="SINGLE_CHOICE", is_required=True)
         self.option = SurveyOption.objects.create(question=self.question, option_text="Yes")
+        SurveyOption.objects.create(question=self.question, option_text="No")  # sẵn sàng gửi cần ≥ 2 lựa chọn
 
     def test_recipients_unique_and_send_skips_existing(self):
         self.assertEqual(send_survey(self.admin, self.survey, [self.customer.pk]), {"created": 1, "skipped": 0})

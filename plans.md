@@ -1299,3 +1299,90 @@ was used without printing credentials.
   Preserve that local edit separately before a post-merge fast-forward; do not
   automatically reapply it over this fix. Publication does not alter that
   checkout or run migrations/seed/import/restore against any database.
+
+### Customers account lifecycle and Save Customer — 2026-10-18
+
+- [x] Traced Customer form/view/service, Account HTML/API service, OneToOne
+  profile, CRM selector, role/group guards and authenticated own-profile lookup.
+  Admin creation omitted Customer, causing both list omission and profile 403;
+  admin hard deletion rejected the Customer FK. No creator/manager ownership
+  filter or branch relationship exists in the current schema.
+- [x] Owner explicitly approved shared Account service behavior: create Customer
+  with ADMIN-created role CUSTOMER inside the transaction; delete Customer
+  softly and lock Account while preserving history/FKs. Other Account deletion
+  rules and all permissions remain unchanged. Old missing profiles can be
+  repaired with the preview-first, repeatable repair_customer_profiles command.
+- [x] Customer creation requires the supplied password, uses existing Django
+  validators/hashing, and never returns a password in responses/messages. Removed only the
+  create form's play_styles/brands fields; retained preference storage/consumers.
+  Save uses JSON content negotiation on the existing protected create route,
+  form and service; validates, commits Account+Customer and renders the updated
+  list in one transaction. Errors preserve browser input; loading/pending guard
+  prevents repeat sends; success resets/closes the form and updates the list
+  without a document reload. HTML fallback remains supported.
+- [x] Matched Catalog's existing separate-page create UI using the same portal
+  panel, input and Bootstrap button styles. Customer-only template/CSS/JS
+  changes; no Catalog or other feature logic changes. Updated the approved
+  Account deletion confirmation wording. Preserved pre-existing .env.example edit.
+- [x] Focused 14/14 pass (36.598s); full MySQL suite 347/347 pass (499.287s),
+  --settings=config.test_settings --keepdb --noinput on test_crm_db. Django check0,
+  no model changes/migration, compileall, JavaScript syntax and diff checks pass.
+  Static collection dry-run passes with a temporary STATIC_ROOT (not configured
+  by the repository). Tests include CSRF, denied roles/locked sessions, field
+  validation/duplicates, rollback, own-profile isolation, existing data and
+  repeatable repair. Feedback test edits only adapt creation fixtures.
+- [x] Real browser QA uses separate disposable MySQL test_customer_save_01a14afb:
+  Manager create/retry after network failure/rapid Save+Enter; one POST201,
+  fresh list without reload, persistence after manual reload, empty reopened
+  form; customer login/profile; admin create visible to Manager and own profile;
+  admin soft deletion of manager-created fixture. Confirmed matching Catalog
+  styles, desktop1440/mobile390 with no horizontal overflow or hidden actions.
+  Removed the four QA accounts, two profiles and authenticated sessions; stopped
+  the QA server after verification.
+  No development/demo migration/seed/reset/repair/delete performed. Existing
+  missing real profiles still need the documented maintenance command.
+- Implementation manifest, API behavior, repair instructions and verification:
+  docs/customer_account_fix.md. Changes remain local; no commit/push requested.
+
+### Eight-question Survey and Customer Report update — 2026-10-18
+
+- [x] Read owner attachment and traced Survey management/configuration, assigned
+  customer take/submit flow, atomic persistence, Survey statistics and Customer
+  Report. Current reports contained no NPS calculation. The owner explicitly
+  approved template_key/config fields and widening the rating CHECK to 1–10,
+  with migration testing on a separate database, before schema edits.
+- [x] New Survey creation keeps the current form and creates a versioned set of
+  eight questions/three sections in one transaction. Existing surveys/questions/
+  options/answers are never relabelled or replaced. Required flags remain editable
+  for 1–7; 8 stays optional. Configuration retains fixed type/order/count/ranges
+  for this version and preserves legacy/custom draft controls.
+- [x] Existing customer fieldsets/controls now handle checkbox/radio, configured
+  rating ranges, four matrix criteria, explicit NOT_USED, max-three, conditional
+  Other and optional suggestions. Client/server validate the same rules. Existing
+  POST endpoint gains JSON error/success responses for fetch; failures preserve
+  browser input, pending guard disables repeat submits and database uniqueness/
+  locking remain effective. Existing confirmation/result navigation retained.
+- [x] Survey statistics and Customer Report reuse one statistics source and the
+  existing cards/tables/bars. Per-survey/version isolation, valid-respondent
+  percentages, matrix NA/unanswered/means, Other/comments, recommendation 1–10
+  distribution, empty data and existing Survey permissions are preserved.
+  CSKH demographic access does not grant new Survey result access. No NPS index.
+- [x] New migration 0003 adds metadata and widens the CHECK without converting
+  answers; MySQL DDL runs non-atomically as required. Verified exact old rows/IDs/
+  choices/answers/timestamps across all six Survey tables on private QA DB upgrade.
+  Reverse guards reject high scores or metadata-dependent answers. Actual FKs
+  inspected; no relationship/delete rule changed. No development/demo migration.
+- [x] Focused suite 53/53 pass (51.188s); browser Manager create/edit/send to two
+  synthetic customers, validation, Other toggle/clear, optional text, NA, score10,
+  network failure retention/retry and completion. MySQL/UI reports matched both
+  submitted datasets; old five answers intact; empty version has zero/no NaN.
+  Desktop1440/mobile390 verified with existing styles; no shared CSS/Catalog/
+  customer CRUD changes. Three QA accounts/two profiles/three surveys and sessions
+  cleaned; browser viewport reset and server stopped.
+- [ ] Final full regression running on a uniquely named test database. Initial
+  shared test_crm_db run was invalidated when tables/database disappeared; a
+  private run was restarted after the final Survey-results permission guard.
+  Log retained outside Git to survive terminal interruption.
+- Files/semantics/deployment instructions: docs/survey_questionnaire_update.md;
+  owner-approved design: docs/survey_questionnaire_proposal.md. Existing
+  uncommitted work from the Customers task and .env.example preserved.

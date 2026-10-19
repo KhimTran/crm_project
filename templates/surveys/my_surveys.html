@@ -6,8 +6,8 @@
 <h1>Khảo sát của tôi</h1>
 <h2>Chưa làm ({{ todo|length }})</h2>
 <table class="sv-table">
-  {% for r in todo %}<tr><td>{{ r.survey.title }}<div class="sv-help">Hạn: {{ r.survey.end_at|date:"d/m/Y H:i" }}</div></td>
-    <td><a class="sv-btn sv-small" href="{% url 'surveys:take' r.recipient_id %}">Làm khảo sát</a></td></tr>
+  {% for r in todo %}<tr><td>{{ r.survey.title }}<div class="sv-help">{% if r.upcoming %}Mở từ: {{ r.survey.start_at|date:"d/m/Y H:i" }} · {% endif %}Hạn: {{ r.survey.end_at|date:"d/m/Y H:i" }}</div></td>
+    <td>{% if r.upcoming %}<span class="sv-help">Chưa đến thời gian mở</span>{% else %}<a class="sv-btn sv-small" href="{% url 'surveys:take' r.recipient_id %}">Làm khảo sát</a>{% endif %}</td></tr>
   {% empty %}<tr><td>Bạn không có khảo sát nào cần làm.</td></tr>{% endfor %}
 </table>
 <h2>Đã làm ({{ done|length }})</h2>

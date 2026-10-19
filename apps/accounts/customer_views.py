@@ -48,8 +48,7 @@ def safe_login_destination(request, account):
             "customer_reports:customers", "crm_feedbacks:list", "crm_feedbacks:detail",
             "surveys:manage_list", "surveys:manage_create", "surveys:manage_detail",
             "surveys:manage_edit", "surveys:manage_delete", "surveys:manage_close",
-            "surveys:manage_send", "surveys:manage_stats", "surveys:question_add",
-            "surveys:question_edit", "surveys:question_delete", "surveys:question_move",
+            "surveys:manage_send", "surveys:manage_stats",
         })
         if match.view_name.startswith("catalog_admin:"):
             return destination

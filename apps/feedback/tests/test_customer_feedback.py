@@ -10,6 +10,8 @@ from apps.feedback.errors import ProductNotAvailable
 from apps.feedback.models import Feedback
 from apps.feedback.services import create_feedback, handle_feedback
 
+PASSWORD = "CrmFixture!2026"
+
 
 # tv4: test 4.2.4 khách hàng gửi và xem phản hồi của mình
 class CustomerFeedbackTests(TestCase):
@@ -26,8 +28,9 @@ class CustomerFeedbackTests(TestCase):
                                                 product_name="Vợt ngừng bán", price=1000000, status="INACTIVE")
 
     def setUp(self):
-        self.an, self.an_password = create_customer(email="an@example.com", full_name="An", phone="0900000001")
-        self.binh, _ = create_customer(email="binh@example.com", full_name="Bình", phone="0900000002")
+        self.an_password = PASSWORD
+        self.an = create_customer(password=PASSWORD, email="an@example.com", full_name="An", phone="0900000001")
+        self.binh = create_customer(password=PASSWORD, email="binh@example.com", full_name="Bình", phone="0900000002")
         self.client.login(email="an@example.com", password=self.an_password)
 
     def test_form_preselects_product_from_query_string(self):
@@ -75,7 +78,7 @@ class CustomerFeedbackTests(TestCase):
         response = manager_client.post(detail_url, {
             "status": FeedbackStatus.RESOLVED, "manager_note": reply,
         }, follow=True)
-        self.assertRedirects(response, detail_url)
+        self.assertRedirects(response, reverse("crm_feedbacks:list"))
         feedback.refresh_from_db()
         self.assertEqual(feedback.status, FeedbackStatus.RESOLVED)
         self.assertEqual(feedback.handled_by, self.manager)
@@ -137,7 +140,7 @@ class FeedbackBadgeTests(TestCase):
         supplier = Supplier.objects.create(supplier_code="NCC01", supplier_name="NCC 1")
         product = Product.objects.create(category=category, brand=brand, supplier=supplier,
                                          product_name="Astrox 88D", price=3500000)
-        customer, _ = create_customer(email="an@example.com", full_name="An", phone="0900000001")
+        customer = create_customer(password=PASSWORD, email="an@example.com", full_name="An", phone="0900000001")
         for status in ("NEW", "NEW", "RESOLVED"):
             Feedback.objects.create(customer=customer, product=product, rating=5, content="x", status=status)
 

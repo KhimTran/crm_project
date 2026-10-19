@@ -1,4 +1,5 @@
 """TV5 tests: survey management, audience filter, multi-choice answers, statistics."""
+import json
 from datetime import timedelta
 
 from django.contrib.auth.models import Group
@@ -68,7 +69,8 @@ class SurveyManageTests(TestCase):
         start = (timezone.localtime() + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")
         end = (timezone.localtime() + timedelta(days=9)).strftime("%Y-%m-%dT%H:%M")
         resp = self.client.post(reverse("surveys:manage_create"),
-                                {"title": "New", "description": "", "start_at": start, "end_at": end})
+                                {"title": "New", "description": "", "start_at": start, "end_at": end,
+                                 "objective": "OTHER", "audience": "all"})
         self.assertEqual(resp.status_code, 302)
         created = Survey.objects.get(title="New")
         self.assertEqual((created.status, created.created_by_id), (SurveyStatus.DRAFT, self.manager.pk))
@@ -76,9 +78,16 @@ class SurveyManageTests(TestCase):
     def test_cannot_edit_questions_after_survey_is_active(self):
         Survey.objects.filter(pk=self.survey.pk).update(status=SurveyStatus.ACTIVE)
         self.client.force_login(self.manager)
-        resp = self.client.post(reverse("surveys:question_delete", args=[self.survey.pk, self.single.pk]))
+        resp = self.client.post(reverse("surveys:manage_edit", args=[self.survey.pk]), self.builder_payload([]))
         self.assertEqual(resp.status_code, 302)
         self.assertTrue(SurveyQuestion.objects.filter(pk=self.single.pk).exists())
+
+    # tv4: dữ liệu trình soạn khảo sát (trang Tạo/Sửa) cho khảo sát mẫu của test này
+    def builder_payload(self, questions):
+        today = timezone.localdate()
+        return {"title": "S", "objective": "OTHER", "audience": "all", "action": "save",
+                "start_at": today.isoformat(), "end_at": (today + timedelta(days=5)).isoformat(),
+                "questions_json": json.dumps(questions)}
 
     def test_choice_question_needs_two_distinct_options(self):
         form = QuestionForm({"question_text": "x", "question_type": QT.SINGLE_CHOICE,
@@ -87,12 +96,14 @@ class SurveyManageTests(TestCase):
         ok = QuestionForm({"question_text": "x", "question_type": QT.TEXT, "options_text": ""})
         self.assertTrue(ok.is_valid())
 
-    def test_question_move_renumbers(self):
+    def test_question_reorder_renumbers(self):
         self.client.force_login(self.manager)
-        self.client.post(reverse("surveys:question_move", args=[self.survey.pk, self.multi.pk, "up"]))
+        items = self.client.get(reverse("surveys:manage_edit", args=[self.survey.pk])).context["builder_items"]
+        self.client.post(reverse("surveys:manage_edit", args=[self.survey.pk]),
+                         self.builder_payload([items[1], items[0], items[2]]))
         order = list(SurveyQuestion.objects.filter(survey=self.survey).order_by("sort_order")
-                     .values_list("question_text", flat=True))
-        self.assertEqual(order, ["Q2", "Q1", "Q3"])
+                     .values_list("question_text", "sort_order"))
+        self.assertEqual(order, [("Q2", 1), ("Q1", 2), ("Q3", 3)])
 
     # --- audience + sending ---
     def test_filter_by_playing_level(self):

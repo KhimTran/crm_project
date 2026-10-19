@@ -1,49 +1,201 @@
 {% extends crm_layout %}
-{% load static portal_text %}
+{% load static %}
 {% block title %}{{ survey.title }}{% endblock %}
-{% block page_title %}{{ survey.title }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
+{% block page_title %}Survey Details{% endblock %}
+{% block extra_css %}
+<style>
+  .sv-hero { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem 2rem; align-items: flex-start; }
+  .sv-hero h2 { margin: 0 0 .35rem; font-size: 1.35rem; font-weight: 700; color: var(--portal-text); }
+  .sv-hero p { margin: 0; max-width: 62ch; color: #4a5b64; }
+  .sv-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .sv-meta div span { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #637680; }
+  .sv-meta div b { font-size: .95rem; color: var(--portal-text); }
+
+  .sv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; margin-bottom: 1.25rem; }
+  .sv-kpi { background: #fff; border: 1px solid var(--portal-border); border-radius: .75rem; padding: .9rem 1.1rem; }
+  .sv-kpi span { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #637680; }
+  .sv-kpi b { display: block; margin-top: .15rem; font-size: 1.6rem; line-height: 1.2; color: var(--portal-text); }
+  .sv-kpi small { font-size: .9rem; font-weight: 500; color: #637680; }
+  .sv-progress { height: .4rem; margin-top: .5rem; border-radius: 99px; background: #e7eef1; overflow: hidden; }
+  .sv-progress i { display: block; height: 100%; background: #176b86; border-radius: 99px; }
+
+  .sv-more > summary { display: inline-block; cursor: pointer; padding: .25rem .7rem; border: 1px solid var(--portal-border); border-radius: .4rem; font-size: .82rem; color: var(--portal-text); background: #fff; list-style: none; }
+  .sv-more > summary::-webkit-details-marker { display: none; }
+  .sv-more > summary:hover { background: #f1f7f9; }
+  @media print {
+    .sv-no-print, .portal-section-intro, .crm-sidebar, .portal-sidebar, .crm-messages { display: none !important; }
+    .sv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sv-grid > .portal-panel, .sv-kpi { break-inside: avoid; page-break-inside: avoid; }
+    .sv-texts { max-height: none; overflow: visible; }
+    .sv-more:not([open]) > * { display: none; }
+    .sv-more { display: none; }
+  }
+  .sv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+  .sv-grid > .portal-panel { margin: 0; }
+  .sv-grid > .sv-wide, .sv-grid > .sv-section { grid-column: 1 / -1; }
+  .sv-grid .sv-q { flex-direction: column; gap: .6rem; }
+  .sv-grid .sv-wide .sv-q { flex-direction: row; gap: 1rem; }
+  .sv-grid .sv-chart-box.is-doughnut { height: 240px; }
+  @media (max-width: 992px) { .sv-grid { grid-template-columns: minmax(0, 1fr); } }
+  .sv-section { display: flex; align-items: center; gap: .75rem; margin: 1.6rem 0 .7rem; font-size: .8rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--portal-accent); }
+  .sv-section::after { content: ""; flex: 1; height: 1px; background: var(--portal-border); }
+
+  .sv-q { display: flex; gap: 1rem; align-items: flex-start; }
+  .sv-q-num { flex: none; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: #e7f1f5; color: #145974; font-weight: 700; display: grid; place-items: center; }
+  .sv-q-body { flex: 1; min-width: 0; }
+  .sv-q-text { margin: 0 0 .5rem; font-size: 1.02rem; font-weight: 650; color: var(--portal-text); }
+  .sv-q-tags { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .sv-chart { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #edf1f3; }
+  .sv-chart-box { position: relative; width: 100%; }
+  .sv-chart-box.is-doughnut { max-width: 420px; height: 280px; margin: 0 auto; }
+  .sv-avg { display: inline-flex; align-items: baseline; gap: .35rem; margin-bottom: .75rem; padding: .35rem .8rem; border-radius: 99px; background: #f1f7f9; font-size: .88rem; color: #4a5b64; }
+  .sv-avg b { font-size: 1.1rem; color: #145974; }
+  .sv-foot { margin: .85rem 0 0; font-size: .82rem; color: #637680; }
+  .sv-empty { margin: 0; font-size: .88rem; color: #637680; }
+  .sv-texts { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; border: 1px solid #edf1f3; border-radius: .6rem; }
+  .sv-texts li { padding: .65rem .9rem; border-bottom: 1px solid #edf1f3; font-size: .88rem; }
+  .sv-texts li:last-child { border-bottom: 0; }
+  .sv-texts small { display: block; margin-top: .15rem; color: #637680; }
+</style>
+{% endblock %}
 {% block content %}
-<div class="sv-toolbar">
-  <div>
-    <span class="sv-badge {{ survey.status }}">{{ survey.status }}</span>
-    {{ survey.start_at|date:datetime_fmt }} → {{ survey.end_at|date:datetime_fmt }} · {% t "Đã làm" "Completed" %} {{ done }}/{{ sent }}
-    {% if survey.description %}<p>{{ survey.description|linebreaksbr }}</p>{% endif %}
-  </div>
-  <div class="sv-actions">
-    <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_list' %}">Back to Surveys</a>
-    {% if is_draft %}<a class="sv-btn sv-ghost" href="{% url 'surveys:manage_edit' survey.survey_id %}">{% t "Sửa thông tin" "Edit Survey" %}</a>{% endif %}
-    {% if survey.status != 'CLOSED' %}<a class="sv-btn" href="{% url 'surveys:manage_send' survey.survey_id %}">{% t "Gửi khảo sát" "Send Survey" %}</a>{% endif %}
-    <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_stats' survey.survey_id %}">{% t "Thống kê" "Statistics" %}</a>
+
+<div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
+  <a class="btn btn-outline-secondary btn-sm customer-back-link" href="{% url 'surveys:manage_list' %}">&larr; Back to Surveys</a>
+  <div class="d-flex gap-2 flex-wrap align-items-center sv-no-print">
+    <button type="button" class="btn btn-outline-secondary" id="survey-print">Print</button>
+    {% if survey.status != 'CLOSED' %}<a class="btn btn-primary" href="{% url 'surveys:manage_send' survey.survey_id %}">Send Survey</a>{% endif %}
+    <form method="post" action="{% url 'surveys:manage_clone' survey.survey_id %}">{% csrf_token %}
+      <button class="btn btn-outline-secondary" type="submit">Duplicate</button></form>
     {% if survey.status == 'ACTIVE' %}
-    <form method="post" action="{% url 'surveys:manage_close' survey.survey_id %}" class="sv-inline"
-          onsubmit="return confirm('{% t "Đóng khảo sát? Khách hàng sẽ không làm được nữa." "Close this survey? Customers will no longer be able to answer it." %}')">{% csrf_token %}
-      <button class="sv-btn sv-danger">{% t "Đóng khảo sát" "Close Survey" %}</button></form>
+    <form method="post" action="{% url 'surveys:manage_close' survey.survey_id %}"
+          onsubmit="return confirm('Close this survey? Customers will no longer be able to answer it.')">{% csrf_token %}
+      <button class="btn btn-outline-danger" type="submit">Close Survey</button></form>
+    {% endif %}
+    {% if is_draft and not sent %}
+    <form method="post" action="{% url 'surveys:manage_delete' survey.survey_id %}"
+          onsubmit="return confirm('Delete this survey?')">{% csrf_token %}
+      <button class="btn btn-outline-danger" type="submit">Delete</button></form>
     {% endif %}
   </div>
 </div>
 
-<div class="sv-toolbar"><h2>{% t "Câu hỏi" "Questions" %} ({{ questions|length }})</h2>
-  {% if is_draft %}<a class="sv-btn sv-small" href="{% url 'surveys:question_add' survey.survey_id %}">{% t "+ Thêm câu hỏi" "Add Question" %}</a>
-  {% else %}<span class="sv-help">{% t "Chỉ khảo sát Nháp mới sửa được câu hỏi." "Questions can only be edited while the survey is a Draft." %}</span>{% endif %}
-</div>
-{% for q in questions %}
-  <div class="sv-card">
-    <strong>{{ forloop.counter }}. {{ q.question_text }}</strong>{% if q.is_required %} <span class="sv-error">*</span>{% endif %}
-    <div class="sv-help">{{ q.question_type }}
-      {% if q.surveyoption_set.all %} · {% for o in q.surveyoption_set.all %}{{ o.option_text }}{% if not forloop.last %} | {% endif %}{% endfor %}{% endif %}</div>
-    {% if is_draft %}
-    <div class="sv-actions" style="margin-top:.5rem">
-      <form method="post" class="sv-inline" action="{% url 'surveys:question_move' survey.survey_id q.question_id 'up' %}">{% csrf_token %}<button class="sv-btn sv-ghost sv-small" aria-label="{% t 'Lên' 'Move up' %}">↑</button></form>
-      <form method="post" class="sv-inline" action="{% url 'surveys:question_move' survey.survey_id q.question_id 'down' %}">{% csrf_token %}<button class="sv-btn sv-ghost sv-small" aria-label="{% t 'Xuống' 'Move down' %}">↓</button></form>
-      <a class="sv-btn sv-ghost sv-small" href="{% url 'surveys:question_edit' survey.survey_id q.question_id %}">{% t "Sửa" "Edit" %}</a>
-      <form method="post" class="sv-inline" action="{% url 'surveys:question_delete' survey.survey_id q.question_id %}"
-            onsubmit="return confirm('{% t "Xóa câu hỏi này?" "Delete this question?" %}')">{% csrf_token %}<button class="sv-btn sv-danger sv-small">{% t "Xóa" "Delete" %}</button></form>
-    </div>{% endif %}
+<section class="portal-panel">
+  <div class="sv-hero">
+    <div>
+      <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+        {% if survey.status == 'ACTIVE' %}<span class="portal-badge status-active">Published</span>
+        {% elif survey.status == 'CLOSED' %}<span class="portal-badge status-locked">Closed</span>
+        {% else %}<span class="portal-badge role-customer">Draft</span>{% endif %}
+        {% if fixed_questionnaire %}<span class="portal-badge role-admin">8-question questionnaire · v1</span>{% endif %}
+      </div>
+      <h2>{{ survey.title }}</h2>
+      {% if survey.description %}<p>{{ survey.description|linebreaksbr }}</p>{% endif %}
+    </div>
+    <div class="sv-meta">
+      <div><span>Starts</span><b>{{ survey.start_at|date:"d M Y"|default:"—" }}</b></div>
+      <div><span>Ends</span><b>{{ survey.end_at|date:"d M Y"|default:"—" }}</b></div>
+      <div><span>Questions</span><b>{{ stats.items|length }}</b></div>
+    </div>
   </div>
-{% empty %}<p>{% t "Chưa có câu hỏi." "No questions yet." %}</p>{% endfor %}
-{% if is_draft and not sent %}
-<form method="post" action="{% url 'surveys:manage_delete' survey.survey_id %}" onsubmit="return confirm('{% t "Xóa khảo sát này?" "Delete this survey?" %}')">{% csrf_token %}
-  <button class="sv-btn sv-danger sv-small">{% t "Xóa khảo sát" "Delete Survey" %}</button></form>
-{% endif %}
+</section>
+
+<div class="sv-kpis">
+  <div class="sv-kpi"><span>Sent</span><b>{{ stats.sent }}</b></div>
+  <div class="sv-kpi"><span>Completed</span><b>{{ stats.done }}<small> / {{ stats.sent }}</small></b></div>
+  <div class="sv-kpi"><span>Pending</span><b>{{ stats.pending }}</b></div>
+  <div class="sv-kpi">
+    <span>Response rate</span>
+    <b>{% if stats.rate is not None %}{{ stats.rate }}%{% else %}—{% endif %}</b>
+    {% if stats.rate is not None %}<div class="sv-progress"><i style="width:{{ stats.rate|floatformat:0 }}%"></i></div>{% endif %}
+  </div>
+</div>
+
+<div class="sv-grid">
+{% for item in stats.items %}
+  {% with q=item.question %}
+  {% ifchanged item.section %}{% if item.section %}<h3 class="sv-section">{{ item.section }}</h3>{% endif %}{% endifchanged %}
+  <section class="portal-panel{% if q.question_type == 'MATRIX' or q.question_type == 'TEXT' %} sv-wide{% endif %}">
+    <div class="sv-q">
+      <span class="sv-q-num">{{ forloop.counter }}</span>
+      <div class="sv-q-body">
+        <p class="sv-q-text">{{ item.question_text }}{% if q.is_required %} <span class="text-danger" title="Required">*</span>{% endif %}</p>
+        <div class="sv-q-tags">
+          <span class="portal-badge role-admin">
+            {% if q.question_type == 'SINGLE_CHOICE' %}Single choice
+            {% elif q.question_type == 'MULTI_CHOICE' %}Multiple choice
+            {% elif q.question_type == 'RATING' %}Rating
+            {% elif q.question_type == 'MATRIX' %}Matrix
+            {% elif q.question_type == 'TEXT' %}Free text
+            {% else %}{{ q.question_type }}{% endif %}</span>
+          {% if q.is_required %}<span class="portal-badge status-locked">Required</span>{% endif %}
+        </div>
+
+        {# tv4: answer chart sits right under each question #}
+        <div class="sv-chart">
+          {% if item.no_data %}
+            <p class="sv-empty">No responses yet.</p>
+          {% elif q.question_type == 'TEXT' %}
+            <ul class="sv-texts">{% for a in item.texts %}
+              <li>{{ a.answer_text|linebreaksbr }}<small>{{ a.response.recipient.customer.full_name }}</small></li>{% endfor %}</ul>
+          {% else %}
+            {% if item.avg is not None %}<div class="sv-avg">Average score <b>{{ item.avg }}</b> / {{ item.scale_max }}</div>{% endif %}
+            <div class="sv-chart-box {% if q.question_type == 'SINGLE_CHOICE' %}is-doughnut{% endif %}">
+              <canvas data-qid="{{ q.question_id }}" role="img" aria-label="{{ item.question_text }}"></canvas>
+            </div>
+            {% if q.question_type == 'MATRIX' %}<p class="sv-foot">Average score per criterion (1–5 scale).</p>{% endif %}
+            {% if item.other_texts %}
+              <details class="sv-more mt-2"><summary>“Other” answers ({{ item.other_texts|length }})</summary>
+                <ul class="sv-texts mt-2">{% for a in item.other_texts %}<li>{{ a.answer_text|linebreaksbr }}<small>{{ a.response.recipient.customer.full_name }}</small></li>{% endfor %}</ul></details>
+            {% endif %}
+          {% endif %}
+          {% if not item.no_data %}<p class="sv-foot">Respondents: <b>{{ item.respondents }}</b> · Unanswered: <b>{{ item.unanswered }}</b></p>{% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endwith %}
+{% empty %}
+  <section class="portal-panel portal-empty sv-wide"><p class="mb-0">This survey has no questions yet.</p></section>
+{% endfor %}
+</div>
+
+{{ charts|json_script:"view-charts" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+(function () {
+  var printBtn = document.getElementById('survey-print');
+  if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
+  var node = document.getElementById('view-charts');
+  if (!node || typeof Chart === 'undefined') return;
+  var data = JSON.parse(node.textContent), palette = ['#176b86', '#3f9bb8', '#6cc0a5', '#e0a93b', '#d9774a', '#8a6fc0', '#c25a7c', '#7d8c96'];
+  document.querySelectorAll('canvas[data-qid]').forEach(function (canvas) {
+    var c = data[canvas.dataset.qid];
+    if (!c) return;
+    var horizontal = c.kind === 'bar-h', doughnut = c.kind === 'doughnut';
+    var box = canvas.parentElement;
+    if (horizontal) box.style.height = Math.max(160, c.labels.length * 38 + 50) + 'px';
+    else if (!doughnut) box.style.height = '260px';
+    new Chart(canvas, {
+      type: doughnut ? 'doughnut' : 'bar',
+      data: { labels: c.labels, datasets: [{ data: c.values, borderWidth: 0, borderRadius: doughnut ? 0 : 4,
+        backgroundColor: doughnut ? c.labels.map(function (_, i) { return palette[i % palette.length]; }) : '#176b86' }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: horizontal ? 'y' : 'x',
+        plugins: { legend: { display: doughnut, position: 'bottom' },
+          tooltip: { callbacks: { label: function (ctx) {
+            var pct = c.pcts[ctx.dataIndex];
+            return ' ' + ctx.formattedValue + (pct !== null && pct !== undefined ? ' (' + pct + '%)' : '');
+          } } } },
+        scales: doughnut ? {} : (horizontal
+          ? { x: { beginAtZero: true, max: c.max || undefined, ticks: { precision: c.max ? 1 : 0 } }, y: { grid: { display: false } } }
+          : { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } })
+      }
+    });
+  });
+})();
+</script>
 {% endblock %}

@@ -7,7 +7,19 @@
 .report-wide { grid-column: 1 / -1; }
 .report-chart { position: relative; height: 260px; }
 .report-section .crm-table td:last-child, .report-section .crm-table th:last-child { text-align: right; }
-@media (max-width: 900px) { .report-grid { grid-template-columns: minmax(0, 1fr); } }
+.report-grid + .report-grid { margin-top: 1rem; }
+.report-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.report-note { margin: 0; color: #536984; font-size: .875rem; }
+.report-scroll { overflow-x: auto; }
+.report-comments td { vertical-align: top; }
+.report-section .report-comments td:last-child, .report-section .report-comments th:last-child { text-align: left; }
+.report-comments .crm-badge { margin: 0 .2rem .2rem 0; }
+.report-comments summary { cursor: pointer; }
+.crm-badge.report-tag-neutral { background: #eef1f5; color: #3d4c5e; }
+.crm-badge.report-tag-note { background: #fdf0d5; color: #7a4d00; }
+.crm-badge.report-tag-topic { background: #e1ecfa; color: #1d4a80; }
+@media (max-width: 1200px) { .report-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .report-grid, .report-grid-3 { grid-template-columns: minmax(0, 1fr); } }
 
 /* tv4: 4.1.5 bản in: bỏ menu, nút, khung; giữ biểu đồ + bảng */
 @media print {

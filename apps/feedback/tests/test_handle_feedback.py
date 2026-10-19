@@ -14,6 +14,8 @@ from apps.feedback.models import Feedback
 from apps.feedback.selectors import feedback_queryset, filter_feedbacks
 from apps.feedback.services import handle_feedback
 
+PASSWORD = "CrmFixture!2026"
+
 
 # tv4: dữ liệu dùng chung: 1 quản lý, 1 CSKH, 2 sản phẩm, 2 khách hàng
 class FeedbackTestData(TestCase):
@@ -30,9 +32,10 @@ class FeedbackTestData(TestCase):
                                             product_name="Astrox 88D", price=3500000)
         cls.shoe = Product.objects.create(category=category, brand=brand, supplier=supplier,
                                           product_name="Giày SHB 65Z3", price=2100000)
-        cls.alice, cls.alice_password = create_customer(email="an@example.com", full_name="Nguyễn Văn An",
+        cls.alice_password = PASSWORD
+        cls.alice = create_customer(password=PASSWORD, email="an@example.com", full_name="Nguyễn Văn An",
                                                         phone="0900000001")
-        cls.binh, _ = create_customer(email="binh@example.com", full_name="Trần Thị Bình", phone="0900000002")
+        cls.binh = create_customer(password=PASSWORD, email="binh@example.com", full_name="Trần Thị Bình", phone="0900000002")
 
     def make_feedback(self, customer=None, product=None, rating=5, content="Vợt rất tốt",
                       status=FeedbackStatus.NEW, days_ago=0):
@@ -154,7 +157,7 @@ class FeedbackViewTests(FeedbackTestData):
         url = reverse("crm_feedbacks:detail", args=[self.feedback.pk])
         response = self.client.post(url, {"status": FeedbackStatus.RESOLVED,
                                           "manager_note": "Shop sẽ căng lại miễn phí."}, follow=True)
-        self.assertRedirects(response, url)
+        self.assertRedirects(response, reverse("crm_feedbacks:list"))
         self.assertContains(response, "Đã cập nhật phản hồi")
         self.feedback.refresh_from_db()
         self.assertEqual(self.feedback.status, FeedbackStatus.RESOLVED)

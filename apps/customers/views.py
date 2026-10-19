@@ -1,20 +1,25 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.http import Http404
+from django.db import DatabaseError, transaction
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters
 
 from apps.accounts.constants import AccountRole
 from apps.accounts.decorators import role_required
 from apps.feedback.models import Feedback
 
-from . import reports
 from .constants import CustomerStatus, PreferenceType
-from .errors import CustomerNotFound, CustomerServiceError
+from .errors import CustomerNotFound, CustomerServiceError, DuplicateCustomerEmail, DuplicateCustomerPhone
 from .forms import CustomerCreateForm, CustomerFilterForm, CustomerLockForm
 from .models import Customer, CustomerPreference
+from . import reports
 from .portal_text import localize_form, localize_rows, portal_english, say, tr
 from .selectors import customer_queryset, filter_customers
 from .self_service_choices import CATEGORY_PREFERENCE_TYPE
@@ -30,10 +35,7 @@ def is_crm_manager(user):
     return getattr(user, "role", None) in (AccountRole.ADMIN, AccountRole.MANAGER) or user.groups.filter(name="CRM_MANAGER").exists()
 
 
-# tv4: danh sách khách hàng chưa xóa, tìm kiếm + bộ lọc (selectors.filter_customers), phân trang
-@role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
-@portal_english
-def customer_list(request):
+def _customer_list_context(request):
     form = localize_form(CustomerFilterForm(request.GET or None))
     customers = customer_queryset()
     if form.is_bound and form.is_valid():
@@ -41,33 +43,70 @@ def customer_list(request):
     page = Paginator(customers, PAGE_SIZE).get_page(request.GET.get("page"))
     query = request.GET.copy()
     query.pop("page", None)
-    return render(request, "customers/customer_list.html", {"form": form, "page": page, "query": query.urlencode(),
-                                                            "can_manage": is_crm_manager(request.user)})
+    return {"form": form, "page": page, "query": query.urlencode(),
+            "can_manage": is_crm_manager(request.user)}
 
 
-# tv4: tạo khách hàng và hiển thị mật khẩu tạm một lần.
+# The regular list and the successful create response use the same scope and rendering.
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
+@portal_english
+def customer_list(request):
+    return render(request, "customers/customer_list.html", _customer_list_context(request))
+
+
+# Both HTML and asynchronous submissions use the same form and atomic service.
+@never_cache
+@sensitive_post_parameters("password")
 @role_required("ADMIN", "MANAGER", "CRM_MANAGER")
+@require_http_methods(["GET", "POST"])
 @portal_english
 def customer_create(request):
-    form = localize_form(CustomerCreateForm(request.POST or None))
-    if request.method == "POST" and form.is_valid():
-        data = form.cleaned_data
+    form = localize_form(CustomerCreateForm(request.POST if request.method == "POST" else None))
+    wants_json = "application/json" in request.headers.get("Accept", "")
+    status = 400
+    if request.method == "POST":
         try:
-            customer, password = create_customer(**data)
+            if form.is_valid():
+                # If rendering the updated list fails, do not leave an account saved
+                # behind a failed response that invites the user to submit again.
+                with transaction.atomic():
+                    customer = create_customer(**form.cleaned_data)
+                    success = say(
+                        f"Đã thêm khách hàng {customer.customer_code} – {customer.full_name}.",
+                        f"Customer {customer.customer_code} – {customer.full_name} created.",
+                    )
+                    if wants_json:
+                        context = {**_customer_list_context(request), "created_message": success}
+                        response = JsonResponse({
+                            "customer_id": customer.pk,
+                            "message": success,
+                            "list_url": reverse("customers:list"),
+                            "page_title": say("Khách hàng", "Customers"),
+                            "html": render_to_string("customers/_customer_list.html", context, request=request),
+                        }, status=201)
+                if wants_json:
+                    return response
+                messages.success(request, success)
+                return redirect("customers:list")
+        except DuplicateCustomerEmail as exc:
+            form.add_error("email", tr(str(exc)))
+            status = 409
+        except DuplicateCustomerPhone as exc:
+            form.add_error("phone", tr(str(exc)))
+            status = 409
         except CustomerServiceError as exc:
             form.add_error(None, tr(str(exc)))
-        else:
-            messages.success(
-                request,
-                say(f"Đã thêm khách hàng {customer.customer_code} – "
-                    f"{customer.full_name}. "
-                    f"Tài khoản: {customer.account.email} · "
-                    f"Mật khẩu tạm: {password} (chỉ hiển thị một lần).",
-                    f"Customer {customer.customer_code} – {customer.full_name} created. "
-                    f"Account: {customer.account.email} · "
-                    f"Temporary password: {password} (shown only once)."),
-            )
-            return redirect("customers:list")
+        except ValidationError as exc:
+            form.add_error("password", exc)
+        except DatabaseError:
+            form.add_error(None, say("Không thể lưu khách hàng lúc này. Vui lòng thử lại.",
+                                     "Unable to save the customer right now. Please try again."))
+            status = 503
+        if wants_json:
+            return JsonResponse({"errors": {
+                field: [tr(message) for message in errors]
+                for field, errors in form.errors.items()
+            }}, status=status)
 
     return render(
         request,
@@ -184,22 +223,24 @@ def customer_delete(request, customer_id):
 @role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
 @portal_english
 def customer_report(request):
-    charts = {
+    # Chỉ báo cáo khách hàng 4.1.5; kết quả khảo sát 4.1.7 nằm ở trang riêng surveys:results.
+    customer_charts = {
         "age": localize_rows(reports.age_group_report()),
         "gender": localize_rows(reports.gender_report()),
         "level": localize_rows(reports.playing_level_report()),
         "monthly": reports.new_customers_by_month(),
-        "satisfaction": reports.satisfaction_by_product(),
-        "preferences": [{**group, "label": tr(group["label"]), "rows": localize_rows(group["rows"])}
-                        for group in reports.preference_report()],
         "labels": {"customers": say("Số khách hàng", "Customers"),
                    "new_customers": say("Khách hàng mới", "New customers"),
                    "avg_rating": say("Điểm hài lòng TB", "Avg. satisfaction")},
     }
+    customer_extra = {
+        "accounts": reports.account_status_report(),
+        "deleted": reports.deleted_count(),
+    }
+
     return render(request, "customers/customer_report.html", {
-        "summary": reports.summary(),
-        "charts": charts,
         "generated_at": timezone.localtime(),
+        "summary": reports.summary(), "customer_charts": customer_charts, "customer_extra": customer_extra,
     })
 
 

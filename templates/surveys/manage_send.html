@@ -16,6 +16,10 @@
     <p><label>{{ form.preferences.label }}</label>{{ form.preferences }}{% if not form.preferences.field.choices %}<span class="sv-help">{% t "Chưa có dữ liệu." "No data yet." %}</span>{% endif %}</p>
     <p class="sv-help">{% t 'Các nhóm điều kiện kết hợp bằng "VÀ"; nhiều mục trong cùng một nhóm là "HOẶC".' 'Different filter groups are combined with "AND"; several items in the same group are combined with "OR".' %}</p>
   </div>
+  <div id="sv-pick" class="sv-card">
+    <p><label>{{ form.customer_ids.label }}</label>{{ form.customer_ids }}{% if not form.customer_ids.field.choices %}<span class="sv-help">{% t "Chưa có dữ liệu." "No data yet." %}</span>{% endif %}</p>
+    <p class="sv-help">{% t "Chỉ liệt kê khách hàng chưa bị xóa và tài khoản không bị khóa." "Only customers that are not deleted and not locked are listed." %}</p>
+  </div>
   {% if preview is not None %}{% if in_admin_portal %}<p class="sv-card"><b>{{ preview }}</b> matching customer(s). Customers who already received this survey will be skipped.</p>
   {% else %}<p class="sv-card">Có <b>{{ preview }}</b> khách hàng phù hợp. Khách đã nhận trước đó sẽ được bỏ qua.</p>{% endif %}{% endif %}
   <button class="sv-btn sv-ghost" name="action" value="preview">{% t "Xem số người nhận" "Preview Recipients" %}</button>
@@ -27,8 +31,13 @@
 {% block extra_js %}
 <script>
   (function () {
-    var radios = document.querySelectorAll('input[name=audience]'), box = document.getElementById('sv-filters');
-    function t() { var v = document.querySelector('input[name=audience]:checked'); box.style.display = (v && v.value === 'filter') ? '' : 'none'; }
+    var radios = document.querySelectorAll('input[name=audience]'), box = document.getElementById('sv-filters'),
+        pick = document.getElementById('sv-pick');
+    function t() {
+      var v = document.querySelector('input[name=audience]:checked');
+      box.style.display = (v && v.value === 'filter') ? '' : 'none';
+      pick.style.display = (v && v.value === 'pick') ? '' : 'none';
+    }
     radios.forEach(function (r) { r.addEventListener('change', t); }); t();
   })();
 </script>

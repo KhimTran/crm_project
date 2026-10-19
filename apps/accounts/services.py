@@ -51,19 +51,6 @@ def _has_protected_references(account_id):
     return False
 
 
-def _has_customer_protected_references(customer_id):
-    # Customer profile is protected if there are business records (feedbacks or survey recipients)
-    references = (("feedbacks", "customer_id"), ("survey_recipients", "customer_id"))
-    existing_tables = set(connection.introspection.table_names())
-    with connection.cursor() as cursor:
-        for table, column in references:
-            if table in existing_tables:
-                cursor.execute(f"SELECT 1 FROM `{table}` WHERE `{column}` = %s LIMIT 1", [customer_id])
-                if cursor.fetchone() is not None:
-                    return True
-    return False
-
-
 @transaction.atomic
 def create_account(actor, *, email, role, status, password):
     require_active_admin(actor, for_update=True)
@@ -77,11 +64,9 @@ def create_account(actor, *, email, role, status, password):
     except IntegrityError as exc:
         raise DuplicateAccountEmail("Email is already in use") from exc
     if role == AccountRole.CUSTOMER:
-        Customer.objects.create(
-            account=account,
-            full_name="",
-            status=CustomerStatus.ACTIVE,
-        )
+        # Admin-created profiles start with an empty name; the CRM list shows "(Chưa cập nhật)".
+        from apps.customers.provisioning import ensure_customer_profile
+        ensure_customer_profile(account.pk, full_name="")
     return account_data(account)
 
 
@@ -139,8 +124,9 @@ def change_account_role(actor, account_id, role):
     Account.objects.filter(pk=account.pk).update(role=role)
     account.refresh_from_db()
 
-    if role == AccountRole.CUSTOMER and not Customer.objects.filter(account=account).exists():
-        Customer.objects.create(account=account, full_name="", status=CustomerStatus.ACTIVE)
+    if role == AccountRole.CUSTOMER:
+        from apps.customers.provisioning import ensure_customer_profile
+        ensure_customer_profile(account.pk, full_name="")
 
     return account_data(account)
 
@@ -173,18 +159,23 @@ def delete_account(actor, account_id):
         raise CannotModifyOtherAdmin("Không thể xóa tài khoản của một ADMIN khác")
     _protect_final_admin(account, active_admin_ids)
 
+    # Any account that owns a customer profile is soft-deleted: the profile becomes DELETED,
+    # the account is locked and orders/feedbacks/surveys stay attached to it.
+    customer = Customer.objects.select_for_update().filter(account_id=account.pk).first()
+    if customer is not None:
+        from apps.customers.services import delete_customer
+
+        if customer.status != CustomerStatus.DELETED:
+            delete_customer(customer.pk)
+        elif account.status != AccountStatus.LOCKED:
+            Account.objects.filter(pk=account.pk).update(status=AccountStatus.LOCKED)
+        return {"account_id": account_id, "customer_deleted": True}
+
     if _has_protected_references(account.account_id):
         raise AccountDeleteProtectedError("Account has business records; lock it instead")
-
-    customer = Customer.objects.filter(account=account).first()
-    if customer is not None:
-        if _has_customer_protected_references(customer.customer_id):
-            raise AccountDeleteProtectedError("Account has business records; lock it instead")
-        customer.delete()
 
     try:
         account.delete()
     except (ProtectedError, IntegrityError) as exc:
         raise AccountDeleteProtectedError("Account has business records; lock it instead") from exc
     return {"account_id": account_id}
-

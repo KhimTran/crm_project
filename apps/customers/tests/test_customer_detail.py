@@ -10,6 +10,8 @@ from apps.catalog.models import Brand, Category, Product, Supplier
 from apps.customers.services import create_customer, delete_customer
 from apps.feedback.models import Feedback
 
+PASSWORD = "CrmFixture!2026"
+
 
 # tv4: test trang chi tiết khách hàng và ẩn nút theo vai trò
 class CustomerDetailViewTests(TestCase):
@@ -26,7 +28,8 @@ class CustomerDetailViewTests(TestCase):
                                              product_name="Astrox 88D", price=3500000)
 
     def setUp(self):
-        self.customer, self.password = create_customer(
+        self.password = PASSWORD
+        self.customer = create_customer(password=PASSWORD,
             email="an@example.com", full_name="Nguyễn Văn An", phone="0900000001", date_of_birth=date(2000, 1, 2),
             gender="MALE", playing_level="COMPETITIVE", play_styles=["Tấn công"], brands=["Yonex", "Victor"])
         self.feedback = Feedback.objects.create(customer=self.customer, product=self.product, rating=4,

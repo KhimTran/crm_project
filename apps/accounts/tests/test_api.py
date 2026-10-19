@@ -178,7 +178,7 @@ class AccountApiTests(TestCase):
         self.assertEqual(self.send("delete", self.url()).status_code, 200)
         self.assertFalse(get_user_model().objects.filter(pk=self.customer.pk).exists())
 
-    def test_fk_protected_delete_preserves_business_data(self):
+    def test_customer_delete_preserves_business_data_and_locks_account(self):
         from apps.catalog.models import Brand, Category, Product, Supplier
         from apps.feedback.models import Feedback
 
@@ -189,12 +189,23 @@ class AccountApiTests(TestCase):
             supplier=Supplier.objects.create(supplier_code="SAPI", supplier_name="Sup API"),
             product_name="Prod API", price="10.00",
         )
-        Feedback.objects.create(customer=profile, product=product, rating=5, content="Ok API", status="NEW")
+        feedback = Feedback.objects.create(customer=profile, product=product, rating=5, content="Ok API", status="NEW")
         response = self.send("delete", self.url())
-        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.status_code, 200)
+        profile.refresh_from_db()
+        self.customer.refresh_from_db()
+        self.assertEqual(profile.status, "DELETED")
+        self.assertEqual(self.customer.status, "LOCKED")
         self.assertNotIn("SQL", response.content.decode())
         self.assertTrue(get_user_model().objects.filter(pk=self.customer.pk).exists())
         self.assertTrue(Customer.objects.filter(pk=profile.pk, account=self.customer).exists())
+        self.assertTrue(Feedback.objects.filter(pk=feedback.pk, customer=profile).exists())
+
+    def test_delete_other_admin_is_rejected(self):
+        other_admin = get_user_model().objects.create_superuser("other_api_admin@example.test", self.password)
+        self.assertEqual(self.send("delete", self.url(other_admin)).status_code, 409)
+        other_admin.refresh_from_db()
+        self.assertEqual(other_admin.status, "ACTIVE")
 
     def test_csrf_session_mutations(self):
         client = Client(enforce_csrf_checks=True)

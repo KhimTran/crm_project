@@ -8,6 +8,8 @@ from apps.accounts.models import Account
 from apps.customers.selectors import age_group_of, customer_queryset, filter_customers, years_ago
 from apps.customers.services import create_customer, delete_customer, lock_customer
 
+PASSWORD = "CrmFixture!2026"
+
 TODAY = date(2026, 10, 5)
 
 
@@ -15,15 +17,15 @@ TODAY = date(2026, 10, 5)
 class FilterCustomersTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.an, _ = create_customer(email="an@example.com", full_name="Nguyễn Văn An", phone="0900000001",
+        cls.an = create_customer(password=PASSWORD, email="an@example.com", full_name="Nguyễn Văn An", phone="0900000001",
                                     date_of_birth=date(2008, 10, 5), gender="MALE", playing_level="BEGINNER",
                                     play_styles=["Tấn công"], brands=["Yonex", "Victor"])
-        cls.binh, _ = create_customer(email="binh@example.com", full_name="Trần Thị Bình", phone="0900000002",
+        cls.binh = create_customer(password=PASSWORD, email="binh@example.com", full_name="Trần Thị Bình", phone="0900000002",
                                       date_of_birth=date(2008, 10, 6), gender="FEMALE",
                                       playing_level="COMPETITIVE", play_styles=["Phòng thủ"], brands=["Yonex"])
-        cls.cuong, _ = create_customer(email="cuong@example.com", full_name="Lê Cường", phone="0900000003",
+        cls.cuong = create_customer(password=PASSWORD, email="cuong@example.com", full_name="Lê Cường", phone="0900000003",
                                        date_of_birth=date(1960, 1, 1), gender="MALE", brands=["Li-Ning"])
-        cls.dung, _ = create_customer(email="dung@example.com", full_name="Phạm Dũng", phone="0900000004")
+        cls.dung = create_customer(password=PASSWORD, email="dung@example.com", full_name="Phạm Dũng", phone="0900000004")
         lock_customer(cls.cuong.pk)
 
     def ids(self, **params):
@@ -68,14 +70,14 @@ class CustomerListFilterViewTests(TestCase):
     def setUpTestData(cls):
         cls.manager = Account.objects.create_user("manager@example.com", "Quanly@12345")
         cls.manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
-        create_customer(email="an@example.com", full_name="Nguyễn Văn An", phone="0900000001",
+        create_customer(password=PASSWORD, email="an@example.com", full_name="Nguyễn Văn An", phone="0900000001",
                         playing_level="BEGINNER", brands=["Yonex"])
-        create_customer(email="binh@example.com", full_name="Trần Thị Bình", phone="0900000002",
+        create_customer(password=PASSWORD, email="binh@example.com", full_name="Trần Thị Bình", phone="0900000002",
                         brands=["Victor"])
 
     def test_filter_form_narrows_list_and_shows_labels(self):
         self.client.force_login(self.manager)
-        response = self.client.get(reverse("customers:list"), {"brand": "Yonex"})
+        response = self.client.get(reverse("customers:list"), {"playing_level": "BEGINNER"})
         self.assertContains(response, "Nguyễn Văn An")
         self.assertNotContains(response, "Trần Thị Bình")
         self.assertContains(response, "Mới chơi")

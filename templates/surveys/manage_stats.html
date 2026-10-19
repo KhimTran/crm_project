@@ -13,26 +13,14 @@
   <div class="sv-card sv-kpi"><b>{{ stats.sent }}</b>{% t "Đã gửi" "Sent" %}</div>
   <div class="sv-card sv-kpi"><b>{{ stats.done }}</b>{% t "Đã làm" "Completed" %}</div>
   <div class="sv-card sv-kpi"><b>{{ stats.pending }}</b>{% t "Chưa làm" "Pending" %}</div>
-  <div class="sv-card sv-kpi"><b>{{ stats.rate }}%</b>{% t "Tỷ lệ phản hồi" "Response Rate" %}</div>
+  <div class="sv-card sv-kpi"><b>{% if stats.rate is not None %}{{ stats.rate }}%{% else %}—{% endif %}</b>{% t "Tỷ lệ phản hồi" "Response Rate" %}{% if stats.rate is None %}<span class="sv-help">{% t "Chưa có dữ liệu" "No data yet" %}</span>{% endif %}</div>
 </div>
 {% for item in stats.items %}
+{% ifchanged item.section %}{% if item.section %}<h2>{{ item.section }}</h2>{% endif %}{% endifchanged %}
 <div class="sv-card">
   <h3>{% t "Câu" "Question" %} {{ forloop.counter }}. {{ item.question.question_text }}
     <span class="sv-help">({{ item.respondents }} {% t "người trả lời" "respondent(s)" %})</span></h3>
-  {% if item.rows %}
-    {% if item.avg is not None %}<p>{% t "Điểm trung bình:" "Average score:" %} <b>{{ item.avg }}</b> / 5</p>{% endif %}
-    <table class="sv-table">
-      {% for r in item.rows %}
-      <tr><td style="width:30%">{{ r.label }}</td>
-          <td><div class="sv-bar"><span style="width:{{ r.pct|unlocalize }}%"></span></div></td>
-          <td style="width:90px">{{ r.n }} ({{ r.pct }}%)</td></tr>
-      {% endfor %}
-    </table>
-  {% else %}
-    <ul>{% for a in item.texts %}<li>{{ a.answer_text|linebreaksbr }}
-      <span class="sv-help">— {{ a.response.recipient.customer.full_name }}</span></li>
-    {% empty %}<li class="sv-help">{% t "Chưa có câu trả lời." "No answers yet." %}</li>{% endfor %}</ul>
-  {% endif %}
+  {% include "surveys/_stats_content.html" %}
 </div>
 {% empty %}<p>{% t "Khảo sát chưa có câu hỏi." "This survey has no questions." %}</p>{% endfor %}
 {% endblock %}
