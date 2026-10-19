@@ -78,7 +78,7 @@
 .customer-layout .form-panel form > div, .customer-layout .profile-section > div { margin-bottom: 16px; }
 .customer-layout .form-panel label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
 .customer-layout .form-panel input:not([type=checkbox]):not([type=hidden]), .customer-layout .form-panel select, .customer-layout .form-panel textarea { width: 100%; min-width: 0; border: 1px solid #aeb5ba; border-radius: 3px; padding: 10px 12px; background: #fff; color: var(--shop-ink); font-size: 16px; }
-.customer-layout .form-panel input[aria-invalid=true], .customer-layout .filter-panel [aria-invalid=true] { border-color: #b33232; }
+.customer-layout .form-panel input[aria-invalid=true], .customer-layout .form-panel select[aria-invalid=true], .customer-layout .filter-panel [aria-invalid=true] { border-color: #b33232; }
 .customer-layout .helptext { display: block; font-size: 14px; color: var(--shop-muted); margin-top: 6px; }
 .customer-layout .helptext ul { padding-left: 20px; margin-top: 8px; }
 .customer-layout .errorlist { color: #9b2525; font-size: 14px; padding-left: 20px; margin: 4px 0 10px; }
@@ -148,3 +148,6 @@
   .customer-layout .product-grid, .customer-layout .category-grid { grid-template-columns: minmax(0, 1fr); }
   .customer-layout .section-heading { flex-wrap: wrap; }
 }
+/* tv4: Favorite Badminton Brand - focus rõ ràng, ô "Other" thụt vào dưới dropdown */
+.customer-layout .form-panel select:focus-visible, .customer-layout .form-panel input:focus-visible { outline: 2px solid #1f5fae; outline-offset: 1px; }
+.customer-layout .form-panel div[hidden] { display: none; }

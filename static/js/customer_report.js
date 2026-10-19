@@ -7,18 +7,74 @@
   // tv4: nút In báo cáo
   var printButton = document.getElementById("report-print");
   if (printButton) printButton.addEventListener("click", function () { window.print(); });
+  // tv4: mở các bảng số liệu thu gọn khi in để bản in vẫn đủ dữ liệu
+  window.addEventListener("beforeprint", function () {
+    document.querySelectorAll("details.rp-more").forEach(function (d) { d.open = true; });
+  });
 
-  if (typeof Chart === "undefined") return;
-  var PALETTE = ["#2f6db5", "#d9822b", "#3a9a5b", "#b5475a", "#7a5cc4", "#2b9aa6", "#9a7b2f", "#5f6b7a"];
+  // tv4: biểu đồ tròn thương hiệu yêu thích; màu cố định theo thương hiệu (Yonex, Li-Ning, Victor, Mizuno, Other)
+  var BRAND_COLORS = ["#176b86", "#3f9bb8", "#6cc0a5", "#e0a93b", "#7d8c96"];
+
+  // tv4: báo lỗi trong card thay vì để biểu đồ trống
+  function showBrandError() {
+    var loading = document.getElementById("brand-loading");
+    if (loading) {
+      loading.textContent = loading.getAttribute("data-error") || "Could not render the chart.";
+      loading.classList.add("report-state-error");
+    }
+  }
+
+  // tv4: vẽ Pie Chart; legend là bảng bên cạnh (hoặc bên dưới trên màn hình nhỏ), tooltip: tên, số khách, %
+  function drawFavoriteBrands() {
+    var canvas = document.getElementById("chart-brand");
+    var data = readData("customer-report-data");
+    var info = data && data.favorite_brands;
+    if (!canvas || !info) return;
+    try {
+      if (typeof Chart === "undefined") throw new Error("Chart.js missing");
+      var rows = info.rows;
+      canvas.hidden = false;
+      new Chart(canvas, {
+        type: "doughnut",
+        data: {
+          labels: rows.map(function (r) { return r.label; }),
+          datasets: [{ data: rows.map(function (r) { return r.count; }), backgroundColor: BRAND_COLORS,
+                       borderWidth: 0 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) {
+            var r = rows[c.dataIndex];
+            return r.label + ": " + r.count + " " + ((data.labels || {}).customers || "customers").toLowerCase() +
+                   (r.pct === null ? "" : " (" + r.pct + "%)");
+          } } } }
+        }
+      });
+      document.querySelectorAll(".brand-swatch").forEach(function (node) {
+        node.style.backgroundColor = BRAND_COLORS[+node.getAttribute("data-brand-index")] || "#999";
+      });
+      var loading = document.getElementById("brand-loading");
+      if (loading) loading.hidden = true;
+    } catch (e) {
+      canvas.hidden = true;
+      showBrandError();
+    }
+  }
+
+  // tv4: readData được khai báo bên dưới (hoisting); gọi sau khi định nghĩa PALETTE
+  if (typeof Chart === "undefined") { showBrandError(); return; }
+  var PALETTE = ["#176b86", "#3f9bb8", "#6cc0a5", "#e0a93b", "#d9774a", "#8a6fc0", "#c25a7c", "#7d8c96"];
 
   Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', sans-serif";
-  Chart.defaults.color = "#36495f";
+  Chart.defaults.color = "#4a5b64";
 
   // tv4: đọc dữ liệu json_script theo id; không có thì trả null
   function readData(id) {
     var node = document.getElementById(id);
     return node ? JSON.parse(node.textContent) : null;
   }
+
+  drawFavoriteBrands();
 
   // ───────────── 4.1.5 Báo cáo khách hàng ─────────────
   var customers = readData("customer-report-data");
@@ -39,8 +95,8 @@
             label: opts.label || CUSTOMER_LABELS.customers || "Số khách hàng",
             data: rows.map(function (r) { return opts.value ? opts.value(r) : r.count; }),
             backgroundColor: isRound ? PALETTE : (opts.color || PALETTE[0]),
-            borderColor: isRound ? "#fff" : (opts.color || PALETTE[0]),
-            borderWidth: isRound ? 2 : 1,
+            borderWidth: 0,
+            borderRadius: isRound ? 0 : 4,
             tension: 0.25,
             fill: false
           }]
@@ -48,12 +104,11 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          animation: false,
           indexAxis: opts.horizontal ? "y" : "x",
           plugins: { legend: { display: isRound, position: "bottom" } },
           scales: isRound ? {} : {
-            x: { beginAtZero: true, ticks: { precision: 0 }, max: opts.max },
-            y: { beginAtZero: true, ticks: { precision: 0 }, max: opts.horizontal ? undefined : opts.max }
+            x: { beginAtZero: true, ticks: { precision: 0 }, max: opts.max, grid: { display: !!opts.horizontal } },
+            y: { beginAtZero: true, ticks: { precision: 0 }, max: opts.horizontal ? undefined : opts.max, grid: { display: !opts.horizontal } }
           }
         }
       });
@@ -104,7 +159,7 @@
                      backgroundColor: PALETTE[2], borderColor: PALETTE[2], borderWidth: 1 }]
       },
       options: {
-        responsive: true, maintainAspectRatio: false, animation: false,
+        responsive: true, maintainAspectRatio: false,
         layout: { padding: { top: 20 } },
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) {
           var r = data.purchases[c.dataIndex];
@@ -127,7 +182,7 @@
                      backgroundColor: PALETTE, borderColor: "#fff", borderWidth: 2 }]
       },
       options: {
-        responsive: true, maintainAspectRatio: false, animation: false,
+        responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: true, position: "bottom" }, tooltip: { callbacks: { label: function (c) {
           var r = data.brands[c.dataIndex];
           return [r.label + ": " + r.share_pct + "% " + (LABELS.share || "lượt chọn"),
@@ -149,7 +204,7 @@
                      fill: true, tension: 0.25, spanGaps: false, pointRadius: 4 }]
       },
       options: {
-        responsive: true, maintainAspectRatio: false, animation: false,
+        responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) {
           var r = data.trend[c.dataIndex];
           return r.avg + " / 5 · " + r.n + " " + (LABELS.responses || "lượt trả lời");

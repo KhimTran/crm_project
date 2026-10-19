@@ -14,7 +14,9 @@ from apps.accounts.constants import AccountStatus
 from apps.feedback.constants import FeedbackStatus
 from apps.feedback.models import Feedback
 
-from .constants import AGE_GROUPS, CustomerStatus, Gender, PlayingLevel, PreferenceType
+from .constants import (
+    AGE_GROUPS, FAVORITE_BRAND_TYPE, FAVORITE_BRANDS, CustomerStatus, Gender, PlayingLevel, PreferenceType,
+)
 from .models import Customer, CustomerPreference
 from .selectors import age_group_of, customer_queryset
 
@@ -66,6 +68,23 @@ def preference_report():
         report.setdefault(row["preference_type"], []).append({"label": row["preference_value"], "count": row["count"]})
     return [{"type": ptype, "label": label, "rows": report[ptype]}
             for ptype, label in PreferenceType.choices if ptype in report]
+
+
+# tv4: thống kê thương hiệu cầu lông yêu thích của khách chưa xóa (mỗi khách tính đúng 1 lần theo giá trị hiện tại)
+def favorite_brand_report():
+    """Mẫu số của % = số khách có thương hiệu hợp lệ (`answered`); khách chưa khai báo / giá trị null, rỗng,
+    không thuộc 5 nhóm được đếm riêng ở `unanswered` và không vào biểu đồ. Nếu dữ liệu lỗi có nhiều dòng
+    cho một khách thì lấy dòng mới nhất."""
+    current = {}
+    for customer_id, value in (CustomerPreference.objects.filter(
+            preference_type=FAVORITE_BRAND_TYPE, customer__in=customer_queryset().values("pk"))
+            .order_by("preference_id").values_list("customer_id", "preference_value")):
+        current[customer_id] = value
+    counter = Counter(v for v in current.values() if v in FAVORITE_BRANDS)
+    answered = sum(counter.values())
+    total = customer_queryset().count()
+    rows = [{"label": brand, "count": counter[brand], "pct": _pct(counter[brand], answered)} for brand in FAVORITE_BRANDS]
+    return {"rows": rows, "answered": answered, "unanswered": total - answered, "total_customers": total}
 
 
 # tv4: 4.1.5 số khách hàng mới theo tháng trong `months` tháng gần nhất (tính cả tháng hiện tại, tháng 0 KH vẫn hiện)
