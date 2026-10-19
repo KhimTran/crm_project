@@ -188,31 +188,43 @@ class AccountAdminViewTests(TestCase):
         filtered = self.client.get(self.list_url, {"role": "customer", "status": "locked"})
         self.assertEqual(filtered.status_code, 200)
         self.assertEqual(filtered.context["page_obj"].paginator.count, 1)
-        self.assertEqual(self.client.post(self.url("role"), {"role": "Admin"}).status_code, 302)
+        self.assertEqual(self.client.post(self.url("role"), {"role": "Manager"}).status_code, 302)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.ADMIN)
+        self.assertEqual(self.customer.role, AccountRole.MANAGER)
 
     def test_role_action_is_post_only_and_preserves_final_admin(self):
         self.assertEqual(self.client.get(self.url("role")).status_code, 405)
+        # Cannot promote customer to ADMIN
         response = self.client.post(self.url("role"), {"role": "ADMIN"})
         self.assertEqual(response.status_code, 302)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.ADMIN)
+        self.assertEqual(self.customer.role, AccountRole.CUSTOMER)
+
+        # Cannot demote self
         response = self.client.post(self.url("role", self.admin), {"role": "CUSTOMER"})
         self.assertEqual(response.status_code, 302)
         self.admin.refresh_from_db()
-        self.assertEqual(self.admin.role, AccountRole.CUSTOMER)
-        self.client.force_login(self.customer)
-        self.assertEqual(self.client.post(self.url("role"), {"role": "CUSTOMER"}).status_code, 302)
+        self.assertEqual(self.admin.role, AccountRole.ADMIN)
+
+        # Change customer to MANAGER succeeds
+        self.assertEqual(self.client.post(self.url("role"), {"role": "MANAGER"}).status_code, 302)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.ADMIN)
+        self.assertEqual(self.customer.role, AccountRole.MANAGER)
 
     def test_lock_unlock_post_only_and_self_lock_denied(self):
         self.assertEqual(self.client.get(self.url("lock")).status_code, 405)
         self.assertEqual(self.client.get(self.url("unlock")).status_code, 405)
+        # Cannot lock self
         self.assertEqual(self.client.post(self.url("lock", self.admin)).status_code, 302)
         self.admin.refresh_from_db()
         self.assertEqual(self.admin.status, AccountStatus.ACTIVE)
+
+        # Cannot lock other admin
+        other_admin = get_user_model().objects.create_superuser("other_view_admin@example.com", self.password)
+        self.assertEqual(self.client.post(self.url("lock", other_admin)).status_code, 302)
+        other_admin.refresh_from_db()
+        self.assertEqual(other_admin.status, AccountStatus.ACTIVE)
+
         self.assertEqual(self.client.post(self.url("lock")).status_code, 302)
         self.customer.refresh_from_db()
         self.assertEqual(self.customer.status, AccountStatus.LOCKED)
@@ -223,6 +235,14 @@ class AccountAdminViewTests(TestCase):
     def test_reset_form_validation_and_password_change(self):
         url = self.url("reset_password")
         self.assertNotContains(self.client.get(url), "password_hash")
+
+        # Cannot reset other admin's password
+        other_admin = get_user_model().objects.create_superuser("other_view_admin2@example.com", self.password)
+        res_other = self.client.post(self.url("reset_password", other_admin),
+                                     {"new_password": "NewStrongPass!2026", "new_password_confirm": "NewStrongPass!2026"})
+        self.assertEqual(res_other.status_code, 200)
+        self.assertContains(res_other, "Không thể đặt lại mật khẩu")
+
         for data in ({"new_password": "GoodPass!2026", "new_password_confirm": "Different!2026"}, {"new_password": "123", "new_password_confirm": "123"}):
             response = self.client.post(url, data)
             self.assertEqual(response.status_code, 200)
@@ -237,8 +257,15 @@ class AccountAdminViewTests(TestCase):
 
     def test_delete_is_post_only_and_self_delete_denied(self):
         self.assertEqual(self.client.get(self.url("delete")).status_code, 405)
+        # Cannot delete self
         self.assertEqual(self.client.post(self.url("delete", self.admin)).status_code, 302)
         self.assertTrue(get_user_model().objects.filter(pk=self.admin.pk).exists())
+
+        # Cannot delete other admin
+        other_admin = get_user_model().objects.create_superuser("other_view_admin3@example.com", self.password)
+        self.assertEqual(self.client.post(self.url("delete", other_admin)).status_code, 302)
+        self.assertTrue(get_user_model().objects.filter(pk=other_admin.pk).exists())
+
         self.assertEqual(self.client.post(self.url("delete")).status_code, 302)
         self.assertFalse(get_user_model().objects.filter(pk=self.customer.pk).exists())
 
