@@ -1,5 +1,7 @@
 {% extends "layouts/base_customer.html" %}
+{% load static %}
 {% block title %}Hồ sơ cá nhân{% endblock %}
+{% block extra_js %}<script src="{% static 'js/favorite_brand.js' %}" defer></script>{% endblock %}
 {% block content %}
 <header class="customer-profile-header">
   <div>
@@ -52,7 +54,8 @@
       </section>
     {% endif %}
     <div class="form-actions">
-      <button class="shop-button" type="submit">Lưu hồ sơ</button>
+      <button class="shop-button" type="submit">Save Changes</button>
+      <a class="shop-button shop-button-secondary" href="{% url 'customers:profile' %}">Cancel</a>
       <a href="{% url 'shop:products' %}">Tiếp tục xem sản phẩm</a>
     </div>
   </form>

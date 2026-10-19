@@ -4,6 +4,8 @@ from django import forms
 from django.utils import timezone
 
 from apps.catalog.models import Category, Status
+from .constants import FAVORITE_BRAND_OTHER, FAVORITE_BRAND_OTHER_MAX_LENGTH, FAVORITE_BRANDS
+from .favorite_brand import get_favorite_brand
 from .models import Customer
 from .self_service_choices import CATEGORY_PREFERENCE_TYPE, GENDER_CHOICES, PLAYING_LEVEL_CHOICES
 
@@ -11,9 +13,24 @@ from .self_service_choices import CATEGORY_PREFERENCE_TYPE, GENDER_CHOICES, PLAY
 class CustomerProfileForm(forms.ModelForm):
     gender = forms.ChoiceField(label="Giới tính", required=False)
     playing_level = forms.ChoiceField(label="Trình độ chơi", required=False)
+    # tv4: thương hiệu cầu lông yêu thích (không bắt buộc); "Other" mở thêm ô nhập tên hãng
+    favorite_brand = forms.ChoiceField(
+        label="Favorite Badminton Brand", required=False,
+        choices=[("", "Select your favorite brand"), *[(brand, brand) for brand in FAVORITE_BRANDS]],
+        help_text="Optional. Choose the one brand you like most.",
+    )
+    favorite_brand_other = forms.CharField(
+        label="Other brand name", required=False, max_length=FAVORITE_BRAND_OTHER_MAX_LENGTH,
+        widget=forms.TextInput(attrs={"placeholder": "Enter the brand name", "autocomplete": "off"}),
+    )
+    FAVORITE_BRAND_FIELDS = ("favorite_brand", "favorite_brand_other")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance is not None and self.instance.pk:
+            brand, other_name = get_favorite_brand(self.instance)
+            self.initial.setdefault("favorite_brand", brand or "")
+            self.initial.setdefault("favorite_brand_other", other_name)
         for field, choices in (("gender", GENDER_CHOICES), ("playing_level", PLAYING_LEVEL_CHOICES)):
             options = [("", "Chưa chọn"), *choices]
             saved = getattr(self.instance, field, None)
@@ -45,6 +62,21 @@ class CustomerProfileForm(forms.ModelForm):
         help_texts = {
             "phone": "Nhập 9–15 chữ số, có thể có dấu +, khoảng trắng hoặc dấu gạch nối.",
         }
+
+    # tv4: thương hiệu yêu thích - None = form không gửi trường này (giữ nguyên dữ liệu cũ), "" = khách chọn bỏ trống (xóa);
+    # Other bắt buộc có tên hãng
+    def clean(self):
+        data = super().clean()
+        if self.data.get("favorite_brand") is None:
+            data["favorite_brand"] = data["favorite_brand_other"] = None
+        elif data.get("favorite_brand") == FAVORITE_BRAND_OTHER:
+            name = " ".join((data.get("favorite_brand_other") or "").split())
+            data["favorite_brand_other"] = name
+            if not name and "favorite_brand_other" not in self.errors:
+                self.add_error("favorite_brand_other", "Please enter the brand name when you choose Other.")
+        elif "favorite_brand" in data:
+            data["favorite_brand_other"] = ""
+        return data
 
     def clean_phone(self):
         phone = self.cleaned_data.get("phone") or ""
