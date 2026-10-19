@@ -110,11 +110,14 @@ class AccountApiTests(TestCase):
         self.assertEqual(self.send("patch", self.url(), {"email": "UPDATED@EXAMPLE.TEST"}).status_code, 405)
         self.customer.refresh_from_db()
         self.assertEqual(self.customer.email, "customer@example.test")
+        # Self-demotion is rejected
         self.assertEqual(self.send("post", self.url(self.admin, "/role"), {"role": "CUSTOMER"}).status_code, 409)
-        self.assertEqual(self.send("post", self.url(action="/role"), {"role": "ADMIN"}).status_code, 200)
+        # Escalation to ADMIN is rejected
+        self.assertEqual(self.send("post", self.url(action="/role"), {"role": "ADMIN"}).status_code, 409)
+        # Role change between non-admin roles succeeds
+        self.assertEqual(self.send("post", self.url(action="/role"), {"role": "MANAGER"}).status_code, 200)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.ADMIN)
-        self.assertEqual(self.send("post", self.url(self.admin, "/role"), {"role": "CUSTOMER"}).status_code, 200)
+        self.assertEqual(self.customer.role, AccountRole.MANAGER)
 
     def test_case_insensitive_create_role_status_and_filters(self):
         base = {"status": "active", "password": self.password,
@@ -141,12 +144,15 @@ class AccountApiTests(TestCase):
             self.assertEqual(self.client.get(self.root, query).status_code, 400)
 
     def test_role_action_normalizes_case(self):
-        for role in ("admin", "Customer", "Admin"):
+        for role in ("manager", "Customer", "Manager"):
             response = self.send("post", self.url(action="/role"), {"role": role})
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["role"], role.upper())
             self.customer.refresh_from_db()
             self.assertEqual(self.customer.role, role.upper())
+        # Escalation to ADMIN is rejected
+        self.assertEqual(self.send("post", self.url(action="/role"),
+                                   {"role": "ADMIN"}).status_code, 409)
         self.assertEqual(self.send("post", self.url(action="/role"),
                                    {"role": "SUPERADMIN"}).status_code, 400)
 
@@ -173,7 +179,17 @@ class AccountApiTests(TestCase):
         self.assertFalse(get_user_model().objects.filter(pk=self.customer.pk).exists())
 
     def test_fk_protected_delete_preserves_business_data(self):
+        from apps.catalog.models import Brand, Category, Product, Supplier
+        from apps.feedback.models import Feedback
+
         profile = Customer.objects.create(account=self.customer, full_name="Demo customer")
+        product = Product.objects.create(
+            category=Category.objects.create(category_name="Cat API"),
+            brand=Brand.objects.create(brand_name="Brand API"),
+            supplier=Supplier.objects.create(supplier_code="SAPI", supplier_name="Sup API"),
+            product_name="Prod API", price="10.00",
+        )
+        Feedback.objects.create(customer=profile, product=product, rating=5, content="Ok API", status="NEW")
         response = self.send("delete", self.url())
         self.assertEqual(response.status_code, 409)
         self.assertNotIn("SQL", response.content.decode())
