@@ -3,7 +3,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Account
-from apps.catalog.models import Brand, Category, Product, Supplier
+from apps.catalog.models import Brand, Category, Product
 from apps.customers.services import create_customer
 from apps.feedback.constants import FeedbackStatus
 from apps.feedback.errors import ProductNotAvailable
@@ -21,10 +21,9 @@ class CustomerFeedbackTests(TestCase):
         cls.manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
         category = Category.objects.create(category_name="Vợt")
         brand = Brand.objects.create(brand_name="Yonex")
-        supplier = Supplier.objects.create(supplier_code="NCC01", supplier_name="NCC 1")
-        cls.racket = Product.objects.create(category=category, brand=brand, supplier=supplier,
+        cls.racket = Product.objects.create(category=category, brand=brand,
                                             product_name="Astrox 88D", price=3500000)
-        cls.old_racket = Product.objects.create(category=category, brand=brand, supplier=supplier,
+        cls.old_racket = Product.objects.create(category=category, brand=brand,
                                                 product_name="Vợt ngừng bán", price=1000000, status="INACTIVE")
 
     def setUp(self):

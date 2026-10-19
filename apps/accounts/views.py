@@ -6,10 +6,13 @@ from django.utils.http import urlencode
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .errors import AccountNotFound, AccountPermissionDenied, AccountServiceError
-from .forms import AccountCreateForm, AccountListFilterForm, AccountRoleForm, AdminPasswordResetForm
+from .forms import AccountCreateForm, AccountListFilterForm, AccountProfileEditForm, AccountRoleForm, AdminPasswordResetForm
 from .permissions import account_admin_required
 from .selectors import get_account, list_account_page
-from .services import change_account_role, create_account, delete_account, lock_account, reset_account_password, unlock_account
+from .services import (
+    change_account_role, create_account, delete_account, lock_account,
+    reset_account_password, unlock_account, update_account_profile,
+)
 
 
 def _get_account_or_404(actor, account_id):
@@ -73,10 +76,45 @@ def account_list(request):
 @require_GET
 def account_detail(request, account_id):
     account = _get_account_or_404(request.user, account_id)
+    prof = account.get("profile") or {}
+    initial_profile = {
+        "full_name": prof.get("full_name", ""),
+        "phone": prof.get("phone", ""),
+        "date_of_birth": prof.get("date_of_birth"),
+        "gender": prof.get("gender", ""),
+        "address": prof.get("address", ""),
+        "position": prof.get("position", ""),
+        "hire_date": prof.get("hire_date"),
+        "status": prof.get("status", "ACTIVE"),
+    }
     return render(request, "accounts/admin/account_detail.html", {
-        "account": account, "role_form": AccountRoleForm(initial={"role": account["role"]}),
+        "account": account,
+        "role_form": AccountRoleForm(initial={"role": account["role"]}),
+        "profile_form": AccountProfileEditForm(initial=initial_profile),
         "active_section": "accounts",
     })
+
+
+@account_admin_required
+@require_POST
+def account_profile_update(request, account_id):
+    account = _get_account_or_404(request.user, account_id)
+    form = AccountProfileEditForm(request.POST)
+    if not form.is_valid():
+        for err in form.errors.values():
+            messages.error(request, err.as_text())
+        return redirect("accounts_admin:detail", account_id=account_id)
+    try:
+        update_account_profile(request.user, account_id, form.cleaned_data)
+    except AccountPermissionDenied:
+        return HttpResponseForbidden("Account administration is restricted")
+    except AccountNotFound as exc:
+        raise Http404("Account not found") from exc
+    except AccountServiceError as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, "Profile updated successfully")
+    return redirect("accounts_admin:detail", account_id=account_id)
 
 
 @account_admin_required
@@ -85,9 +123,19 @@ def account_create(request):
     form = AccountCreateForm(request.POST if request.method == "POST" else None)
     if request.method == "POST" and form.is_valid():
         try:
-            account = create_account(request.user, **{
-                key: form.cleaned_data[key] for key in ("email", "role", "status", "password")
-            })
+            profile_data = {
+                key: form.cleaned_data[key]
+                for key in ("full_name", "phone", "date_of_birth", "gender", "address", "position", "hire_date")
+                if form.cleaned_data.get(key)
+            }
+            account = create_account(
+                request.user,
+                email=form.cleaned_data["email"],
+                role=form.cleaned_data["role"],
+                status=form.cleaned_data["status"],
+                password=form.cleaned_data["password"],
+                profile_data=profile_data,
+            )
         except AccountPermissionDenied:
             return HttpResponseForbidden("Account administration is restricted")
         except (AccountServiceError, ValidationError, ValueError) as exc:

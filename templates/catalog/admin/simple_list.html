@@ -15,7 +15,7 @@
   <thead><tr>{% include 'catalog/admin/_th_sort.html' with key='id' label='ID' %}{% include 'catalog/admin/_th_sort.html' with key='name' label='Name' %}<th scope="col">Description</th>{% include 'catalog/admin/_th_sort.html' with key='status' label='Status' %}{% include 'catalog/admin/_th_sort.html' with key='created' label='Created At' %}<th scope="col">Actions</th></tr></thead>
   <tbody>{% for item in items %}<tr>
     <td>{{ item.pk }}</td><td>{{ item }}</td><td>{{ item.description|default:'—' }}</td><td>{{ item.status }}</td><td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
-    <td><div class="d-flex gap-2 flex-wrap align-items-center"><a class="btn btn-sm btn-outline-secondary" href="{% url edit_url item.pk %}">Edit</a><form method="post" action="{% url delete_url item.pk %}" onsubmit="return confirm('Bạn có chắc muốn xóa mục này?');">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button></form></div></td>
+    <td><div class="d-flex gap-2 flex-wrap align-items-center"><a class="btn btn-sm btn-outline-secondary" href="{% url edit_url item.pk %}">Edit</a><form method="post" action="{% url delete_url item.pk %}" onsubmit="return confirm('Are you sure you want to delete this item?');">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button></form></div></td>
   </tr>{% empty %}<tr><td colspan="6">No records found.</td></tr>{% endfor %}</tbody>
 </table></div></section>
 {% if page_obj.paginator.num_pages > 1 %}

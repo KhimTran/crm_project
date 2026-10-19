@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.contrib.staticfiles import finders
 from django.test import TestCase
 
-from apps.catalog.models import Brand, Category, Product, Supplier
+from apps.catalog.models import Brand, Category, Product
 
 
 class ShopTests(TestCase):
@@ -13,12 +13,11 @@ class ShopTests(TestCase):
         cls.other_category = Category.objects.create(category_name="Shoes")
         cls.brand = Brand.objects.create(brand_name="Brand A")
         cls.other_brand = Brand.objects.create(brand_name="Brand B")
-        cls.supplier = Supplier.objects.create(supplier_code="TV1-TEST", supplier_name="Supplier")
-        cls.products = [Product.objects.create(category=cls.category, brand=cls.brand, supplier=cls.supplier,
+        cls.products = [Product.objects.create(category=cls.category, brand=cls.brand,
                         product_name=f"Racket {index:02d}", price=Decimal(index * 100)) for index in range(1, 15)]
-        cls.other = Product.objects.create(category=cls.other_category, brand=cls.other_brand, supplier=cls.supplier,
+        cls.other = Product.objects.create(category=cls.other_category, brand=cls.other_brand,
                         product_name="Shoes", price=Decimal("1000"))
-        cls.inactive = Product.objects.create(category=cls.category, brand=cls.brand, supplier=cls.supplier,
+        cls.inactive = Product.objects.create(category=cls.category, brand=cls.brand,
                         product_name="Inactive product", price=Decimal("10"), status="INACTIVE")
 
     def test_home_and_list_are_public_show_only_active_products_and_local_assets(self):

@@ -52,7 +52,7 @@ def _has_protected_references(account_id):
 
 
 @transaction.atomic
-def create_account(actor, *, email, role, status, password):
+def create_account(actor, *, email, role, status, password, profile_data=None):
     require_active_admin(actor, for_update=True)
     role = normalize_account_role(role)
     status = normalize_account_status(status)
@@ -63,11 +63,43 @@ def create_account(actor, *, email, role, status, password):
         account = Account.objects.create_user(email, password, role=role, status=status)
     except IntegrityError as exc:
         raise DuplicateAccountEmail("Email is already in use") from exc
+    profile_kwargs = profile_data or {}
     if role == AccountRole.CUSTOMER:
-        # Admin-created profiles start with an empty name; the CRM list shows "(Chưa cập nhật)".
         from apps.customers.provisioning import ensure_customer_profile
-        ensure_customer_profile(account.pk, full_name="")
+        full_name = profile_kwargs.get("full_name") or ""
+        ensure_customer_profile(account.pk, full_name=full_name)
+    elif role == AccountRole.ADMIN:
+        from .provisioning import ensure_admin_profile
+        ensure_admin_profile(account.pk, **profile_kwargs)
+    elif role == AccountRole.MANAGER:
+        from .provisioning import ensure_staff_profile
+        ensure_staff_profile(account.pk, **profile_kwargs)
     return account_data(account)
+
+
+@transaction.atomic
+def update_account_profile(actor, account_id, profile_data):
+    require_active_admin(actor)
+    account = _locked_target(account_id)
+    clean_data = {k: v for k, v in profile_data.items() if v is not None}
+    if account.role == AccountRole.ADMIN:
+        from .provisioning import ensure_admin_profile
+        admin, _ = ensure_admin_profile(account.pk, **clean_data)
+        return admin
+    elif account.role == AccountRole.MANAGER:
+        from .provisioning import ensure_staff_profile
+        staff, _ = ensure_staff_profile(account.pk, **clean_data)
+        return staff
+    elif account.role == AccountRole.CUSTOMER:
+        from apps.customers.models import Customer
+        customer = Customer.objects.filter(account=account).first()
+        if customer:
+            for k, v in clean_data.items():
+                if hasattr(customer, k):
+                    setattr(customer, k, v)
+            customer.save()
+            return customer
+    return None
 
 
 @transaction.atomic
@@ -80,7 +112,7 @@ def lock_account(actor, account_id):
     if actor.pk == account.account_id:
         raise CannotLockOwnAccount("An admin cannot lock their own account")
     if account.role == AccountRole.ADMIN:
-        raise CannotModifyOtherAdmin("Không thể khóa tài khoản của một ADMIN khác")
+        raise CannotModifyOtherAdmin("Cannot lock another ADMIN account")
     if account.status == AccountStatus.LOCKED:
         raise AccountAlreadyLocked("Account is already locked")
     _protect_final_admin(account, active_admin_ids)
@@ -112,12 +144,12 @@ def change_account_role(actor, account_id, role):
         return account_data(account)
 
     if account.role != AccountRole.ADMIN and role == AccountRole.ADMIN:
-        raise CannotPromoteToAdmin("Không thể nâng quyền tài khoản thường thành ADMIN")
+        raise CannotPromoteToAdmin("Cannot promote a standard account to ADMIN")
 
     if account.role == AccountRole.ADMIN and role != AccountRole.ADMIN:
         if actor.pk == account.account_id:
-            raise CannotDemoteOwnAccount("Không thể tự hạ quyền ADMIN của chính mình")
-        raise CannotDemoteAdmin("Không thể hạ quyền của một ADMIN khác")
+            raise CannotDemoteOwnAccount("Cannot demote your own ADMIN account")
+        raise CannotDemoteAdmin("Cannot demote another ADMIN")
 
     if role != AccountRole.ADMIN:
         _protect_final_admin(account, active_admin_ids)
@@ -127,6 +159,12 @@ def change_account_role(actor, account_id, role):
     if role == AccountRole.CUSTOMER:
         from apps.customers.provisioning import ensure_customer_profile
         ensure_customer_profile(account.pk, full_name="")
+    elif role == AccountRole.MANAGER:
+        from .provisioning import ensure_staff_profile
+        ensure_staff_profile(account.pk)
+    elif role == AccountRole.ADMIN:
+        from .provisioning import ensure_admin_profile
+        ensure_admin_profile(account.pk)
 
     return account_data(account)
 
@@ -136,7 +174,7 @@ def reset_account_password(actor, account_id, new_password):
     require_active_admin(actor, for_update=True)
     account = _locked_target(account_id)
     if account.role == AccountRole.ADMIN and actor.pk != account.account_id:
-        raise CannotModifyOtherAdmin("Không thể đặt lại mật khẩu của một ADMIN khác")
+        raise CannotModifyOtherAdmin("Cannot reset password of another ADMIN")
     try:
         validate_password(new_password, account)
     except (ValidationError, TypeError, ValueError) as exc:
@@ -156,7 +194,7 @@ def delete_account(actor, account_id):
     if actor.pk == account.account_id:
         raise CannotDeleteOwnAccount("An admin cannot delete their own account")
     if account.role == AccountRole.ADMIN:
-        raise CannotModifyOtherAdmin("Không thể xóa tài khoản của một ADMIN khác")
+        raise CannotModifyOtherAdmin("Cannot delete another ADMIN account")
     _protect_final_admin(account, active_admin_ids)
 
     # Any account that owns a customer profile is soft-deleted: the profile becomes DELETED,

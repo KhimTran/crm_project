@@ -16,6 +16,36 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `roles` (
+  `role_id` int NOT NULL AUTO_INCREMENT,
+  `role_code` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role_name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`role_id`),
+  UNIQUE KEY `uq_roles_code` (`role_code`),
+  CONSTRAINT `chk_roles_code` CHECK ((`role_code` in (_utf8mb4'ADMIN',_utf8mb4'MANAGER',_utf8mb4'CUSTOMER')))
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `roles`
+--
+
+LOCK TABLES `roles` WRITE;
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` VALUES (1,'ADMIN','Quản trị viên','Quản trị hệ thống, tài khoản và cơ sở dữ liệu','2026-10-16 08:20:14','2026-10-16 08:20:14'),(2,'MANAGER','Nhân sự quản lý','Quản lý danh mục sản phẩm và vận hành CRM','2026-10-16 08:20:14','2026-10-16 08:20:14'),(3,'CUSTOMER','Khách hàng','Khách hàng mua sắm và tương tác CRM','2026-10-16 08:20:14','2026-10-16 08:20:14');
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `accounts`
 --
 
@@ -33,9 +63,10 @@ CREATE TABLE `accounts` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`account_id`),
   UNIQUE KEY `uq_accounts_email` (`email`),
-  CONSTRAINT `chk_accounts_role` CHECK ((`role` in (_utf8mb4'ADMIN',_utf8mb4'MANAGER',_utf8mb4'CUSTOMER'))),
+  KEY `idx_accounts_role` (`role`),
+  CONSTRAINT `fk_accounts_role` FOREIGN KEY (`role`) REFERENCES `roles` (`role_code`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `chk_accounts_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'LOCKED')))
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,7 +75,7 @@ CREATE TABLE `accounts` (
 
 LOCK TABLES `accounts` WRITE;
 /*!40000 ALTER TABLE `accounts` DISABLE KEYS */;
-INSERT INTO `accounts` VALUES (1,'demo-admin@example.test','pbkdf2_sha256$1000000$erQI2JiefbNHET6B9B2y6u$Sm8aQVT+AlNktOqm1NLKScZpiufFa8xKB9GbLWNidnw=','ADMIN','ACTIVE',NULL,'2026-10-16 08:20:14','2026-10-16 08:20:14'),(2,'demo-customer@example.test','pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:14','2026-10-16 08:20:14'),(3,'kh01@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:14','2026-10-16 08:20:15'),(4,'kh02@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(5,'kh03@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(6,'kh04@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(7,'kh05@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(8,'kh06@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(9,'kh07@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(10,'kh08@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(11,'kh09@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(12,'kh10@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(13,'kh11@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(14,'kh12@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(15,'kh13@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(16,'kh14@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(17,'kh15@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(18,'kh16@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(19,'kh17@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(20,'kh18@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(21,'kh19@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(22,'kh20@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(23,'kh21@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(24,'kh22@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(25,'kh23@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(26,'kh24@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(27,'kh25@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(28,'kh26@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(29,'kh27@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(30,'kh28@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(31,'kh29@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(32,'kh30@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(33,'kh31@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(34,'kh32@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(35,'kh33@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(36,'kh34@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(37,'kh35@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(38,'kh36@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(39,'kh37@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(40,'kh38@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(41,'kh39@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(42,'kh40@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','LOCKED',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15');
+INSERT INTO `accounts` VALUES (1,'demo-admin@example.test','pbkdf2_sha256$1000000$erQI2JiefbNHET6B9B2y6u$Sm8aQVT+AlNktOqm1NLKScZpiufFa8xKB9GbLWNidnw=','ADMIN','ACTIVE',NULL,'2026-10-16 08:20:14','2026-10-16 08:20:14'),(2,'demo-customer@example.test','pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:14','2026-10-16 08:20:14'),(3,'kh01@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:14','2026-10-16 08:20:15'),(4,'kh02@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(5,'kh03@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(6,'kh04@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(7,'kh05@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(8,'kh06@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(9,'kh07@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(10,'kh08@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(11,'kh09@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(12,'kh10@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(13,'kh11@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(14,'kh12@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(15,'kh13@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(16,'kh14@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(17,'kh15@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(18,'kh16@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(19,'kh17@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(20,'kh18@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(21,'kh19@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(22,'kh20@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(23,'kh21@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(24,'kh22@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(25,'kh23@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(26,'kh24@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(27,'kh25@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(28,'kh26@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(29,'kh27@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(30,'kh28@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(31,'kh29@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(32,'kh30@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(33,'kh31@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(34,'kh32@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(35,'kh33@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(36,'kh34@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(37,'kh35@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(38,'kh36@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(39,'kh37@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(40,'kh38@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(41,'kh39@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','ACTIVE',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(42,'kh40@example.test','pbkdf2_sha256$1000000$qiw9ktMYZftQVqMvyhjwsP$4C6mdFe5zqAube060kvgYTj5LlnkFeiPKJnFaMRK8xU=','CUSTOMER','LOCKED',NULL,'2026-10-16 08:20:15','2026-10-16 08:20:15'),(43,'demo-admin2@example.test','pbkdf2_sha256$1000000$erQI2JiefbNHET6B9B2y6u$Sm8aQVT+AlNktOqm1NLKScZpiufFa8xKB9GbLWNidnw=','ADMIN','ACTIVE',NULL,'2026-10-19 08:00:00','2026-10-19 08:00:00'),(44,'demo-manager1@example.test','pbkdf2_sha256$1000000$erQI2JiefbNHET6B9B2y6u$Sm8aQVT+AlNktOqm1NLKScZpiufFa8xKB9GbLWNidnw=','MANAGER','ACTIVE',NULL,'2026-10-19 08:00:00','2026-10-19 08:00:00'),(45,'demo-manager2@example.test','pbkdf2_sha256$1000000$erQI2JiefbNHET6B9B2y6u$Sm8aQVT+AlNktOqm1NLKScZpiufFa8xKB9GbLWNidnw=','MANAGER','ACTIVE',NULL,'2026-10-19 08:00:00','2026-10-19 08:00:00'),(46,'demo-manager3@example.test','pbkdf2_sha256$1000000$erQI2JiefbNHET6B9B2y6u$Sm8aQVT+AlNktOqm1NLKScZpiufFa8xKB9GbLWNidnw=','MANAGER','ACTIVE',NULL,'2026-10-19 08:00:00','2026-10-19 08:00:00');
 /*!40000 ALTER TABLE `accounts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -171,7 +202,7 @@ CREATE TABLE `auth_permission` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_permission_content_type_id_codename_01ab375a_uniq` (`content_type_id`,`codename`),
   CONSTRAINT `auth_permission_content_type_id_2f476e4b_fk_django_co` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -180,7 +211,7 @@ CREATE TABLE `auth_permission` (
 
 LOCK TABLES `auth_permission` WRITE;
 /*!40000 ALTER TABLE `auth_permission` DISABLE KEYS */;
-INSERT INTO `auth_permission` VALUES (1,'Can add log entry',1,'add_logentry'),(2,'Can change log entry',1,'change_logentry'),(3,'Can delete log entry',1,'delete_logentry'),(4,'Can view log entry',1,'view_logentry'),(5,'Can add permission',2,'add_permission'),(6,'Can change permission',2,'change_permission'),(7,'Can delete permission',2,'delete_permission'),(8,'Can view permission',2,'view_permission'),(9,'Can add group',3,'add_group'),(10,'Can change group',3,'change_group'),(11,'Can delete group',3,'delete_group'),(12,'Can view group',3,'view_group'),(13,'Can add content type',4,'add_contenttype'),(14,'Can change content type',4,'change_contenttype'),(15,'Can delete content type',4,'delete_contenttype'),(16,'Can view content type',4,'view_contenttype'),(17,'Can add session',5,'add_session'),(18,'Can change session',5,'change_session'),(19,'Can delete session',5,'delete_session'),(20,'Can view session',5,'view_session'),(21,'Can add account',6,'add_account'),(22,'Can change account',6,'change_account'),(23,'Can delete account',6,'delete_account'),(24,'Can view account',6,'view_account'),(25,'Can add brand',7,'add_brand'),(26,'Can change brand',7,'change_brand'),(27,'Can delete brand',7,'delete_brand'),(28,'Can view brand',7,'view_brand'),(29,'Can add category',8,'add_category'),(30,'Can change category',8,'change_category'),(31,'Can delete category',8,'delete_category'),(32,'Can view category',8,'view_category'),(33,'Can add supplier',9,'add_supplier'),(34,'Can change supplier',9,'change_supplier'),(35,'Can delete supplier',9,'delete_supplier'),(36,'Can view supplier',9,'view_supplier'),(37,'Can add product',10,'add_product'),(38,'Can change product',10,'change_product'),(39,'Can delete product',10,'delete_product'),(40,'Can view product',10,'view_product'),(41,'Can add customer',11,'add_customer'),(42,'Can change customer',11,'change_customer'),(43,'Can delete customer',11,'delete_customer'),(44,'Can view customer',11,'view_customer'),(45,'Can add customer preference',12,'add_customerpreference'),(46,'Can change customer preference',12,'change_customerpreference'),(47,'Can delete customer preference',12,'delete_customerpreference'),(48,'Can view customer preference',12,'view_customerpreference'),(49,'Can add feedback',13,'add_feedback'),(50,'Can change feedback',13,'change_feedback'),(51,'Can delete feedback',13,'delete_feedback'),(52,'Can view feedback',13,'view_feedback'),(53,'Can add survey',14,'add_survey'),(54,'Can change survey',14,'change_survey'),(55,'Can delete survey',14,'delete_survey'),(56,'Can view survey',14,'view_survey'),(57,'Can add survey question',15,'add_surveyquestion'),(58,'Can change survey question',15,'change_surveyquestion'),(59,'Can delete survey question',15,'delete_surveyquestion'),(60,'Can view survey question',15,'view_surveyquestion'),(61,'Can add survey option',16,'add_surveyoption'),(62,'Can change survey option',16,'change_surveyoption'),(63,'Can delete survey option',16,'delete_surveyoption'),(64,'Can view survey option',16,'view_surveyoption'),(65,'Can add survey recipient',17,'add_surveyrecipient'),(66,'Can change survey recipient',17,'change_surveyrecipient'),(67,'Can delete survey recipient',17,'delete_surveyrecipient'),(68,'Can view survey recipient',17,'view_surveyrecipient'),(69,'Can add survey response',18,'add_surveyresponse'),(70,'Can change survey response',18,'change_surveyresponse'),(71,'Can delete survey response',18,'delete_surveyresponse'),(72,'Can view survey response',18,'view_surveyresponse'),(73,'Can add survey answer',19,'add_surveyanswer'),(74,'Can change survey answer',19,'change_surveyanswer'),(75,'Can delete survey answer',19,'delete_surveyanswer'),(76,'Can view survey answer',19,'view_surveyanswer');
+INSERT INTO `auth_permission` VALUES (1,'Can add log entry',1,'add_logentry'),(2,'Can change log entry',1,'change_logentry'),(3,'Can delete log entry',1,'delete_logentry'),(4,'Can view log entry',1,'view_logentry'),(5,'Can add permission',2,'add_permission'),(6,'Can change permission',2,'change_permission'),(7,'Can delete permission',2,'delete_permission'),(8,'Can view permission',2,'view_permission'),(9,'Can add group',3,'add_group'),(10,'Can change group',3,'change_group'),(11,'Can delete group',3,'delete_group'),(12,'Can view group',3,'view_group'),(13,'Can add content type',4,'add_contenttype'),(14,'Can change content type',4,'change_contenttype'),(15,'Can delete content type',4,'delete_contenttype'),(16,'Can view content type',4,'view_contenttype'),(17,'Can add session',5,'add_session'),(18,'Can change session',5,'change_session'),(19,'Can delete session',5,'delete_session'),(20,'Can view session',5,'view_session'),(21,'Can add account',6,'add_account'),(22,'Can change account',6,'change_account'),(23,'Can delete account',6,'delete_account'),(24,'Can view account',6,'view_account'),(25,'Can add brand',7,'add_brand'),(26,'Can change brand',7,'change_brand'),(27,'Can delete brand',7,'delete_brand'),(28,'Can view brand',7,'view_brand'),(29,'Can add category',8,'add_category'),(30,'Can change category',8,'change_category'),(31,'Can delete category',8,'delete_category'),(32,'Can view category',8,'view_category'),(37,'Can add product',10,'add_product'),(38,'Can change product',10,'change_product'),(39,'Can delete product',10,'delete_product'),(40,'Can view product',10,'view_product'),(41,'Can add customer',11,'add_customer'),(42,'Can change customer',11,'change_customer'),(43,'Can delete customer',11,'delete_customer'),(44,'Can view customer',11,'view_customer'),(45,'Can add customer preference',12,'add_customerpreference'),(46,'Can change customer preference',12,'change_customerpreference'),(47,'Can delete customer preference',12,'delete_customerpreference'),(48,'Can view customer preference',12,'view_customerpreference'),(49,'Can add feedback',13,'add_feedback'),(50,'Can change feedback',13,'change_feedback'),(51,'Can delete feedback',13,'delete_feedback'),(52,'Can view feedback',13,'view_feedback'),(53,'Can add survey',14,'add_survey'),(54,'Can change survey',14,'change_survey'),(55,'Can delete survey',14,'delete_survey'),(56,'Can view survey',14,'view_survey'),(57,'Can add survey question',15,'add_surveyquestion'),(58,'Can change survey question',15,'change_surveyquestion'),(59,'Can delete survey question',15,'delete_surveyquestion'),(60,'Can view survey question',15,'view_surveyquestion'),(61,'Can add survey option',16,'add_surveyoption'),(62,'Can change survey option',16,'change_surveyoption'),(63,'Can delete survey option',16,'delete_surveyoption'),(64,'Can view survey option',16,'view_surveyoption'),(65,'Can add survey recipient',17,'add_surveyrecipient'),(66,'Can change survey recipient',17,'change_surveyrecipient'),(67,'Can delete survey recipient',17,'delete_surveyrecipient'),(68,'Can view survey recipient',17,'view_surveyrecipient'),(69,'Can add survey response',18,'add_surveyresponse'),(70,'Can change survey response',18,'change_surveyresponse'),(71,'Can delete survey response',18,'delete_surveyresponse'),(72,'Can view survey response',18,'view_surveyresponse'),(73,'Can add survey answer',19,'add_surveyanswer'),(74,'Can change survey answer',19,'change_surveyanswer'),(75,'Can delete survey answer',19,'delete_surveyanswer'),(76,'Can view survey answer',19,'view_surveyanswer'),(77,'Can add role',20,'add_role'),(78,'Can change role',20,'change_role'),(79,'Can delete role',20,'delete_role'),(80,'Can view role',20,'view_role'),(81,'Can add admin',21,'add_admin'),(82,'Can change admin',21,'change_admin'),(83,'Can delete admin',21,'delete_admin'),(84,'Can view admin',21,'view_admin'),(85,'Can add staff',22,'add_staff'),(86,'Can change staff',22,'change_staff'),(87,'Can delete staff',22,'delete_staff'),(88,'Can view staff',22,'view_staff');
 /*!40000 ALTER TABLE `auth_permission` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -317,6 +348,88 @@ INSERT INTO `customers` VALUES (1,'Demo customer',NULL,NULL,NULL,NULL,NULL,'ACTI
 UNLOCK TABLES;
 
 --
+-- Table structure for table `admins`
+--
+
+DROP TABLE IF EXISTS `admins`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admins` (
+  `admin_id` int NOT NULL AUTO_INCREMENT,
+  `account_id` int NOT NULL,
+  `admin_code` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `full_name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `gender` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `address` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`admin_id`),
+  UNIQUE KEY `uq_admins_account_id` (`account_id`),
+  UNIQUE KEY `uq_admins_code` (`admin_code`),
+  KEY `idx_admins_full_name` (`full_name`),
+  KEY `idx_admins_phone` (`phone`),
+  KEY `idx_admins_status` (`status`),
+  CONSTRAINT `fk_admins_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`account_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `chk_admins_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'INACTIVE')))
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `admins`
+--
+
+LOCK TABLES `admins` WRITE;
+/*!40000 ALTER TABLE `admins` DISABLE KEYS */;
+INSERT INTO `admins` VALUES (1,1,'AD0001','Nguyễn Văn Quản Trị','0901000001','1985-05-15','MALE','123 Lê Lợi, Quận 1, TP. Hồ Chí Minh','ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14'),(2,43,'AD0002','Trần Thị Hồng Phúc','0901000002','1988-10-20','FEMALE','456 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh','ACTIVE','2026-10-19 08:00:00','2026-10-19 08:00:00');
+/*!40000 ALTER TABLE `admins` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `staffs`
+--
+
+DROP TABLE IF EXISTS `staffs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `staffs` (
+  `staff_id` int NOT NULL AUTO_INCREMENT,
+  `account_id` int NOT NULL,
+  `staff_code` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `full_name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `gender` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `address` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `position` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'MANAGER',
+  `hire_date` date DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`staff_id`),
+  UNIQUE KEY `uq_staffs_account_id` (`account_id`),
+  UNIQUE KEY `uq_staffs_code` (`staff_code`),
+  KEY `idx_staffs_full_name` (`full_name`),
+  KEY `idx_staffs_phone` (`phone`),
+  KEY `idx_staffs_status` (`status`),
+  CONSTRAINT `fk_staffs_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`account_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `chk_staffs_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'INACTIVE')))
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `staffs`
+--
+
+LOCK TABLES `staffs` WRITE;
+/*!40000 ALTER TABLE `staffs` DISABLE KEYS */;
+INSERT INTO `staffs` VALUES (1,44,'ST0001','Lê Hoàng Nam','0902000001','1992-03-12','MALE','789 Điện Biên Phủ, Bình Thạnh, TP. Hồ Chí Minh','MANAGER','2023-01-15','ACTIVE','2026-10-19 08:00:00','2026-10-19 08:00:00'),(2,45,'ST0002','Phạm Thu Hà','0902000002','1994-07-25','FEMALE','101 Võ Thị Sáu, Quận 3, TP. Hồ Chí Minh','MANAGER','2023-06-01','ACTIVE','2026-10-19 08:00:00','2026-10-19 08:00:00'),(3,46,'ST0003','Đặng Minh Tuấn','0902000003','1991-11-08','MALE','202 Cách Mạng Tháng 8, Quận 10, TP. Hồ Chí Minh','MANAGER','2024-02-10','ACTIVE','2026-10-19 08:00:00','2026-10-19 08:00:00');
+/*!40000 ALTER TABLE `staffs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `django_admin_log`
 --
 
@@ -363,7 +476,7 @@ CREATE TABLE `django_content_type` (
   `model` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `django_content_type_app_label_model_76bd3d3b_uniq` (`app_label`,`model`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -372,7 +485,7 @@ CREATE TABLE `django_content_type` (
 
 LOCK TABLES `django_content_type` WRITE;
 /*!40000 ALTER TABLE `django_content_type` DISABLE KEYS */;
-INSERT INTO `django_content_type` VALUES (6,'accounts','account'),(1,'admin','logentry'),(3,'auth','group'),(2,'auth','permission'),(7,'catalog','brand'),(8,'catalog','category'),(10,'catalog','product'),(9,'catalog','supplier'),(4,'contenttypes','contenttype'),(11,'customers','customer'),(12,'customers','customerpreference'),(13,'feedback','feedback'),(5,'sessions','session'),(14,'surveys','survey'),(19,'surveys','surveyanswer'),(16,'surveys','surveyoption'),(15,'surveys','surveyquestion'),(17,'surveys','surveyrecipient'),(18,'surveys','surveyresponse');
+INSERT INTO `django_content_type` VALUES (6,'accounts','account'),(21,'accounts','admin'),(20,'accounts','role'),(22,'accounts','staff'),(1,'admin','logentry'),(3,'auth','group'),(2,'auth','permission'),(7,'catalog','brand'),(8,'catalog','category'),(10,'catalog','product'),(4,'contenttypes','contenttype'),(11,'customers','customer'),(12,'customers','customerpreference'),(13,'feedback','feedback'),(5,'sessions','session'),(14,'surveys','survey'),(19,'surveys','surveyanswer'),(16,'surveys','surveyoption'),(15,'surveys','surveyquestion'),(17,'surveys','surveyrecipient'),(18,'surveys','surveyresponse');
 /*!40000 ALTER TABLE `django_content_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -389,7 +502,7 @@ CREATE TABLE `django_migrations` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `applied` datetime(6) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -398,7 +511,7 @@ CREATE TABLE `django_migrations` (
 
 LOCK TABLES `django_migrations` WRITE;
 /*!40000 ALTER TABLE `django_migrations` DISABLE KEYS */;
-INSERT INTO `django_migrations` VALUES (1,'contenttypes','0001_initial','2026-10-16 08:20:08.686117'),(2,'contenttypes','0002_remove_content_type_name','2026-10-16 08:20:08.749661'),(3,'auth','0001_initial','2026-10-16 08:20:08.967706'),(4,'auth','0002_alter_permission_name_max_length','2026-10-16 08:20:09.004704'),(5,'auth','0003_alter_user_email_max_length','2026-10-16 08:20:09.009707'),(6,'auth','0004_alter_user_username_opts','2026-10-16 08:20:09.012713'),(7,'auth','0005_alter_user_last_login_null','2026-10-16 08:20:09.015712'),(8,'auth','0006_require_contenttypes_0002','2026-10-16 08:20:09.016712'),(9,'auth','0007_alter_validators_add_error_messages','2026-10-16 08:20:09.020708'),(10,'auth','0008_alter_user_username_max_length','2026-10-16 08:20:09.024713'),(11,'auth','0009_alter_user_last_name_max_length','2026-10-16 08:20:09.027716'),(12,'auth','0010_alter_group_name_max_length','2026-10-16 08:20:09.033715'),(13,'auth','0011_update_proxy_permissions','2026-10-16 08:20:09.036708'),(14,'auth','0012_alter_user_first_name_max_length','2026-10-16 08:20:09.040708'),(15,'accounts','0001_initial','2026-10-16 08:20:09.220339'),(16,'accounts','0002_remove_account_chk_accounts_role_alter_account_role_and_more','2026-10-16 08:20:09.266874'),(17,'admin','0001_initial','2026-10-16 08:20:09.343261'),(18,'admin','0002_logentry_remove_auto_add','2026-10-16 08:20:09.347266'),(19,'admin','0003_logentry_add_action_flag_choices','2026-10-16 08:20:09.350265'),(20,'catalog','0001_initial','2026-10-16 08:20:09.511780'),(21,'catalog','0002_product_image_url','2026-10-16 08:20:09.543002'),(22,'customers','0001_initial','2026-10-16 08:20:09.636010'),(23,'feedback','0001_initial','2026-10-16 08:20:09.797085'),(24,'sessions','0001_initial','2026-10-16 08:20:09.817090'),(25,'surveys','0001_initial','2026-10-16 08:20:10.288699'),(26,'surveys','0002_schema_contract','2026-10-16 08:20:12.611366');
+INSERT INTO `django_migrations` VALUES (1,'contenttypes','0001_initial','2026-10-16 08:20:08.686117'),(2,'contenttypes','0002_remove_content_type_name','2026-10-16 08:20:08.749661'),(3,'auth','0001_initial','2026-10-16 08:20:08.967706'),(4,'auth','0002_alter_permission_name_max_length','2026-10-16 08:20:09.004704'),(5,'auth','0003_alter_user_email_max_length','2026-10-16 08:20:09.009707'),(6,'auth','0004_alter_user_username_opts','2026-10-16 08:20:09.012713'),(7,'auth','0005_alter_user_last_login_null','2026-10-16 08:20:09.015712'),(8,'auth','0006_require_contenttypes_0002','2026-10-16 08:20:09.016712'),(9,'auth','0007_alter_validators_add_error_messages','2026-10-16 08:20:09.020708'),(10,'auth','0008_alter_user_username_max_length','2026-10-16 08:20:09.024713'),(11,'auth','0009_alter_user_last_name_max_length','2026-10-16 08:20:09.027716'),(12,'auth','0010_alter_group_name_max_length','2026-10-16 08:20:09.033715'),(13,'auth','0011_update_proxy_permissions','2026-10-16 08:20:09.036708'),(14,'auth','0012_alter_user_first_name_max_length','2026-10-16 08:20:09.040708'),(15,'accounts','0001_initial','2026-10-16 08:20:09.220339'),(16,'accounts','0002_remove_account_chk_accounts_role_alter_account_role_and_more','2026-10-16 08:20:09.266874'),(17,'admin','0001_initial','2026-10-16 08:20:09.343261'),(18,'admin','0002_logentry_remove_auto_add','2026-10-16 08:20:09.347266'),(19,'admin','0003_logentry_add_action_flag_choices','2026-10-16 08:20:09.350265'),(20,'catalog','0001_initial','2026-10-16 08:20:09.511780'),(21,'catalog','0002_product_image_url','2026-10-16 08:20:09.543002'),(22,'customers','0001_initial','2026-10-16 08:20:09.636010'),(23,'feedback','0001_initial','2026-10-16 08:20:09.797085'),(24,'sessions','0001_initial','2026-10-16 08:20:09.817090'),(25,'surveys','0001_initial','2026-10-16 08:20:10.288699'),(26,'surveys','0002_schema_contract','2026-10-16 08:20:12.611366'),(27,'accounts','0003_role_admin_staff','2026-10-19 15:30:00.000000'),(28,'catalog','0003_remove_product_supplier_delete_supplier','2026-10-19 15:30:00.000000');
 /*!40000 ALTER TABLE `django_migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -486,18 +599,15 @@ CREATE TABLE `products` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `brand_id` int NOT NULL,
   `category_id` int NOT NULL,
-  `supplier_id` int NOT NULL,
   `image_url` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`product_id`),
   KEY `idx_products_category` (`category_id`),
   KEY `idx_products_brand` (`brand_id`),
-  KEY `idx_products_supplier` (`supplier_id`),
   KEY `idx_products_name` (`product_name`),
   KEY `idx_products_status` (`status`),
   KEY `idx_products_price` (`price`),
   CONSTRAINT `fk_products_brand` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`brand_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_products_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`supplier_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `chk_products_price` CHECK ((`price` >= 0)),
   CONSTRAINT `chk_products_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'INACTIVE')))
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -509,43 +619,8 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,'Demo racket 1',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,1,''),(2,'Demo racket 2',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,2,''),(3,'Demo racket 3',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,3,''),(4,'Demo racket 4',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,4,''),(5,'Demo racket 5',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,5,''),(6,'Demo racket 6',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,6,''),(7,'Demo racket 7',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,7,''),(8,'Demo racket 8',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,8,'');
+INSERT INTO `products` VALUES (1,'Demo racket 1',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,''),(2,'Demo racket 2',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,''),(3,'Demo racket 3',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,''),(4,'Demo racket 4',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,''),(5,'Demo racket 5',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,''),(6,'Demo racket 6',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,''),(7,'Demo racket 7',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,''),(8,'Demo racket 8',NULL,100000.00,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14',1,1,'');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `suppliers`
---
-
-DROP TABLE IF EXISTS `suppliers`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `suppliers` (
-  `supplier_id` int NOT NULL AUTO_INCREMENT,
-  `supplier_code` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `supplier_name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `address` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`supplier_id`),
-  UNIQUE KEY `uq_suppliers_code` (`supplier_code`),
-  KEY `idx_suppliers_name` (`supplier_name`),
-  KEY `idx_suppliers_status` (`status`),
-  CONSTRAINT `chk_suppliers_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'INACTIVE')))
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `suppliers`
---
-
-LOCK TABLES `suppliers` WRITE;
-/*!40000 ALTER TABLE `suppliers` DISABLE KEYS */;
-INSERT INTO `suppliers` VALUES (1,'SUP001','Yonex Vietnam',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14'),(2,'SUP002','Lining Sports',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14'),(3,'SUP003','Victor Distribution',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14'),(4,'SUP004','Mizuno Sports',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14'),(5,'SUP005','Kawasaki Badminton',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14'),(6,'SUP006','Apacs Vietnam',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14'),(7,'SUP007','Fleet Sports',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14'),(8,'SUP008','Protech Badminton',NULL,NULL,NULL,'ACTIVE','2026-10-16 08:20:14','2026-10-16 08:20:14');
-/*!40000 ALTER TABLE `suppliers` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -753,7 +828,6 @@ UNLOCK TABLES;
 -- Dan khoi nay ngay TRUOC dong: /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 SET FOREIGN_KEY_CHECKS=0;
 DELETE FROM `products`;
-DELETE FROM `suppliers`;
 DELETE FROM `categories`;
 DELETE FROM `brands`;
 
@@ -783,68 +857,51 @@ REPLACE INTO `categories` VALUES (9,'Badminton apparel','Quần áo cầu lông'
 UNLOCK TABLES;
 
 --
--- Dumping data for table `suppliers`
---
-
-LOCK TABLES `suppliers` WRITE;
-/*!40000 ALTER TABLE `suppliers` DISABLE KEYS */;
-REPLACE INTO `suppliers` VALUES (1,'SUP001','Yonex Vietnam',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
-REPLACE INTO `suppliers` VALUES (2,'SUP002','Lining Sports',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
-REPLACE INTO `suppliers` VALUES (3,'SUP003','Victor Distribution',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
-REPLACE INTO `suppliers` VALUES (4,'SUP004','Mizuno Sports',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
-REPLACE INTO `suppliers` VALUES (5,'SUP005','Kawasaki Badminton',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
-REPLACE INTO `suppliers` VALUES (6,'SUP006','Apacs Vietnam',NULL,NULL,NULL,'INACTIVE','2026-10-05 09:47:24','2026-10-09 10:23:36');
-REPLACE INTO `suppliers` VALUES (7,'SUP007','Fleet Sports',NULL,NULL,NULL,'ACTIVE','2026-10-05 09:47:24','2026-10-05 09:47:24');
-REPLACE INTO `suppliers` VALUES (8,'SUP008','Protech Badminton',NULL,NULL,NULL,'INACTIVE','2026-10-05 09:47:24','2026-10-09 10:21:50');
-/*!40000 ALTER TABLE `suppliers` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Dumping data for table `products`
 --
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-REPLACE INTO `products` VALUES (78,'Yonex Astrox 88D Pro','Vợt thiên công, đầu nặng, hợp đánh đôi nam cuối sân',4200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:03:34',3,1,1,'https://i.imgur.com/Xs2XCJ6.jpeg');
-REPLACE INTO `products` VALUES (79,'Yonex Astrox 99 Pro','Vợt thiên công, đầu nặng, lực đập mạnh',4300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:10:38',3,1,1,'https://i.imgur.com/XFEFPT0.jpeg');
-REPLACE INTO `products` VALUES (80,'Yonex Arcsaber 11 Pro','Vợt cân bằng, kiểm soát cầu tốt',3800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:12:16',3,1,1,'https://i.imgur.com/9msX3aJ.jpeg');
-REPLACE INTO `products` VALUES (81,'Yonex Nanoflare 800 Pro','Vợt thiên tốc độ, đầu nhẹ, phản hồi nhanh',4000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:13:50',3,1,1,'https://i.imgur.com/8mCquG1.jpeg');
-REPLACE INTO `products` VALUES (82,'Yonex Duora 10','Vợt hai đầu, linh hoạt công thủ',3500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:13:40',3,1,1,'https://i.imgur.com/juLsHih.jpeg');
-REPLACE INTO `products` VALUES (83,'Yonex Power Cushion 65 Z3','Giày đệm êm, bám sân tốt',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:15:11',3,6,1,'https://i.imgur.com/GFxsPzr.jpeg');
-REPLACE INTO `products` VALUES (84,'Yonex Aerosensa 50','Cầu lông vũ thi đấu, hộp 12 quả',950000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:15:49',3,5,1,'https://i.imgur.com/6KdFcrG.jpeg');
-REPLACE INTO `products` VALUES (85,'Yonex Áo thi đấu nam','Áo thun thoáng khí cho thi đấu',650000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:16:26',3,9,1,'https://i.imgur.com/d2wCZYO.jpeg');
-REPLACE INTO `products` VALUES (86,'Lining Axforce 80','Vợt thiên công, khung cứng',3300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:17:23',4,1,2,'https://i.imgur.com/e0z4dBv.jpeg');
-REPLACE INTO `products` VALUES (87,'Lining Windstorm 72','Vợt nhẹ, linh hoạt, phù hợp người mới chơi',1900000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:18:07',4,1,2,'https://i.imgur.com/NjODJwE.jpeg');
-REPLACE INTO `products` VALUES (88,'Lining Aeronaut 9000','Vợt thiên công, đầu nặng',4000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:31',4,1,2,'https://i.imgur.com/93F6k1G.jpeg');
-REPLACE INTO `products` VALUES (89,'Lining Turbocharging 75','Vợt thiên tốc độ, nhẹ',2400000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:20:18',4,1,2,'https://i.imgur.com/NqFuEKf.jpeg');
-REPLACE INTO `products` VALUES (90,'Lining Bladex 900','Vợt cân bằng, bền',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:20:47',4,1,2,'https://i.imgur.com/CPs0pT4.jpeg');
-REPLACE INTO `products` VALUES (91,'Lining Saga II','Giày nhẹ, hỗ trợ di chuyển nhanh',1800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:21:23',4,6,2,'https://i.imgur.com/d5oihyp.jpeg');
-REPLACE INTO `products` VALUES (92,'Lining A+60','Cầu lông vũ tập luyện, hộp 12 quả',700000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:22:28',4,5,2,'https://i.imgur.com/Wu1mNuH.jpeg');
-REPLACE INTO `products` VALUES (93,'Lining Áo thi đấu nam','Áo thun thoáng khí, co giãn',450000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:22:38',4,9,2,'https://i.imgur.com/NFacQwV.jpeg');
-REPLACE INTO `products` VALUES (94,'Victor Auraspeed 90S','Vợt tốc độ, đầu nhẹ',3300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:23:33',5,1,3,'https://i.imgur.com/cjyx7bK.jpeg');
-REPLACE INTO `products` VALUES (95,'Victor Thruster Ryuga II','Vợt thiên công, đầu nặng',3600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:24:16',5,1,3,'https://i.imgur.com/uFe7miv.jpeg');
-REPLACE INTO `products` VALUES (96,'Victor Jetspeed S 12','Vợt tốc độ, đầu nhẹ',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:24:52',5,1,3,'https://i.imgur.com/LxQnsJ4.jpeg');
-REPLACE INTO `products` VALUES (97,'Victor Drive X 9X','Vợt cân bằng, đa dụng',3100000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:25:45',5,1,3,'https://i.imgur.com/AY9sy0U.jpeg');
-REPLACE INTO `products` VALUES (98,'Victor Brave Sword 12','Vợt thiên công, dễ kiểm soát',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:13',5,1,3,'https://i.imgur.com/wjB6oWu.jpeg');
-REPLACE INTO `products` VALUES (99,'Victor P9200','Giày ổn định, hỗ trợ cổ chân',2500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:55',5,6,3,'https://i.imgur.com/hl6DGNB.jpeg');
-REPLACE INTO `products` VALUES (100,'Victor Gold No.1','Cầu lông vũ, hộp 12 quả',800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:43',5,5,3,'https://i.imgur.com/WUR6gNc.jpeg');
-REPLACE INTO `products` VALUES (101,'Victor Áo thi đấu nam','Áo thun thoáng khí cho thi đấu',500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:31',5,9,3,'https://i.imgur.com/WrFioUJ.jpeg');
-REPLACE INTO `products` VALUES (102,'Mizuno Fortius 10 Quick','Vợt thiên tốc độ, đầu nhẹ',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:28:57',6,1,4,'https://i.imgur.com/HXpI9bt.jpeg');
-REPLACE INTO `products` VALUES (103,'Mizuno Fortius 30 Power','Vợt thiên công, đầu nặng',3000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:30:04',6,1,4,'https://i.imgur.com/xu5HUQn.jpeg');
-REPLACE INTO `products` VALUES (104,'Mizuno Altius 01 Speed','Vợt nhẹ, linh hoạt',2500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:30:35',6,1,4,'https://i.imgur.com/GsttcMO.jpeg');
-REPLACE INTO `products` VALUES (105,'Mizuno Altius 03 Feel','Vợt cân bằng, cảm giác cầu tốt',2600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:31:53',6,1,4,'https://i.imgur.com/vaAtEUX.jpeg');
-REPLACE INTO `products` VALUES (106,'Mizuno Acrospeed 5.0','Vợt tầm trung cho người mới',1800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:32:22',6,1,4,'https://i.imgur.com/4c4orId.jpeg');
-REPLACE INTO `products` VALUES (107,'Mizuno Wave Claw 2','Giày nhẹ, linh hoạt',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:49',6,6,4,'https://i.imgur.com/WSROf0I.jpeg');
-REPLACE INTO `products` VALUES (108,'Mizuno Cầu tập luyện','Cầu tập luyện, hộp 12 quả',600000.00,'INACTIVE','2026-10-14 10:04:21','2026-10-14 15:33:37',6,5,4,'');
-REPLACE INTO `products` VALUES (109,'Mizuno Áo thi đấu nam','Áo thun thoáng khí, thấm hút tốt',450000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:59:09',6,9,4,'https://i.imgur.com/aOJdEMv.jpeg');
-REPLACE INTO `products` VALUES (110,'Apacs Nano Fusion Speed 722','Vợt tầm trung, thiên tốc độ',2200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:35:59',7,1,6,'https://i.imgur.com/DtsE3lD.jpeg');
-REPLACE INTO `products` VALUES (111,'Apacs Feather Weight 55','Vợt siêu nhẹ cho người mới',1600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:36:38',7,1,6,'https://i.imgur.com/t9Ovk0U.jpeg');
-REPLACE INTO `products` VALUES (112,'Apacs Z-Ziggler','Vợt thiên công, cứng',2400000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:37:15',7,1,6,'https://i.imgur.com/6yXd346.jpeg');
-REPLACE INTO `products` VALUES (113,'Apacs Edgesaber 10','Vợt cân bằng, đa dụng',2000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:37:59',7,1,6,'https://i.imgur.com/jv3ufh2.jpeg');
-REPLACE INTO `products` VALUES (114,'Apacs Virtuoso Pro','Vợt thiên tốc độ, nhẹ',2300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:38:36',7,1,6,'https://i.imgur.com/02l3P1e.jpeg');
-REPLACE INTO `products` VALUES (115,'Apacs Cushion Pro','Giày đệm êm cho tập luyện',1500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:39:23',7,6,6,'https://i.imgur.com/eCAtV3F.jpeg');
-REPLACE INTO `products` VALUES (116,'Apacs Cầu lông vũ','Cầu lông vũ, hộp 12 quả',650000.00,'INACTIVE','2026-10-14 10:04:21','2026-10-14 15:40:09',7,5,6,'');
-REPLACE INTO `products` VALUES (117,'Apacs Áo thi đấu nam','Áo thun thoáng khí cho tập luyện',350000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:41:18',7,9,6,'https://i.imgur.com/uES1S6c.jpeg');
+REPLACE INTO `products` VALUES (78,'Yonex Astrox 88D Pro','Vợt thiên công, đầu nặng, hợp đánh đôi nam cuối sân',4200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:03:34',3,1,'https://i.imgur.com/Xs2XCJ6.jpeg');
+REPLACE INTO `products` VALUES (79,'Yonex Astrox 99 Pro','Vợt thiên công, đầu nặng, lực đập mạnh',4300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:10:38',3,1,'https://i.imgur.com/XFEFPT0.jpeg');
+REPLACE INTO `products` VALUES (80,'Yonex Arcsaber 11 Pro','Vợt cân bằng, kiểm soát cầu tốt',3800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:12:16',3,1,'https://i.imgur.com/9msX3aJ.jpeg');
+REPLACE INTO `products` VALUES (81,'Yonex Nanoflare 800 Pro','Vợt thiên tốc độ, đầu nhẹ, phản hồi nhanh',4000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:13:50',3,1,'https://i.imgur.com/8mCquG1.jpeg');
+REPLACE INTO `products` VALUES (82,'Yonex Duora 10','Vợt hai đầu, linh hoạt công thủ',3500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:13:40',3,1,'https://i.imgur.com/juLsHih.jpeg');
+REPLACE INTO `products` VALUES (83,'Yonex Power Cushion 65 Z3','Giày đệm êm, bám sân tốt',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:15:11',3,6,'https://i.imgur.com/GFxsPzr.jpeg');
+REPLACE INTO `products` VALUES (84,'Yonex Aerosensa 50','Cầu lông vũ thi đấu, hộp 12 quả',950000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:15:49',3,5,'https://i.imgur.com/6KdFcrG.jpeg');
+REPLACE INTO `products` VALUES (85,'Yonex Áo thi đấu nam','Áo thun thoáng khí cho thi đấu',650000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:16:26',3,9,'https://i.imgur.com/d2wCZYO.jpeg');
+REPLACE INTO `products` VALUES (86,'Lining Axforce 80','Vợt thiên công, khung cứng',3300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:17:23',4,1,'https://i.imgur.com/e0z4dBv.jpeg');
+REPLACE INTO `products` VALUES (87,'Lining Windstorm 72','Vợt nhẹ, linh hoạt, phù hợp người mới chơi',1900000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:18:07',4,1,'https://i.imgur.com/NjODJwE.jpeg');
+REPLACE INTO `products` VALUES (88,'Lining Aeronaut 9000','Vợt thiên công, đầu nặng',4000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:31',4,1,'https://i.imgur.com/93F6k1G.jpeg');
+REPLACE INTO `products` VALUES (89,'Lining Turbocharging 75','Vợt thiên tốc độ, nhẹ',2400000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:20:18',4,1,'https://i.imgur.com/NqFuEKf.jpeg');
+REPLACE INTO `products` VALUES (90,'Lining Bladex 900','Vợt cân bằng, bền',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:20:47',4,1,'https://i.imgur.com/CPs0pT4.jpeg');
+REPLACE INTO `products` VALUES (91,'Lining Saga II','Giày nhẹ, hỗ trợ di chuyển nhanh',1800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:21:23',4,6,'https://i.imgur.com/d5oihyp.jpeg');
+REPLACE INTO `products` VALUES (92,'Lining A+60','Cầu lông vũ tập luyện, hộp 12 quả',700000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:22:28',4,5,'https://i.imgur.com/Wu1mNuH.jpeg');
+REPLACE INTO `products` VALUES (93,'Lining Áo thi đấu nam','Áo thun thoáng khí, co giãn',450000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:22:38',4,9,'https://i.imgur.com/NFacQwV.jpeg');
+REPLACE INTO `products` VALUES (94,'Victor Auraspeed 90S','Vợt tốc độ, đầu nhẹ',3300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:23:33',5,1,'https://i.imgur.com/cjyx7bK.jpeg');
+REPLACE INTO `products` VALUES (95,'Victor Thruster Ryuga II','Vợt thiên công, đầu nặng',3600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:24:16',5,1,'https://i.imgur.com/uFe7miv.jpeg');
+REPLACE INTO `products` VALUES (96,'Victor Jetspeed S 12','Vợt tốc độ, đầu nhẹ',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:24:52',5,1,'https://i.imgur.com/LxQnsJ4.jpeg');
+REPLACE INTO `products` VALUES (97,'Victor Drive X 9X','Vợt cân bằng, đa dụng',3100000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:25:45',5,1,'https://i.imgur.com/AY9sy0U.jpeg');
+REPLACE INTO `products` VALUES (98,'Victor Brave Sword 12','Vợt thiên công, dễ kiểm soát',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:13',5,1,'https://i.imgur.com/wjB6oWu.jpeg');
+REPLACE INTO `products` VALUES (99,'Victor P9200','Giày ổn định, hỗ trợ cổ chân',2500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:55',5,6,'https://i.imgur.com/hl6DGNB.jpeg');
+REPLACE INTO `products` VALUES (100,'Victor Gold No.1','Cầu lông vũ, hộp 12 quả',800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:43',5,5,'https://i.imgur.com/WUR6gNc.jpeg');
+REPLACE INTO `products` VALUES (101,'Victor Áo thi đấu nam','Áo thun thoáng khí cho thi đấu',500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:27:31',5,9,'https://i.imgur.com/WrFioUJ.jpeg');
+REPLACE INTO `products` VALUES (102,'Mizuno Fortius 10 Quick','Vợt thiên tốc độ, đầu nhẹ',2800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:28:57',6,1,'https://i.imgur.com/HXpI9bt.jpeg');
+REPLACE INTO `products` VALUES (103,'Mizuno Fortius 30 Power','Vợt thiên công, đầu nặng',3000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:30:04',6,1,'https://i.imgur.com/xu5HUQn.jpeg');
+REPLACE INTO `products` VALUES (104,'Mizuno Altius 01 Speed','Vợt nhẹ, linh hoạt',2500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:30:35',6,1,'https://i.imgur.com/GsttcMO.jpeg');
+REPLACE INTO `products` VALUES (105,'Mizuno Altius 03 Feel','Vợt cân bằng, cảm giác cầu tốt',2600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:31:53',6,1,'https://i.imgur.com/vaAtEUX.jpeg');
+REPLACE INTO `products` VALUES (106,'Mizuno Acrospeed 5.0','Vợt tầm trung cho người mới',1800000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:32:22',6,1,'https://i.imgur.com/4c4orId.jpeg');
+REPLACE INTO `products` VALUES (107,'Mizuno Wave Claw 2','Giày nhẹ, linh hoạt',3200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 16:17:49',6,6,'https://i.imgur.com/WSROf0I.jpeg');
+REPLACE INTO `products` VALUES (108,'Mizuno Cầu tập luyện','Cầu tập luyện, hộp 12 quả',600000.00,'INACTIVE','2026-10-14 10:04:21','2026-10-14 15:33:37',6,5,'');
+REPLACE INTO `products` VALUES (109,'Mizuno Áo thi đấu nam','Áo thun thoáng khí, thấm hút tốt',450000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:59:09',6,9,'https://i.imgur.com/aOJdEMv.jpeg');
+REPLACE INTO `products` VALUES (110,'Apacs Nano Fusion Speed 722','Vợt tầm trung, thiên tốc độ',2200000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:35:59',7,1,'https://i.imgur.com/DtsE3lD.jpeg');
+REPLACE INTO `products` VALUES (111,'Apacs Feather Weight 55','Vợt siêu nhẹ cho người mới',1600000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:36:38',7,1,'https://i.imgur.com/t9Ovk0U.jpeg');
+REPLACE INTO `products` VALUES (112,'Apacs Z-Ziggler','Vợt thiên công, cứng',2400000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:37:15',7,1,'https://i.imgur.com/6yXd346.jpeg');
+REPLACE INTO `products` VALUES (113,'Apacs Edgesaber 10','Vợt cân bằng, đa dụng',2000000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:37:59',7,1,'https://i.imgur.com/jv3ufh2.jpeg');
+REPLACE INTO `products` VALUES (114,'Apacs Virtuoso Pro','Vợt thiên tốc độ, nhẹ',2300000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:38:36',7,1,'https://i.imgur.com/02l3P1e.jpeg');
+REPLACE INTO `products` VALUES (115,'Apacs Cushion Pro','Giày đệm êm cho tập luyện',1500000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:39:23',7,6,'https://i.imgur.com/eCAtV3F.jpeg');
+REPLACE INTO `products` VALUES (116,'Apacs Cầu lông vũ','Cầu lông vũ, hộp 12 quả',650000.00,'INACTIVE','2026-10-14 10:04:21','2026-10-14 15:40:09',7,5,'');
+REPLACE INTO `products` VALUES (117,'Apacs Áo thi đấu nam','Áo thun thoáng khí cho tập luyện',350000.00,'ACTIVE','2026-10-14 10:04:21','2026-10-14 15:41:18',7,9,'https://i.imgur.com/uES1S6c.jpeg');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 

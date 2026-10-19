@@ -22,16 +22,31 @@
     {% if page_obj.object_list %}
     <div class="table-responsive">
       <table class="table portal-table align-middle mb-0">
-        <thead><tr><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Last Login</th><th scope="col">Created At</th><th scope="col">Actions</th></tr></thead>
+        <thead><tr><th scope="col">Account</th><th scope="col">Profile Name</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Last Login</th><th scope="col">Created At</th><th scope="col">Actions</th></tr></thead>
         <tbody>
           {% for account in page_obj.object_list %}
           <tr>
-            <td><span class="fw-semibold">{{ account.email }}</span><br><small class="text-muted">ID {{ account.account_id }}</small></td>
+            <td>
+              <a href="{% url 'accounts_admin:detail' account.account_id %}" class="fw-semibold text-decoration-none">{{ account.email }}</a>
+              <br>
+              <small class="text-muted">
+                ID {{ account.account_id }}
+                {% if account.code %} · <span class="badge text-bg-light border">{{ account.code }}</span>{% endif %}
+              </small>
+            </td>
+            <td>
+              {% if account.full_name %}
+                <span class="fw-medium">{{ account.full_name }}</span>
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
             <td><span class="portal-badge role-{{ account.role|lower }}">{{ account.role }}</span></td>
             <td><span class="portal-badge status-{{ account.status|lower }}">{{ account.status }}</span></td>
             <td>{{ account.last_login_at|date:"Y-m-d H:i"|default:"Never" }}</td>
             <td>{{ account.created_at|date:"Y-m-d" }}</td>
             <td class="portal-actions">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts_admin:detail' account.account_id %}">Detail</a>
               <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#roleModal" data-account-email="{{ account.email }}" data-role-url="{% url 'accounts_admin:role' account.account_id %}" data-account-role="{{ account.role }}">Change Role</button>
               <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#resetModal" data-account-email="{{ account.email }}" data-reset-url="{% url 'accounts_admin:reset_password' account.account_id %}">Reset Password</button>
               {% if account.status == 'ACTIVE' %}
@@ -59,15 +74,32 @@
 </section>
 
 <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalTitle" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
     <form method="post" action="{% url 'accounts_admin:create' %}" novalidate>{% csrf_token %}
-      <div class="modal-header"><h2 class="modal-title h5" id="createModalTitle">Create Account</h2></div>
+      <div class="modal-header"><h2 class="modal-title h5" id="createModalTitle">Create Account</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
       <div class="modal-body">
         {% if create_form.non_field_errors %}<div class="alert alert-danger">{{ create_form.non_field_errors }}</div>{% endif %}
         <div class="mb-3"><label class="form-label" for="id_email">Email</label>{{ create_form.email }}{{ create_form.email.errors }}</div>
         <div class="row g-3 mb-3"><div class="col-6"><label class="form-label" for="id_create_role">Role</label>{{ create_form.role }}{{ create_form.role.errors }}</div><div class="col-6"><label class="form-label" for="id_create_status">Status</label>{{ create_form.status }}{{ create_form.status.errors }}</div></div>
-        <div class="mb-3"><label class="form-label" for="id_password">Password</label>{{ create_form.password }}{{ create_form.password.errors }}</div>
-        <div><label class="form-label" for="id_password_confirm">Confirm Password</label>{{ create_form.password_confirm }}{{ create_form.password_confirm.errors }}</div>
+        <div class="row g-3 mb-3">
+          <div class="col-6"><label class="form-label" for="id_password">Password</label>{{ create_form.password }}{{ create_form.password.errors }}</div>
+          <div class="col-6"><label class="form-label" for="id_password_confirm">Confirm Password</label>{{ create_form.password_confirm }}{{ create_form.password_confirm.errors }}</div>
+        </div>
+        <hr class="my-3">
+        <p class="text-muted small text-uppercase fw-semibold mb-2">Profile Information (Optional)</p>
+        <div class="mb-3"><label class="form-label" for="id_full_name">Full Name</label>{{ create_form.full_name }}{{ create_form.full_name.errors }}</div>
+        <div class="row g-3 mb-3">
+          <div class="col-6"><label class="form-label" for="id_phone">Phone</label>{{ create_form.phone }}</div>
+          <div class="col-6"><label class="form-label" for="id_gender">Gender</label>{{ create_form.gender }}</div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-6"><label class="form-label" for="id_date_of_birth">Date of Birth</label>{{ create_form.date_of_birth }}</div>
+          <div class="col-6"><label class="form-label" for="id_address">Address</label>{{ create_form.address }}</div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-6"><label class="form-label" for="id_position">Position (Manager)</label>{{ create_form.position }}</div>
+          <div class="col-6"><label class="form-label" for="id_hire_date">Hire Date</label>{{ create_form.hire_date }}</div>
+        </div>
       </div>
       <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Create Account</button></div>
     </form>
