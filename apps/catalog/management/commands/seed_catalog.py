@@ -114,7 +114,7 @@ IMAGES = {
 }
 
 class Command(BaseCommand):
-    help = "Create repeatable real catalog data: categories, brands, suppliers and products"
+    help = "Create repeatable real catalog data: categories, brands and products"
 
     @transaction.atomic
     def handle(self, *args, **options):

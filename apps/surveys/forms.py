@@ -14,14 +14,14 @@ from apps.customers.portal_text import say
 DT_FORMAT = "%Y-%m-%dT%H:%M"
 
 
-# Form for survey builder (create/edit): select dates (start 00:00, end 23:59:59 local time)
+# tv4: form thông tin khảo sát của trình soạn (trang tạo/sửa): chọn ngày (bắt đầu 00:00, kết thúc 23:59:59 giờ địa phương)
 class SurveyBuilderForm(forms.ModelForm):
     DATE_FORMATS = ["%Y-%m-%d", "%d/%m/%Y", DT_FORMAT, "%Y-%m-%d %H:%M"]
 
-    objective = forms.ChoiceField(label="Survey Objective", choices=[("", "-- Select objective --"), *SurveyObjective.choices])
-    start_at = forms.DateField(label="Start Date", input_formats=DATE_FORMATS,
+    objective = forms.ChoiceField(label="Mục tiêu khảo sát", choices=[("", "-- Chọn mục tiêu --"), *SurveyObjective.choices])
+    start_at = forms.DateField(label="Thời gian bắt đầu", input_formats=DATE_FORMATS,
                                widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"))
-    end_at = forms.DateField(label="End Date", input_formats=DATE_FORMATS,
+    end_at = forms.DateField(label="Thời gian kết thúc", input_formats=DATE_FORMATS,
                              widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"))
 
     class Meta:
@@ -53,39 +53,40 @@ class SurveyBuilderForm(forms.ModelForm):
         data = super().clean()
         start, end = data.get("start_at"), data.get("end_at")
         if start and not self.instance.pk and start < timezone.localdate():
-            self.add_error("start_at", "The start date cannot be in the past.")
+            self.add_error("start_at", say("Ngày bắt đầu không được ở quá khứ.", "The start date cannot be in the past."))
         if start and end and end < start:
-            self.add_error("end_at", "The end date must be on or after the start date.")
+            self.add_error("end_at", say("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.",
+                                         "The end date must be on or after the start date."))
         return data
 
     def save(self, commit=True):
         survey = super().save(commit=False)
         zone = timezone.get_current_timezone()
         survey.start_at = timezone.make_aware(datetime.combine(self.cleaned_data["start_at"], time.min), zone)
-        survey.end_at = timezone.make_aware(datetime.combine(self.cleaned_data["end_at"], time.max), zone)
+        survey.end_at = timezone.make_aware(datetime.combine(self.cleaned_data["end_at"], time(23, 59, 59)), zone)
         if commit:
             survey.save()
         return survey
 
 
 class QuestionForm(forms.ModelForm):
-    question_type = forms.ChoiceField(label="Question Type", choices=QuestionType.choices)
+    question_type = forms.ChoiceField(label="Loại câu hỏi", choices=QuestionType.choices)
     options_text = forms.CharField(
-        label="Options (one per line)", required=False,
+        label="Các lựa chọn (mỗi dòng một lựa chọn)", required=False,
         widget=forms.Textarea(attrs={"rows": 5}),
-        help_text="Required for single/multiple choice questions.")
-    section = forms.CharField(label="Section", max_length=200, required=False)
-    max_selections = forms.IntegerField(label="Maximum Selections", min_value=1, required=False)
-    rating_min = forms.IntegerField(label="Minimum Score", min_value=1, max_value=9, initial=1, required=False)
-    rating_max = forms.IntegerField(label="Maximum Score", min_value=2, max_value=10, initial=5, required=False)
-    other_option_position = forms.IntegerField(label="Other Option Position", min_value=1, required=False,
-                                              help_text="Leave empty if there is no Other option.")
-    placeholder = forms.CharField(label="Input Hint", max_length=255, required=False)
+        help_text="Chỉ cần cho câu hỏi một/nhiều lựa chọn.")
+    section = forms.CharField(label="Nhóm nội dung", max_length=200, required=False)
+    max_selections = forms.IntegerField(label="Số lựa chọn tối đa", min_value=1, required=False)
+    rating_min = forms.IntegerField(label="Điểm thấp nhất", min_value=1, max_value=9, initial=1, required=False)
+    rating_max = forms.IntegerField(label="Điểm cao nhất", min_value=2, max_value=10, initial=5, required=False)
+    other_option_position = forms.IntegerField(label="Vị trí lựa chọn Khác", min_value=1, required=False,
+                                              help_text="Để trống nếu không có lựa chọn Khác.")
+    placeholder = forms.CharField(label="Gợi ý nhập nội dung", max_length=255, required=False)
 
     class Meta:
         model = SurveyQuestion
         fields = ["question_text", "question_type", "is_required"]
-        labels = {"question_text": "Question Text", "is_required": "Required"}
+        labels = {"question_text": "Nội dung câu hỏi", "is_required": "Bắt buộc trả lời"}
         widgets = {"question_text": forms.Textarea(attrs={"rows": 2})}
 
     def __init__(self, *args, **kwargs):
@@ -107,13 +108,15 @@ class QuestionForm(forms.ModelForm):
                     self.initial[name] = config[name]
             options = list(SurveyOption.objects.filter(question=self.instance).order_by("sort_order", "option_id"))
             self.initial["other_option_position"] = next(
-                (pos for pos, opt in enumerate(options, 1) if opt.pk == config.get("other_option_id")), None)
-            self.initial["options_text"] = "\n".join(opt.option_text for opt in options)
+                (i for i, o in enumerate(options, 1) if o.pk == config.get("other_option_id")), None)
+            self.initial["options_text"] = "\n".join(
+                SurveyOption.objects.filter(question=self.instance)
+                .order_by("sort_order", "option_id").values_list("option_text", flat=True))
             if self.instance.survey.template_key == TEMPLATE_KEY:
-                self.fields["question_type"].disabled = True
-                self.fields["options_text"].disabled = True
-                if (config.get("rating_max") or 5) != 5:
-                    self.fields["rating_max"].disabled = True
+                for name in ("question_type", "section", "max_selections", "rating_min", "rating_max"):
+                    self.fields[name].disabled = True
+                if self.instance.config.get("key") == "suggestions":
+                    self.fields["is_required"].disabled = True
                 self.fields["other_option_position"].disabled = True
 
     def clean(self):
@@ -123,45 +126,47 @@ class QuestionForm(forms.ModelForm):
             lines = [line.strip() for line in (data.get("options_text") or "").splitlines() if line.strip()]
             options = list(dict.fromkeys(lines))  # drop duplicates, keep order
             if len(options) < 2:
-                self.add_error("options_text", "Please enter at least 2 distinct options.")
+                self.add_error("options_text", "Cần nhập ít nhất 2 lựa chọn khác nhau.")
             if any(len(o) > 255 for o in options):
-                self.add_error("options_text", "Each option must be at most 255 characters.")
+                self.add_error("options_text", "Mỗi lựa chọn tối đa 255 ký tự.")
             data["option_list"] = options
         else:
             data["option_list"] = []
         low, high = data.get("rating_min") or 1, data.get("rating_max") or 5
         if kind == QuestionType.RATING and low >= high:
-            self.add_error("rating_max", "Highest score must be greater than lowest score.")
+            self.add_error("rating_max", "Điểm cao nhất phải lớn hơn điểm thấp nhất.")
         maximum = data.get("max_selections")
         if kind == QuestionType.MULTI_CHOICE and maximum and maximum > len(data["option_list"]):
-            self.add_error("max_selections", "Maximum selections must be between 1 and the number of options.")
+            self.add_error("max_selections", "Số lựa chọn tối đa phải từ 1 đến số phương án của câu hỏi.")
         other = data.get("other_option_position")
         if other and (kind not in CHOICE_TYPES or other > len(data["option_list"])):
-            self.add_error("other_option_position", "Other option position must be within the list of options.")
+            self.add_error("other_option_position", "Vị trí Khác phải thuộc danh sách lựa chọn của câu hỏi.")
         if self.instance.pk and self.instance.survey.template_key == TEMPLATE_KEY:
             definition = next((q for q in question_definitions() if q["key"] == self.instance.config.get("key")), None)
             if definition:
                 if kind != definition["question_type"]:
-                    self.add_error("question_type", "Keep question type from the 8-question template; create a new survey to change semantics.")
+                    self.add_error("question_type", "Giữ loại câu hỏi của bộ 8 câu; hãy tạo khảo sát mới khi đổi ý nghĩa.")
                 if definition.get("is_required") is False and data.get("is_required"):
-                    self.add_error("is_required", "Feedback question must be optional.")
+                    self.add_error("is_required", "Câu góp ý phải không bắt buộc.")
                 if len(data["option_list"]) != len(definition.get("options", [])):
-                    self.add_error("options_text", "Keep the number of options / criteria for this survey version.")
+                    self.add_error("options_text", "Giữ số lựa chọn / tiêu chí của phiên bản khảo sát này.")
+                # Fixed semantic settings for this version; required flags 1–7 remain editable.
                 if "max_selections" in definition:
                     data["max_selections"] = definition["max_selections"]
                 if "rating_max" in definition:
                     data["rating_min"], data["rating_max"] = definition["rating_min"], definition["rating_max"]
                 data["section"] = definition["section"]
                 if "other_option_index" in definition and not other:
-                    self.add_error("other_option_position", "Brand question must have an Other option.")
+                    self.add_error("other_option_position", "Câu thương hiệu phải có lựa chọn Khác.")
         return data
 
     @transaction.atomic
     def save_for(self, survey):
+        """Only DRAFT surveys are edited, so options have no answers yet and can be rebuilt."""
         survey = Survey.objects.select_for_update().get(pk=survey.pk)
         if (survey.status != "DRAFT" or survey.surveyrecipient_set.exists()
                 or survey.surveyquestion_set.filter(surveyanswer__isnull=False).exists()):
-            raise forms.ValidationError("Cannot edit questions for a survey that has been sent or has responses.")
+            raise forms.ValidationError("Không sửa câu hỏi của khảo sát đã gửi hoặc đã có câu trả lời.")
         question = self.save(commit=False)
         old_config = dict(question.config or {})
         question.survey = survey
@@ -173,50 +178,52 @@ class QuestionForm(forms.ModelForm):
         options = [SurveyOption.objects.create(question=question, option_text=text, sort_order=i)
                    for i, text in enumerate(self.cleaned_data["option_list"], start=1)]
         data = self.cleaned_data
-        config = {k: v for k, v in {"section": data.get("section") or "",
-                                    "max_selections": data.get("max_selections"),
-                                    "rating_min": data.get("rating_min"),
-                                    "rating_max": data.get("rating_max"),
-                                    "placeholder": data.get("placeholder") or ""}.items() if v is not None}
-        if "key" in old_config:
-            config["key"] = old_config["key"]
-        pos = data.get("other_option_position")
-        if pos and 1 <= pos <= len(options):
-            config["other_option_id"] = options[pos - 1].pk
+        config = {"key": (question.config or {}).get("key", ""), "section": data.get("section", "")}
+        if question.question_type == QuestionType.RATING:
+            config.update(rating_min=data.get("rating_min") or 1, rating_max=data.get("rating_max") or 5)
+            for name in ("rating_min_label", "rating_max_label"):  # chỉ trình soạn có ô này; trang khác giữ nhãn cũ
+                label = (data.get(name) or "").strip() if name in self.fields else old_config.get(name, "")
+                if label:
+                    config[name] = label
+        if question.question_type == QuestionType.MULTI_CHOICE and data.get("max_selections"):
+            config["max_selections"] = data["max_selections"]
+        if data.get("other_option_position"):
+            config["other_option_id"] = options[data["other_option_position"] - 1].pk
+        if data.get("placeholder"):
+            config["placeholder"] = data["placeholder"]
         question.config = config
         question.save(update_fields=["config"])
         return question
 
 
-class AudienceFilterForm(forms.Form):
-    AUDIENCE_CHOICES = [
-        ("all", "Tất cả khách hàng đủ điều kiện"),
-        ("filter", "Lọc theo nhóm tuổi, trình độ hoặc sở thích"),
-        ("pick", "Chọn từng khách hàng cụ thể"),
-    ]
+# tv4: câu hỏi gửi từ trình soạn khảo sát: thêm nhãn hai đầu thang điểm (lưu trong config)
+class BuilderQuestionForm(QuestionForm):
+    rating_min_label = forms.CharField(label="Nhãn điểm thấp nhất", max_length=60, required=False)
+    rating_max_label = forms.CharField(label="Nhãn điểm cao nhất", max_length=60, required=False)
 
+
+class AudienceForm(forms.Form):
     audience = forms.ChoiceField(
-        choices=AUDIENCE_CHOICES, widget=forms.RadioSelect, initial="all",
-        label="Phạm vi đối tượng",
-    )
+        label="Đối tượng nhận", initial="all", widget=forms.RadioSelect,
+        choices=[("all", "Tất cả khách hàng đang hoạt động"),
+                 ("filter", "Lọc theo nhóm tuổi / trình độ / sở thích"),
+                 ("pick", "Chọn từng khách hàng")])
+    customer_ids = forms.TypedMultipleChoiceField(
+        label="Khách hàng", required=False, coerce=int, widget=forms.CheckboxSelectMultiple, choices=[])
     age_groups = forms.MultipleChoiceField(
-        choices=AGE_GROUPS, required=False, widget=forms.CheckboxSelectMultiple,
-        label="Nhóm tuổi",
-    )
+        label="Nhóm tuổi", required=False, widget=forms.CheckboxSelectMultiple,
+        choices=[(key, label) for key, label, _lo, _hi in AGE_GROUPS])
     playing_levels = forms.MultipleChoiceField(
-        required=False, widget=forms.CheckboxSelectMultiple, label="Trình độ chơi",
-    )
+        label="Trình độ chơi", required=False, widget=forms.CheckboxSelectMultiple, choices=[])
     preferences = forms.MultipleChoiceField(
-        required=False, widget=forms.CheckboxSelectMultiple, label="Sở thích sản phẩm",
-    )
-    customer_ids = forms.MultipleChoiceField(
-        required=False, widget=forms.CheckboxSelectMultiple, label="Khách hàng",
-    )
+        label="Sở thích", required=False, widget=forms.CheckboxSelectMultiple, choices=[])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # choices come from real data, so no enum has to be guessed
         self.fields["playing_levels"].choices = playing_level_choices()
         self.fields["preferences"].choices = preference_choices()
+        # chỉ liệt kê khách đủ điều kiện nhận (chưa xóa, tài khoản không bị khóa)
         self.fields["customer_ids"].choices = [
             (c.customer_id, f"{c.full_name} – {c.account.email}")
             for c in eligible_customers().select_related("account").order_by("full_name", "customer_id")]
@@ -225,7 +232,7 @@ class AudienceFilterForm(forms.Form):
         data = super().clean()
         if data.get("audience") == "filter" and not (
                 data.get("age_groups") or data.get("playing_levels") or data.get("preferences")):
-            raise forms.ValidationError('Please choose at least one filter criterion, or select "All".')
+            raise forms.ValidationError('Hãy chọn ít nhất một điều kiện lọc, hoặc chọn "Tất cả".')
         if data.get("audience") == "pick" and not data.get("customer_ids"):
-            raise forms.ValidationError("Please select at least one customer.")
+            raise forms.ValidationError("Hãy chọn ít nhất một khách hàng.")
         return data

@@ -28,7 +28,7 @@ def register_customer(*, email, password, profile_data):
     profile = _profile_data(profile_data)
     email = AccountManager.normalize_account_email(email)
     if Account.objects.filter(email=email).exists():
-        raise ValidationError({"email": "Email is already in use."})
+        raise ValidationError({"email": "Email đã được sử dụng."})
     try:
         with transaction.atomic():
             account = Account.objects.create_user(
@@ -37,7 +37,7 @@ def register_customer(*, email, password, profile_data):
             )
     except (IntegrityError, ValidationError) as exc:
         if Account.objects.filter(email=email).exists():
-            raise ValidationError({"email": "Email is already in use."}) from exc
+            raise ValidationError({"email": "Email đã được sử dụng."}) from exc
         raise
     transaction.on_commit(lambda: logger.info("customer_registered target=%s", account.pk))
     return account
@@ -45,13 +45,13 @@ def register_customer(*, email, password, profile_data):
 
 def own_customer(actor, *, for_update=False):
     if not getattr(actor, "is_authenticated", False):
-        raise PermissionDenied("Authentication required.")
+        raise PermissionDenied("Bạn cần đăng nhập.")
     accounts = Customer.objects.filter(pk=actor.pk, status=AccountStatus.ACTIVE)
     if for_update:
         accounts = accounts.select_for_update()
     customer = accounts.first()
     if customer is None:
-        raise PermissionDenied("Profile is not available or account does not have permission.")
+        raise PermissionDenied("Hồ sơ chưa khả dụng hoặc tài khoản không có quyền.")
     return customer
 
 
@@ -63,39 +63,31 @@ def update_own_profile(actor, *, profile_data, category_ids=(), remove_preferenc
     existing = list(CustomerPreference.objects.select_for_update().filter(
         customer=customer, preference_type=CATEGORY_PREFERENCE_TYPE,
     ).order_by("preference_id"))
-
+    # Validate again under locks: a category may have been disabled since GET/POST validation.
+    active_categories = list(Category.objects.select_for_update().filter(status=Status.ACTIVE).order_by("category_id"))
+    form = CustomerCategoryPreferencesForm(customer, {
+        "categories": category_ids, "remove_preferences": remove_preference_ids,
+    }, active_categories=active_categories, preferences=existing)
+    if not form.is_valid():
+        raise ValidationError(form.errors)
+    selected_ids = set(form.cleaned_data["categories"])
+    selected_names = {category.category_name for category in active_categories if category.pk in selected_ids}
+    active_names = {category.category_name for category in active_categories}
+    removed_ids = set(form.cleaned_data["remove_preferences"])
+    retained_names = set()
+    for preference in existing:
+        value = preference.preference_value
+        if preference.pk in removed_ids or (value in active_names and (
+                value not in selected_names or value in retained_names)):
+            preference.delete()
+        elif value in selected_names:
+            retained_names.add(value)
+    CustomerPreference.objects.bulk_create([
+        CustomerPreference(customer=customer, preference_type=CATEGORY_PREFERENCE_TYPE, preference_value=value)
+        for value in sorted(selected_names - retained_names)
+    ])
     for field, value in profile.items():
         setattr(customer, field, value)
-    customer.save(update_fields=[*profile.keys(), "updated_at"])
-
-    cleaned_preferences = CustomerCategoryPreferencesForm({
-        "categories": category_ids,
-        "remove_preferences": remove_preference_ids,
-    }, existing=existing)
-    if not cleaned_preferences.is_valid():
-        raise ValidationError(cleaned_preferences.errors)
-
-    if cleaned_preferences.cleaned_data["remove_preferences"]:
-        CustomerPreference.objects.filter(
-            customer=customer,
-            preference_id__in=cleaned_preferences.cleaned_data["remove_preferences"],
-        ).delete()
-
-    requested = set(cleaned_preferences.cleaned_data["categories"])
-    valid = set(Category.objects.filter(pk__in=requested, status=Status.ACTIVE).values_list("pk", flat=True))
-    current = {pref.preference_value: pref for pref in existing}
-
-    for category in Category.objects.filter(pk__in=valid).order_by("category_name"):
-        if category.category_name not in current:
-            CustomerPreference.objects.create(
-                customer=customer,
-                preference_type=CATEGORY_PREFERENCE_TYPE,
-                preference_value=category.category_name,
-            )
-
-    for name, pref in current.items():
-        if name not in {c.category_name for c in Category.objects.filter(pk__in=valid)}:
-            pref.delete()
-
-    transaction.on_commit(lambda: logger.info("customer_profile_updated target=%s", customer.pk))
+    customer.save(update_fields=[*profile, "updated_at"])
+    transaction.on_commit(lambda: logger.info("customer_profile_updated actor=%s target=%s", actor.pk, customer.pk))
     return customer

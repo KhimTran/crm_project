@@ -66,7 +66,7 @@ def restore_database_from_backup(filename: str, confirmation: str, *, actor,
             executable = candidate
         elif (clean_bin / "mysql").is_file():
             executable = clean_bin / "mysql"
-    if not executable:
+    else:
         executable = shutil.which("mysql")
     if not executable or not Path(executable).is_file():
         raise RuntimeError("mysql executable is unavailable on the system.")

@@ -12,7 +12,7 @@ from .models import Account
 
 class CustomerLoginForm(forms.Form):
     email = forms.EmailField(label="Email", max_length=255, widget=forms.EmailInput(attrs={"autocomplete": "username"}))
-    password = forms.CharField(label="Password", strip=False, widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}))
+    password = forms.CharField(label="Mật khẩu", strip=False, widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}))
 
     def __init__(self, request, *args, **kwargs):
         self.request = request
@@ -27,27 +27,27 @@ class CustomerLoginForm(forms.Form):
             if self.account is None:
                 locked = Account.objects.filter(email=email, status=AccountStatus.LOCKED).first()
                 if locked is not None and locked.check_password(data["password"]):
-                    raise forms.ValidationError("Account has been locked. Please contact management.")
-                raise forms.ValidationError("Invalid email or password.")
+                    raise forms.ValidationError("Tài khoản đã bị khóa. Vui lòng liên hệ quản lý.")
+                raise forms.ValidationError("Email hoặc mật khẩu không đúng.")
         return data
 
 
 class CustomerRegistrationForm(CustomerProfileForm):
     email = forms.EmailField(label="Email", max_length=255)
-    password = forms.CharField(label="Password", strip=False, widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
-    password_confirm = forms.CharField(label="Confirm password", strip=False, widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+    password = forms.CharField(label="Mật khẩu", strip=False, widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+    password_confirm = forms.CharField(label="Xác nhận mật khẩu", strip=False, widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
 
     def clean_email(self):
         email = AccountManager.normalize_account_email(self.cleaned_data["email"])
         if Account.objects.filter(email=email).exists():
-            raise forms.ValidationError("Email is already in use.")
+            raise forms.ValidationError("Email đã được sử dụng.")
         return email
 
     def clean(self):
         data = super().clean()
         password = data.get("password")
         if password and password != data.get("password_confirm"):
-            self.add_error("password_confirm", "Confirmation password does not match.")
+            self.add_error("password_confirm", "Mật khẩu xác nhận không khớp.")
         if password:
             try:
                 validate_password(password, Account(email=data.get("email", "")))
@@ -58,3 +58,10 @@ class CustomerRegistrationForm(CustomerProfileForm):
 
 class AccountPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(label="Email", max_length=255)
+
+    def clean_email(self):
+        return AccountManager.normalize_account_email(self.cleaned_data["email"])
+
+    def get_users(self, email):
+        return (account for account in Account.objects.filter(email=email, status=AccountStatus.ACTIVE)
+                if account.has_usable_password())

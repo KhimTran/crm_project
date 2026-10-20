@@ -56,8 +56,6 @@ class Migration(migrations.Migration):
                 ('date_of_birth', models.DateField(blank=True, null=True)),
                 ('gender', models.CharField(blank=True, max_length=20, null=True)),
                 ('address', models.CharField(blank=True, max_length=255, null=True)),
-                ('position', models.CharField(blank=True, max_length=100, null=True)),
-                ('hire_date', models.DateField(blank=True, null=True)),
                 ('status', models.CharField(default='ACTIVE', max_length=20)),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
                 ('updated_at', models.DateTimeField(auto_now=True)),

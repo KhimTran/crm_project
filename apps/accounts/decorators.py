@@ -14,7 +14,7 @@ from .models import Account
 
 _CRM_GROUPS = frozenset({"CRM_MANAGER", "CUSTOMER_SERVICE"})
 _ALLOWED_ROLES = frozenset(AccountRole.values) | _CRM_GROUPS
-_ACCESS_DENIED_MESSAGE = "You do not have permission to access this feature."
+_ACCESS_DENIED_MESSAGE = "Bạn không có quyền truy cập chức năng này."
 
 
 def _get_active_account(user):
@@ -22,39 +22,49 @@ def _get_active_account(user):
             or not getattr(user, "is_active", False)
             or not getattr(user, "pk", None)):
         return None
-    # Re-read DB so that stale session/object does not retain permissions after lock or role change.
+    # Đọc lại DB để session/object cũ không giữ quyền sau khi khóa hoặc đổi role.
     return Account.objects.filter(pk=user.pk, status=AccountStatus.ACTIVE).only(
         "account_id", "role", "status",
     ).first()
 
 
-def _normalize_role(value):
-    normalized = normalize_account_choice(value)
-    if normalized is not None and normalized in _ALLOWED_ROLES:
-        return normalized
-    if isinstance(value, str):
-        candidate = value.strip().upper()
-        if candidate in _ALLOWED_ROLES:
-            return candidate
-    raise ValueError(f"Unknown role or group: {value}")
-
-
 def _home_path(account):
+    if account is None:
+        return "/"
     if account.role == AccountRole.ADMIN:
         return "/admin/"
     if account.role == AccountRole.MANAGER:
         return "/manager/"
+    if account.groups.filter(name__in=_CRM_GROUPS).exists():
+        return "/crm/"
     return "/"
 
 
-def get_home_path(account):
-    return _home_path(account)
+def get_home_path(user):
+    """Return a destination; this helper does not create or protect any route.
+
+    Priority: ADMIN, CRM_MANAGER, CUSTOMER_SERVICE, CUSTOMER. Anonymous,
+    inactive or missing accounts fall back to /. CRM permissions are Groups,
+    and a CUSTOMER Account may also belong to either CRM Group.
+    """
+    return _home_path(_get_active_account(user))
 
 
-def role_required(*allowed):
-    permissions = {_normalize_role(item) for item in allowed}
-    if not permissions:
-        raise ValueError("role_required requires at least one role or CRM group.")
+def role_required(*allowed_roles):
+    """Require any listed Account role or CRM Group on a synchronous FBV.
+
+    Accept ADMIN, CUSTOMER, CRM_MANAGER and CUSTOMER_SERVICE (strip/upper).
+    ADMIN has no implicit bypass for a Group-only view. Invalid or empty
+    configuration raises ValueError immediately, before a request is handled.
+    """
+    if not allowed_roles:
+        raise ValueError("role_required requires at least one role or group")
+    permissions = set()
+    for role in allowed_roles:
+        permission = normalize_account_choice(role)
+        if not isinstance(permission, str) or permission not in _ALLOWED_ROLES:
+            raise ValueError("Role must be ADMIN, MANAGER, CUSTOMER, CRM_MANAGER or CUSTOMER_SERVICE")
+        permissions.add(permission)
 
     def decorator(view):
         @wraps(view)
@@ -64,7 +74,7 @@ def role_required(*allowed):
 
             account = _get_active_account(request.user)
             if account is None:
-                return HttpResponseForbidden("Account is inactive.")
+                return HttpResponseForbidden("Tài khoản không hoạt động.")
 
             if account.role in permissions:
                 return view(request, *args, **kwargs)
@@ -74,6 +84,7 @@ def role_required(*allowed):
 
             messages.error(request, _ACCESS_DENIED_MESSAGE)
             destination = _home_path(account)
+            # So sánh cả biến thể thiếu slash để tránh vòng lặp APPEND_SLASH.
             if request.path.rstrip("/") == destination.rstrip("/"):
                 return HttpResponseForbidden(_ACCESS_DENIED_MESSAGE)
             return redirect(destination)
