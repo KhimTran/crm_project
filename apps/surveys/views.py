@@ -101,7 +101,7 @@ def result(request, recipient_id):
     try:
         recipient = recipient_for_user(request.user, recipient_id)
     except PermissionDenied:
-        return HttpResponseForbidden("Không có quyền xem khảo sát này.")
+        return HttpResponseForbidden("Access denied: You cannot view this survey.")
     except SurveyRecipient.DoesNotExist as exc:
         raise Http404 from exc
     return render(request, "surveys/result.html", {"recipient": recipient, "completed_message": COMPLETED_MESSAGE})
@@ -379,7 +379,7 @@ def _remember_builder_token(request, token, survey_id):
 def _save_builder(request, survey, form, audience_form, question_forms, *, fixed, use_template, publish):
     with transaction.atomic():
         if survey is not None and _survey_locked(Survey.objects.select_for_update().get(pk=survey.pk)):
-            raise ValidationError("Không sửa câu hỏi của khảo sát đã gửi hoặc đã có câu trả lời.")
+            raise ValidationError("Cannot edit questions for a survey that has been sent or has responses.")
         saved = form.save(commit=False)
         if survey is None:
             saved.created_by = request.user

@@ -46,7 +46,7 @@ def send_survey(actor, survey, customer_ids):
     require_survey_manager(actor)
     ids = list(dict.fromkeys(int(value) for value in customer_ids))
     if not ids:
-        raise ValidationError("Chưa có khách hàng nào phù hợp để nhận khảo sát.")
+        raise ValidationError("No eligible customers found to receive the survey.")
     with transaction.atomic():
         locked = Survey.objects.select_for_update().get(pk=survey.pk)
         errors = check_ready_to_send(locked)
@@ -54,7 +54,7 @@ def send_survey(actor, survey, customer_ids):
             raise ValidationError(errors)
         found = set(eligible_customers().filter(customer_id__in=ids).values_list("customer_id", flat=True))
         if len(found) != len(ids):
-            raise ValidationError("Danh sách khách hàng có ID không hợp lệ, đã bị xóa hoặc bị khóa.")
+            raise ValidationError("Customer list contains invalid, deleted, or locked customer IDs.")
         created = 0
         for customer_id in ids:
             _, was_created = SurveyRecipient.objects.get_or_create(
@@ -88,7 +88,7 @@ def recipient_for_user(user, recipient_id, *, lock=False):
 def assert_survey_open(survey):
     now = timezone.now()
     if survey.status not in ("ACTIVE", "PUBLISHED") or (survey.start_at and now < survey.start_at) or (survey.end_at and now > survey.end_at):
-        raise ValidationError("Khảo sát hiện không mở để thực hiện.")
+        raise ValidationError("This survey is not currently open.")
 
 
 def start_survey(user, recipient_id):
@@ -129,11 +129,11 @@ def submit_survey(user, recipient_id, answers):
             unique_ids = set(question_ids)
             questions = {q.pk: q for q in SurveyQuestion.objects.filter(survey=recipient.survey, pk__in=unique_ids)}
             if len(questions) != len(unique_ids):
-                raise ValidationError("Câu hỏi không thuộc khảo sát này.")
+                raise ValidationError("Question does not belong to this survey.")
             answers = _check_answer_shapes(questions, answers)
             required = set(SurveyQuestion.objects.filter(survey=recipient.survey, is_required=True).values_list("pk", flat=True))
             if not required.issubset(question_ids):
-                raise ValidationError("Vui lòng trả lời các câu hỏi bắt buộc.")
+                raise ValidationError("Please answer all required questions.")
             for item in answers:
                 question = questions[item["question_id"]]
                 option_id = item.get("option_id")
@@ -163,10 +163,10 @@ def _valid_identifier(value):
 def _check_payload(answers):
     """Validate JSON types before ORM lookups; bool is not an integer answer."""
     if not isinstance(answers, list):
-        raise ValidationError("Câu trả lời phải là một danh sách.")
+        raise ValidationError("Answers must be a list.")
     for item in answers:
         if not isinstance(item, dict) or not _valid_identifier(item.get("question_id")):
-            raise ValidationError("Câu trả lời cần có mã câu hỏi là số nguyên hợp lệ.")
+            raise ValidationError("Answers require a valid integer question ID.")
 
 
 def _check_answer_shapes(questions, answers):
@@ -183,22 +183,22 @@ def _check_answer_shapes(questions, answers):
         per_question[question.pk] += 1
         qtype = question.question_type
         if per_question[question.pk] > 1 and qtype not in (QuestionType.MULTI_CHOICE, QuestionType.MATRIX):
-            raise ValidationError("Mỗi câu hỏi chỉ được trả lời một lần.")
+            raise ValidationError("Each question can only be answered once.")
         if qtype in CHOICE_TYPES:
             field = "option_id"
             option_id = item.get("option_id")
             if not _valid_identifier(option_id) or not question.surveyoption_set.filter(pk=option_id).exists():
-                raise ValidationError("Lựa chọn phải là mã số nguyên thuộc câu hỏi này.")
+                raise ValidationError("Selected option must be a valid option for this question.")
             if (question.pk, option_id) in picked:
-                raise ValidationError("Không được chọn trùng một đáp án.")
+                raise ValidationError("Duplicate option selection is not allowed.")
             picked.add((question.pk, option_id))
             value = option_id
             if option_id == (question.config or {}).get("other_option_id"):
                 other = item.get("answer_text")
                 if not isinstance(other, str) or not other.strip() or len(other.strip()) > 200:
-                    raise ValidationError("Vui lòng nhập nội dung Khác (tối đa 200 ký tự).")
+                    raise ValidationError("Please provide Other text (maximum 200 characters).")
                 if set(item) != {"question_id", "option_id", "answer_text"}:
-                    raise ValidationError("Câu trả lời Khác chứa trường không phù hợp.")
+                    raise ValidationError("The Other answer contains invalid fields.")
                 normalized.append({"question_id": question.pk, "option_id": value, "answer_text": other.strip()})
                 continue
         elif qtype == QuestionType.RATING:
@@ -206,47 +206,47 @@ def _check_answer_shapes(questions, answers):
             value = item.get(field)
             low, high = rating_bounds(question)
             if type(value) is not int or not low <= value <= high:
-                raise ValidationError(f"Điểm đánh giá phải là số nguyên từ {low} đến {high}.")
+                raise ValidationError(f"Rating score must be an integer between {low} and {high}.")
         elif qtype == QuestionType.MATRIX:
             criterion = item.get("option_id")
             if not _valid_identifier(criterion) or not question.surveyoption_set.filter(pk=criterion).exists():
-                raise ValidationError("Tiêu chí phải thuộc câu hỏi đánh giá này.")
+                raise ValidationError("Criterion must belong to this matrix question.")
             if (question.pk, criterion) in picked:
-                raise ValidationError("Mỗi tiêu chí chỉ được trả lời một lần.")
+                raise ValidationError("Each criterion can only be answered once.")
             picked.add((question.pk, criterion))
             if set(item) == {"question_id", "option_id", "rating_value"}:
                 score = item["rating_value"]
                 if type(score) is not int or not 1 <= score <= 5:
-                    raise ValidationError("Điểm từng tiêu chí phải là số nguyên từ 1 đến 5.")
+                    raise ValidationError("Criterion score must be an integer between 1 and 5.")
                 normalized.append({"question_id": question.pk, "option_id": criterion, "rating_value": score})
             elif set(item) == {"question_id", "option_id", "answer_text"} and item["answer_text"] == NOT_USED:
                 normalized.append({"question_id": question.pk, "option_id": criterion, "answer_text": NOT_USED})
             else:
-                raise ValidationError("Tiêu chí cần điểm 1–5 hoặc Không sử dụng, không phải cả hai.")
+                raise ValidationError("Criteria require a score from 1-5 or Not Used, not both.")
             continue
         elif qtype == QuestionType.TEXT:
             field = "answer_text"
             value = item.get(field)
             if isinstance(value, str) and not value.strip() and not question.is_required and (question.config or {}).get("key") == "suggestions":
                 if set(item) != {"question_id", field}:
-                    raise ValidationError("Câu trả lời chứa trường không phù hợp với loại câu hỏi.")
+                    raise ValidationError("Answer contains fields incompatible with question type.")
                 continue
             if not isinstance(value, str) or not value.strip() or len(value.strip()) > 2000:
-                raise ValidationError("Câu trả lời tự do phải có nội dung sau khi bỏ khoảng trắng.")
+                raise ValidationError("Free text answer cannot be blank.")
             value = value.strip()
         else:
-            raise ValidationError("Loại câu hỏi không được hỗ trợ.")
+            raise ValidationError("Unsupported question type.")
         if set(item) != {"question_id", field}:
-            raise ValidationError("Câu trả lời chứa trường không phù hợp với loại câu hỏi.")
+            raise ValidationError("Answer contains fields incompatible with question type.")
         normalized.append({"question_id": question.pk, field: value})
     for question in questions.values():
         maximum = (question.config or {}).get("max_selections")
         if question.question_type == QuestionType.MULTI_CHOICE and maximum is not None:
             if type(maximum) is not int or maximum < 1 or per_question[question.pk] > maximum:
-                raise ValidationError(f"Câu hỏi này chỉ được chọn tối đa {maximum} đáp án.")
+                raise ValidationError(f"This question allows a maximum of {maximum} selections.")
         if question.question_type == QuestionType.MATRIX and question.is_required:
             if per_question[question.pk] != question.surveyoption_set.count():
-                raise ValidationError("Vui lòng đánh giá hoặc chọn Không sử dụng cho từng tiêu chí bắt buộc.")
+                raise ValidationError("Please rate or select Not Used for each required criterion.")
     return normalized
 
 
@@ -298,7 +298,7 @@ def close_survey(actor, survey):
     with transaction.atomic():
         locked = Survey.objects.select_for_update().get(pk=survey.pk)
         if locked.status == SurveyStatus.DRAFT:
-            raise ValidationError("Khảo sát Nháp chưa phát hành nên không cần đóng.")
+            raise ValidationError("Draft surveys are not published and cannot be closed.")
         if locked.status != SurveyStatus.CLOSED:
             locked.status = SurveyStatus.CLOSED
             locked.save(update_fields=["status", "updated_at"])
@@ -309,7 +309,7 @@ def close_survey(actor, survey):
 @transaction.atomic
 def clone_survey(actor, survey):
     account = require_survey_manager(actor)
-    suffix = " (bản sao)"
+    suffix = " (Copy)"
     copy = Survey.objects.create(
         title=survey.title[:200 - len(suffix)] + suffix, template_key=survey.template_key,
         description=survey.description, start_at=survey.start_at, end_at=survey.end_at,

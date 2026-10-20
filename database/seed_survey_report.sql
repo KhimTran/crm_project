@@ -2,9 +2,8 @@
 -- seed_survey_report.sql (TV5) – BỘ 8 CÂU HỎI CHÍNH THỨC + khách hàng + phiếu đã trả lời
 -- Bộ câu hỏi lấy từ apps/surveys/questionnaire.py (template BADMINTON_SHOP_EXPERIENCE_V1).
 --
--- ĐIỀU KIỆN: DB phải được tạo bằng migration mới nhất (có cột surveys.template_key / objective / audience,
---   survey_questions.config và rating 1–10). File database/crm_db.sql ngày 16/10 là bản CŨ, thiếu các cột này
---   -> chạy `python manage.py migrate` TRƯỚC, rồi mới chạy file này.
+-- ĐIỀU KIỆN: DB đồng bộ với schema database/crm_db.sql (bảng customers đã gộp vào accounts;
+--   surveys có template_key / objective / audience, survey_questions có config JSON).
 -- CÁCH CHẠY:
 --   mysql -u root -p --default-character-set=utf8mb4 crm_db < seed_survey_report.sql
 -- ĐÁNH DẤU DỮ LIỆU THỬ (giống lệnh seed_survey_report_demo): tiêu đề "[DỮ LIỆU THỬ]", email "@survey-report-demo.test",
@@ -16,71 +15,42 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
--- 1) Tài khoản khách hàng thử
-INSERT IGNORE INTO `accounts` (`account_id`, `email`, `password_hash`, `role`, `status`, `created_at`, `updated_at`) VALUES
-  (101, 'khach01@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (102, 'khach02@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (103, 'khach03@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (104, 'khach04@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (105, 'khach05@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (106, 'khach06@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (107, 'khach07@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (108, 'khach08@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (109, 'khach09@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (110, 'khach10@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (111, 'khach11@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (112, 'khach12@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (113, 'khach13@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (114, 'khach14@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (115, 'khach15@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (116, 'khach16@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (117, 'khach17@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (118, 'khach18@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (119, 'khach19@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (120, 'khach20@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (121, 'khach21@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (122, 'khach22@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (123, 'khach23@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (124, 'khach24@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (125, 'khach25@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (126, 'khach26@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (127, 'khach27@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (128, 'khach28@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (129, 'khach29@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
-  (130, 'khach30@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00');
-
--- 2) Hồ sơ khách hàng (playing_level để NULL: sẽ được cập nhật từ câu trả lời ở bước 8)
-INSERT IGNORE INTO `customers` (`customer_id`, `full_name`, `phone`, `date_of_birth`, `gender`, `address`, `playing_level`, `status`, `created_at`, `updated_at`, `account_id`) VALUES
-  (101, '[Thử] Nguyễn Minh Anh', '0933000001', '2010-06-20', 'MALE', 'Quận 1, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 101),
-  (102, '[Thử] Trần Quốc Bảo', '0933000002', '1985-05-14', 'MALE', 'Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 102),
-  (103, '[Thử] Lê Thị Cẩm Tú', '0933000003', '1997-06-18', 'FEMALE', 'Thủ Đức, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 103),
-  (104, '[Thử] Phạm Hoàng Dũng', '0933000004', '1979-10-10', 'FEMALE', 'Cầu Giấy, Hà Nội', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 104),
-  (105, '[Thử] Võ Thanh Hà', '0933000005', '2002-12-31', 'FEMALE', 'Đống Đa, Hà Nội', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 105),
-  (106, '[Thử] Đặng Gia Huy', '0933000006', '2006-05-19', 'MALE', 'Hải Châu, Đà Nẵng', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 106),
-  (107, '[Thử] Bùi Ngọc Lan', '0933000007', '1994-05-09', 'MALE', 'Ninh Kiều, Cần Thơ', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 107),
-  (108, '[Thử] Hoàng Văn Khải', '0933000008', '1987-07-12', 'FEMALE', 'Biên Hòa, Đồng Nai', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 108),
-  (109, '[Thử] Phan Thị Mai', '0933000009', '1993-05-07', 'MALE', 'Quận 1, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 109),
-  (110, '[Thử] Vũ Đức Nam', '0933000010', '1976-08-04', 'MALE', 'Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 110),
-  (111, '[Thử] Đỗ Thùy Linh', '0933000011', '1988-03-01', 'MALE', 'Thủ Đức, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 111),
-  (112, '[Thử] Ngô Tuấn Kiệt', '0933000012', '1966-07-02', 'MALE', 'Cầu Giấy, Hà Nội', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 112),
-  (113, '[Thử] Dương Bảo Ngọc', '0933000013', '2004-08-03', 'MALE', 'Đống Đa, Hà Nội', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 113),
-  (114, '[Thử] Lý Thành Đạt', '0933000014', '1996-06-28', 'MALE', 'Hải Châu, Đà Nẵng', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 114),
-  (115, '[Thử] Trịnh Hải Yến', '0933000015', '2006-04-27', 'MALE', 'Ninh Kiều, Cần Thơ', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 115),
-  (116, '[Thử] Huỳnh Minh Khôi', '0933000016', '1997-02-26', 'MALE', 'Biên Hòa, Đồng Nai', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 116),
-  (117, '[Thử] Mai Phương Thảo', '0933000017', '1999-04-18', 'FEMALE', 'Quận 1, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 117),
-  (118, '[Thử] Tô Nhật Minh', '0933000018', '1984-04-24', 'MALE', 'Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 118),
-  (119, '[Thử] Châu Anh Thư', '0933000019', '2009-10-04', 'MALE', 'Thủ Đức, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 119),
-  (120, '[Thử] Lâm Quang Vinh', '0933000020', '1993-09-18', 'FEMALE', 'Cầu Giấy, Hà Nội', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 120),
-  (121, '[Thử] Đinh Thị Hồng', '0933000021', '1981-01-21', 'FEMALE', 'Đống Đa, Hà Nội', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 121),
-  (122, '[Thử] Cao Xuân Trường', '0933000022', '2010-07-04', 'FEMALE', 'Hải Châu, Đà Nẵng', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 122),
-  (123, '[Thử] Tạ Khánh Vy', '0933000023', '1990-07-18', 'FEMALE', 'Ninh Kiều, Cần Thơ', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 123),
-  (124, '[Thử] Hà Đình Phong', '0933000024', '2001-08-28', 'MALE', 'Biên Hòa, Đồng Nai', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 124),
-  (125, '[Thử] Kiều Mỹ Duyên', '0933000025', '1990-01-21', 'MALE', 'Quận 1, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 125),
-  (126, '[Thử] Lương Gia Bảo', '0933000026', '2005-05-01', 'MALE', 'Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 126),
-  (127, '[Thử] Quách Thanh Tùng', '0933000027', '2000-01-26', 'MALE', 'Thủ Đức, TP. Hồ Chí Minh', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 127),
-  (128, '[Thử] Thái Bích Ngọc', '0933000028', '2006-02-11', 'MALE', 'Cầu Giấy, Hà Nội', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 128),
-  (129, '[Thử] Nghiêm Duy Anh', '0933000029', '1975-10-02', 'MALE', 'Đống Đa, Hà Nội', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 129),
-  (130, '[Thử] Từ Hoài Thương', '0933000030', '2008-01-22', 'MALE', 'Hải Châu, Đà Nẵng', NULL, 'ACTIVE', '2026-04-20 08:00:00', '2026-04-20 08:00:00', 130);
+-- 1) Tài khoản & hồ sơ khách hàng thử (playing_level để NULL: sẽ được cập nhật từ câu trả lời ở bước 8)
+INSERT IGNORE INTO `accounts` (
+  `account_id`, `email`, `password_hash`, `role`, `status`,
+  `full_name`, `phone`, `date_of_birth`, `gender`, `address`, `playing_level`,
+  `created_at`, `updated_at`
+) VALUES
+  (101, 'khach01@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Nguyễn Minh Anh', '0933000001', '2010-06-20', 'MALE', 'Quận 1, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (102, 'khach02@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Trần Quốc Bảo', '0933000002', '1985-05-14', 'MALE', 'Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (103, 'khach03@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Lê Thị Cẩm Tú', '0933000003', '1997-06-18', 'FEMALE', 'Thủ Đức, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (104, 'khach04@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Phạm Hoàng Dũng', '0933000004', '1979-10-10', 'FEMALE', 'Cầu Giấy, Hà Nội', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (105, 'khach05@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Võ Thanh Hà', '0933000005', '2002-12-31', 'FEMALE', 'Đống Đa, Hà Nội', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (106, 'khach06@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Đặng Gia Huy', '0933000006', '2006-05-19', 'MALE', 'Hải Châu, Đà Nẵng', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (107, 'khach07@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Bùi Ngọc Lan', '0933000007', '1994-05-09', 'MALE', 'Ninh Kiều, Cần Thơ', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (108, 'khach08@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Hoàng Văn Khải', '0933000008', '1987-07-12', 'FEMALE', 'Biên Hòa, Đồng Nai', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (109, 'khach09@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Phan Thị Mai', '0933000009', '1993-05-07', 'MALE', 'Quận 1, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (110, 'khach10@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Vũ Đức Nam', '0933000010', '1976-08-04', 'MALE', 'Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (111, 'khach11@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Đỗ Thùy Linh', '0933000011', '1988-03-01', 'MALE', 'Thủ Đức, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (112, 'khach12@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Ngô Tuấn Kiệt', '0933000012', '1966-07-02', 'MALE', 'Cầu Giấy, Hà Nội', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (113, 'khach13@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Dương Bảo Ngọc', '0933000013', '2004-08-03', 'MALE', 'Đống Đa, Hà Nội', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (114, 'khach14@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Lý Thành Đạt', '0933000014', '1996-06-28', 'MALE', 'Hải Châu, Đà Nẵng', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (115, 'khach15@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Trịnh Hải Yến', '0933000015', '2006-04-27', 'MALE', 'Ninh Kiều, Cần Thơ', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (116, 'khach16@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Huỳnh Minh Khôi', '0933000016', '1997-02-26', 'MALE', 'Biên Hòa, Đồng Nai', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (117, 'khach17@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Mai Phương Thảo', '0933000017', '1999-04-18', 'FEMALE', 'Quận 1, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (118, 'khach18@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Tô Nhật Minh', '0933000018', '1984-04-24', 'MALE', 'Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (119, 'khach19@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Châu Anh Thư', '0933000019', '2009-10-04', 'MALE', 'Thủ Đức, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (120, 'khach20@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Lâm Quang Vinh', '0933000020', '1993-09-18', 'FEMALE', 'Cầu Giấy, Hà Nội', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (121, 'khach21@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Đinh Thị Hồng', '0933000021', '1981-01-21', 'FEMALE', 'Đống Đa, Hà Nội', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (122, 'khach22@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Cao Xuân Trường', '0933000022', '2010-07-04', 'FEMALE', 'Hải Châu, Đà Nẵng', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (123, 'khach23@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Tạ Khánh Vy', '0933000023', '1990-07-18', 'FEMALE', 'Ninh Kiều, Cần Thơ', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (124, 'khach24@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Hà Đình Phong', '0933000024', '2001-08-28', 'MALE', 'Biên Hòa, Đồng Nai', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (125, 'khach25@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Kiều Mỹ Duyên', '0933000025', '1990-01-21', 'MALE', 'Quận 1, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (126, 'khach26@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Lương Gia Bảo', '0933000026', '2005-05-01', 'MALE', 'Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (127, 'khach27@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Quách Thanh Tùng', '0933000027', '2000-01-26', 'MALE', 'Thủ Đức, TP. Hồ Chí Minh', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (128, 'khach28@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Thái Bích Ngọc', '0933000028', '2006-02-11', 'MALE', 'Cầu Giấy, Hà Nội', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (129, 'khach29@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Nghiêm Duy Anh', '0933000029', '1975-10-02', 'MALE', 'Đống Đa, Hà Nội', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
+  (130, 'khach30@survey-report-demo.test', 'pbkdf2_sha256$1000000$RvXw0YBqj3Htzg8CMmIAdi$sN9oQIfreUpZ0qM9FBjbzz3/JI8ielnjoL9JRNz1WUc=', 'CUSTOMER', 'ACTIVE', '[Thử] Từ Hoài Thương', '0933000030', '2008-01-22', 'MALE', 'Hải Châu, Đà Nẵng', NULL, '2026-04-20 08:00:00', '2026-04-20 08:00:00');
 
 -- 3) Lối chơi (PLAY_STYLE) – thông tin hồ sơ khi đăng ký, khảo sát không hỏi
 INSERT INTO `customer_preferences` (`preference_type`, `preference_value`, `customer_id`)
@@ -664,7 +634,7 @@ INSERT IGNORE INTO `survey_answers` (`answer_id`, `response_id`, `question_id`, 
 --    Chạy lại được bất cứ lúc nào có phiếu mới của bộ câu hỏi V1.
 --    Q1 purchases      -> CATEGORY (vợt/giày/quần áo/phụ kiện)   [dịch vụ đan vợt không có nhóm hàng nên bỏ qua]
 --    Q6 future_brands  -> BRAND (Yonex, Li-Ning, Victor, Mizuno; ô "Khác" chỉ lấy khi gõ Apacs/Kumpoo)
---    Q2 playing_freq.  -> customers.playing_level (BEGINNER / RECREATIONAL / COMPETITIVE; "mua quà" giữ nguyên)
+--    Q2 playing_freq.  -> accounts.playing_level (BEGINNER / RECREATIONAL / COMPETITIVE; "mua quà" giữ nguyên)
 INSERT INTO customer_preferences (preference_type, preference_value, customer_id)
 SELECT s.ptype, s.pvalue, s.customer_id
 FROM (
@@ -695,7 +665,7 @@ WHERE s.pvalue IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM customer_preferences p WHERE p.customer_id = s.customer_id
                   AND p.preference_type = s.ptype AND p.preference_value = s.pvalue);
 
-UPDATE customers c
+UPDATE accounts a
 JOIN (
   SELECT rc.customer_id,
          CAST(SUBSTRING_INDEX(GROUP_CONCAT(o.sort_order ORDER BY r.submitted_at DESC), ',', 1) AS UNSIGNED) AS pos
@@ -706,16 +676,16 @@ JOIN (
   JOIN survey_responses  r  ON r.response_id = a.response_id AND r.status = 'SUBMITTED'
   JOIN survey_recipients rc ON rc.recipient_id = r.recipient_id
   GROUP BY rc.customer_id
-) x ON x.customer_id = c.customer_id
-SET c.playing_level = CASE x.pos WHEN 1 THEN 'BEGINNER' WHEN 2 THEN 'RECREATIONAL'
-                                 WHEN 3 THEN 'COMPETITIVE' ELSE c.playing_level END
-WHERE c.account_id IN (SELECT account_id FROM accounts WHERE email LIKE '%@survey-report-demo.test');
+) x ON x.customer_id = a.account_id
+SET a.playing_level = CASE x.pos WHEN 1 THEN 'BEGINNER' WHEN 2 THEN 'RECREATIONAL'
+                                 WHEN 3 THEN 'COMPETITIVE' ELSE a.playing_level END
+WHERE a.email LIKE '%@survey-report-demo.test';
 
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- KIỂM TRA NHANH (chạy tay)
--- SELECT (SELECT COUNT(*) FROM customers WHERE full_name LIKE '[Thử]%') AS test_customers,
+-- SELECT (SELECT COUNT(*) FROM accounts WHERE full_name LIKE '[Thử]%') AS test_customers,
 --        (SELECT COUNT(*) FROM survey_recipients WHERE survey_id IN (101,102)) AS sent,
 --        (SELECT COUNT(*) FROM survey_responses WHERE status='SUBMITTED' AND recipient_id BETWEEN 3001 AND 3099) AS done;
 -- SELECT preference_type, preference_value, COUNT(*) FROM customer_preferences GROUP BY 1,2 ORDER BY 1,3 DESC;

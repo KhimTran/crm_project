@@ -9,7 +9,7 @@
 
 <section class="portal-panel" aria-label="Account filters">
   <form method="get" action="{% url 'accounts_admin:list' %}" class="row g-3 align-items-end">
-    <div class="col-12 col-md-5 col-lg-4"><label class="form-label" for="id_q">Search by email</label>{{ filters.q }}{{ filters.q.errors }}</div>
+    <div class="col-12 col-md-5 col-lg-4"><label class="form-label" for="id_q">Search accounts</label>{{ filters.q }}{{ filters.q.errors }}</div>
     <div class="col-12 col-sm-4 col-md-2 col-lg-auto"><button class="btn btn-outline-primary w-100" type="submit">Search</button></div>
     <div class="col-6 col-sm-4 col-md-2 col-lg-2"><label class="form-label" for="id_role">Role</label>{{ filters.role }}{{ filters.role.errors }}</div>
     <div class="col-6 col-sm-4 col-md-2 col-lg-2"><label class="form-label" for="id_status">Status</label>{{ filters.status }}{{ filters.status.errors }}</div>

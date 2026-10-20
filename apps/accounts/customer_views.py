@@ -90,7 +90,7 @@ def register(request):
         else:
             messages.success(request, "Registration successful. You can now log in.")
             return redirect("customer_auth:login")
-    return render(request, "accounts/customer/form.html", {"form": form, "title": "Đăng ký khách hàng", "submit_label": "Đăng ký"})
+    return render(request, "accounts/customer/form.html", {"form": form, "title": "Customer Registration", "submit_label": "Register"})
 
 
 @role_required("ADMIN", "MANAGER", "CUSTOMER")
@@ -109,7 +109,7 @@ def password_change(request):
             update_session_auth_hash(request, account)
             messages.success(request, "Password changed successfully.")
             return redirect(get_home_path(account))
-    return render(request, "accounts/customer/form.html", {"form": form, "title": "Đổi mật khẩu", "submit_label": "Đổi mật khẩu"})
+    return render(request, "accounts/customer/form.html", {"form": form, "title": "Change Password", "submit_label": "Change Password"})
 
 
 @role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")
@@ -129,7 +129,7 @@ class AccountPasswordResetConfirmView(PasswordResetConfirmView):
             account = Account.objects.select_for_update().filter(pk=self.user.pk).first()
             token = self.request.session.get("_password_reset_token")
             if account is None or account.status != AccountStatus.ACTIVE or not self.token_generator.check_token(account, token):
-                form.add_error(None, "Liên kết đã hết hạn hoặc không còn hợp lệ.")
+                form.add_error(None, "The link has expired or is invalid.")
                 return self.form_invalid(form)
             form.user = account
             transaction.on_commit(lambda: logger.info("password_reset target=%s", account.pk))

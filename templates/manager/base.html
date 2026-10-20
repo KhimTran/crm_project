@@ -30,12 +30,13 @@
         </div>
         <div class="portal-user d-flex align-items-center gap-3">
           <div class="text-end">
-            {% if request.user.profile and request.user.profile.full_name %}
-              <div class="fw-semibold small">{{ request.user.profile.full_name }}</div>
-              <div class="text-muted small">{% if request.user.profile.staff_code %}<span class="badge text-bg-light border me-1">{{ request.user.profile.staff_code }}</span>{% endif %}{{ request.user.email }}</div>
-            {% else %}
-              <span class="text-muted small">{{ request.user.email }}</span>
+            {% if request.user.full_name %}
+              <div class="fw-semibold small lh-sm">{{ request.user.full_name }}</div>
             {% endif %}
+            <span class="portal-user-email text-muted small d-block">{{ request.user.email }}</span>
+            <div class="d-flex justify-content-end">
+              <span class="portal-user-id-badge">{{ request.user.staff_code }}</span>
+            </div>
           </div>
           <form method="post" action="{% url 'manager_logout' %}">{% csrf_token %}<button class="btn btn-outline-secondary btn-sm" type="submit">Logout</button></form>
         </div>

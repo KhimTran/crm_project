@@ -1,5 +1,7 @@
 <div class="portal-brand">CRM <span>Manager Portal</span></div>
 <nav class="portal-nav" aria-label="Manager Modules">
+  <p class="portal-nav-heading">Personal</p>
+  <a class="portal-nav-link {% if active_section == 'profile' %}active{% endif %}" href="{% url 'manager_profile' %}" {% if active_section == 'profile' %}aria-current="page"{% endif %}>Profile</a>
   <p class="portal-nav-heading">Catalog</p>
   <a class="portal-nav-link {% if '/catalog/products/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:product_list' %}" {% if '/catalog/products/' in request.path %}aria-current="page"{% endif %}>Products</a>
   <a class="portal-nav-link {% if '/catalog/categories/' in request.path %}active{% endif %}" href="{% url 'catalog_admin:category_list' %}" {% if '/catalog/categories/' in request.path %}aria-current="page"{% endif %}>Categories</a>

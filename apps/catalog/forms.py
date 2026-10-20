@@ -13,7 +13,7 @@ class ProductForm(forms.ModelForm):
         for field_name, model in (("category", Category), ("brand", Brand)):
             active = Q(status=Status.ACTIVE)
             if self.instance.pk:
-                # Khi sửa, vẫn giữ mục hiện tại dù nó đã INACTIVE để không mất dữ liệu
+                # Keep current item even if INACTIVE to avoid data loss on edit
                 active |= Q(pk=getattr(self.instance, f"{field_name}_id"))
             self.fields[field_name].queryset = model.objects.filter(active).order_by(
                 {"category": "category_name", "brand": "brand_name"}[field_name]
@@ -23,13 +23,13 @@ class ProductForm(forms.ModelForm):
     def clean_product_name(self):
         name = self.cleaned_data["product_name"].strip()
         if not name:
-            raise forms.ValidationError("Tên sản phẩm không được để trống.")
+            raise forms.ValidationError("Product name cannot be empty.")
         return name
 
     def clean_price(self):
         price = self.cleaned_data["price"]
         if price <= 0:
-            raise forms.ValidationError("Giá phải lớn hơn 0.")
+            raise forms.ValidationError("Price must be greater than 0.")
         return price
 
 
@@ -45,7 +45,7 @@ class CategoryForm(forms.ModelForm):
         if self.instance.pk:
             duplicates = duplicates.exclude(pk=self.instance.pk)
         if duplicates.exists():
-            raise forms.ValidationError("Tên danh mục đã tồn tại.")
+            raise forms.ValidationError("Category name already exists.")
         return name
 
 
@@ -60,5 +60,5 @@ class BrandForm(forms.ModelForm):
         if self.instance.pk:
             duplicates = duplicates.exclude(pk=self.instance.pk)
         if duplicates.exists():
-            raise forms.ValidationError("Tên thương hiệu đã tồn tại.")
+            raise forms.ValidationError("Brand name already exists.")
         return name

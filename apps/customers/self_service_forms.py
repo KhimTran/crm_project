@@ -9,18 +9,18 @@ from .self_service_choices import CATEGORY_PREFERENCE_TYPE, GENDER_CHOICES, PLAY
 
 
 class CustomerProfileForm(forms.ModelForm):
-    gender = forms.ChoiceField(label="Giới tính", required=False)
-    playing_level = forms.ChoiceField(label="Trình độ chơi", required=False)
+    gender = forms.ChoiceField(label="Gender", required=False)
+    playing_level = forms.ChoiceField(label="Playing Level", required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field, choices in (("gender", GENDER_CHOICES), ("playing_level", PLAYING_LEVEL_CHOICES)):
-            options = [("", "Chưa chọn"), *choices]
+            options = [("", "-- Select --"), *choices]
             saved = getattr(self.instance, field, None)
             if saved and saved not in dict(options):
-                options.append((saved, f"Đã lưu: {saved}"))
+                options.append((saved, f"Saved: {saved}"))
             self.fields[field].choices = options
-            self.fields[field].help_text = "Bạn có thể giữ lựa chọn đã lưu hoặc chọn lại."
+            self.fields[field].help_text = "You can keep your saved choice or select a new one."
 
     def _optional_choice(self, field):
         # An omitted field is not an explicit request to clear saved information.
@@ -38,34 +38,34 @@ class CustomerProfileForm(forms.ModelForm):
         model = Customer
         fields = ("full_name", "phone", "date_of_birth", "gender", "address", "playing_level")
         labels = {
-            "full_name": "Họ và tên", "phone": "Số điện thoại", "date_of_birth": "Ngày sinh",
-            "gender": "Giới tính", "address": "Địa chỉ", "playing_level": "Trình độ chơi",
+            "full_name": "Full Name", "phone": "Phone Number", "date_of_birth": "Date of Birth",
+            "gender": "Gender", "address": "Address", "playing_level": "Playing Level",
         }
         widgets = {"date_of_birth": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"})}
         help_texts = {
-            "phone": "Nhập 9–15 chữ số, có thể có dấu +, khoảng trắng hoặc dấu gạch nối.",
+            "phone": "Enter 9–15 digits; may include +, spaces or hyphens.",
         }
 
     def clean_phone(self):
         phone = self.cleaned_data.get("phone") or ""
         if phone and (not re.fullmatch(r"\+?[0-9 ()-]+", phone)
                       or not 9 <= len(re.sub(r"\D", "", phone)) <= 15):
-            raise forms.ValidationError("Số điện thoại không hợp lệ.")
+            raise forms.ValidationError("Invalid phone number.")
         return phone or None
 
     def clean_date_of_birth(self):
         date = self.cleaned_data.get("date_of_birth")
         if date and date > timezone.localdate():
-            raise forms.ValidationError("Ngày sinh không được ở tương lai.")
+            raise forms.ValidationError("Date of birth cannot be in the future.")
         return date
 
 
 class CustomerCategoryPreferencesForm(forms.Form):
     categories = forms.TypedMultipleChoiceField(
-        label="Danh mục bạn quan tâm", required=False, coerce=int, widget=forms.CheckboxSelectMultiple,
+        label="Categories of Interest", required=False, coerce=int, widget=forms.CheckboxSelectMultiple,
     )
     remove_preferences = forms.TypedMultipleChoiceField(
-        label="Sở thích đã lưu khác", required=False, coerce=int, widget=forms.CheckboxSelectMultiple,
+        label="Other Saved Preferences", required=False, coerce=int, widget=forms.CheckboxSelectMultiple,
     )
 
     def __init__(self, customer, *args, active_categories=None, preferences=None, **kwargs):

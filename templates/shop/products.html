@@ -8,7 +8,7 @@
     <details class="filter-disclosure" open>
       <summary>Bộ lọc sản phẩm <span aria-hidden="true">⌄</span></summary>
       <form method="get" class="filter-panel">
-        {% if form.errors %}<p class="filter-error" role="alert">Bộ lọc chưa hợp lệ. Vui lòng kiểm tra thông tin bên dưới.</p>{% endif %}
+        {% if form.errors %}<p class="filter-error" role="alert">Invalid filter. Please check the information below.</p>{% endif %}
         {{ form.as_div }}
         <div class="filter-actions"><button class="shop-button" type="submit">Lọc sản phẩm</button><a href="{% url 'shop:products' %}">Xóa bộ lọc</a></div>
       </form>

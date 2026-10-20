@@ -107,3 +107,73 @@ class AdminPasswordResetForm(forms.Form):
             if data["new_password"] != data["new_password_confirm"]:
                 self.add_error("new_password_confirm", "Passwords do not match")
         return data
+
+
+class PersonalProfileEditForm(forms.Form):
+    full_name = forms.CharField(
+        max_length=150,
+        required=True,
+        label="Full Name",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter your full name"}),
+    )
+    phone = forms.CharField(
+        max_length=20,
+        required=False,
+        label="Phone Number",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter phone number"}),
+    )
+    date_of_birth = forms.DateField(
+        required=False,
+        label="Date of Birth",
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+    )
+    gender = forms.ChoiceField(
+        choices=[("", "-- Select gender --"), ("MALE", "Male"), ("FEMALE", "Female"), ("OTHER", "Other")],
+        required=False,
+        label="Gender",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    address = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Address",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter address"}),
+    )
+
+
+class PersonalPasswordChangeForm(forms.Form):
+    current_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Enter current password"}),
+        label="Current Password",
+    )
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Enter new password"}),
+        label="New Password",
+    )
+    new_password_confirm = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm new password"}),
+        label="Confirm New Password",
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_current_password(self):
+        current_password = self.cleaned_data.get("current_password")
+        if current_password and not self.user.check_password(current_password):
+            raise forms.ValidationError("Current password is incorrect.")
+        return current_password
+
+    def clean(self):
+        data = super().clean()
+        new_password = data.get("new_password")
+        new_password_confirm = data.get("new_password_confirm")
+        if new_password and new_password_confirm and new_password != new_password_confirm:
+            self.add_error("new_password_confirm", "New passwords do not match.")
+        if new_password and self.user:
+            try:
+                validate_password(new_password, self.user)
+            except ValidationError as exc:
+                self.add_error("new_password", exc)
+        return data
