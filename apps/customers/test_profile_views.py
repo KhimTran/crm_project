@@ -11,10 +11,10 @@ from .self_services import update_own_profile
 class OwnProfileViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.owner = Account.objects.create_user('owner@profile.test', 'StrongPass!2026')
-        cls.other = Account.objects.create_user('other@profile.test', 'StrongPass!2026')
-        cls.customer = Customer.objects.create(account=cls.owner, full_name='Owner', gender='Old gender', playing_level='ADVANCED')
-        cls.other_customer = Customer.objects.create(account=cls.other, full_name='Other')
+        cls.owner = Account.objects.create_user('owner@profile.test', 'StrongPass!2026', full_name='Owner', gender='Old gender', playing_level='ADVANCED')
+        cls.other = Account.objects.create_user('other@profile.test', 'StrongPass!2026', full_name='Other')
+        cls.customer = Customer.objects.get(pk=cls.owner.pk)
+        cls.other_customer = Customer.objects.get(pk=cls.other.pk)
         cls.category = Category.objects.create(category_name='Badminton rackets')
         cls.second = Category.objects.create(category_name='Shoes')
         cls.inactive = Category.objects.create(category_name='Old category', status='INACTIVE')
@@ -119,9 +119,9 @@ class OwnProfileViewTests(TestCase):
         self.assertEqual((self.customer.gender, self.customer.playing_level), ('FEMALE', 'RECREATIONAL'))
 
     def test_missing_or_deleted_customer_not_created_implicitly(self):
-        no_profile = Account.objects.create_user('missing@profile.test', 'StrongPass!2026')
-        self.client.force_login(no_profile)
-        self.assertEqual(self.client.get('/account/profile/').status_code, 403)
-        Customer.objects.filter(pk=self.customer.pk).update(status='DELETED')
-        self.client.force_login(self.owner)
-        self.assertEqual(self.client.get('/account/profile/').status_code, 403)
+        admin = Account.objects.create_superuser('admin@profile.test', 'StrongPass!2026')
+        self.client.force_login(admin)
+        self.assertRedirects(self.client.get('/account/profile/'), '/admin/', fetch_redirect_response=False)
+        self.owner.status = 'LOCKED'
+        self.owner.save(update_fields=['status'])
+        self.assertIn(self.client.get('/account/profile/').status_code, (302, 403))

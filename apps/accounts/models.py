@@ -16,6 +16,12 @@ class Account(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=255, db_column="password_hash")
     role = models.CharField(max_length=20, choices=AccountRole.choices, default=AccountRole.CUSTOMER)
     status = models.CharField(max_length=20, choices=AccountStatus.choices, default=AccountStatus.ACTIVE)
+    full_name = models.CharField(max_length=150, default="", blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=20, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    playing_level = models.CharField(max_length=30, null=True, blank=True)
     last_login = models.DateTimeField(db_column="last_login_at", null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
@@ -46,36 +52,82 @@ class Account(AbstractBaseUser, PermissionsMixin):
         return self.is_staff
 
     @property
+    def role_id(self):
+        return self.role
+
+    @property
     def admin(self):
-        return getattr(self, "admin_profile", None)
+        return self if self.role == AccountRole.ADMIN else None
 
     @property
     def staff(self):
-        return getattr(self, "staff_profile", None)
+        return self if self.role == AccountRole.MANAGER else None
+
+    @property
+    def admin_profile(self):
+        return self if self.role == AccountRole.ADMIN else None
+
+    @property
+    def staff_profile(self):
+        return self if self.role == AccountRole.MANAGER else None
+
+    @property
+    def customer(self):
+        return self if self.role == AccountRole.CUSTOMER else None
+
+    @property
+    def customer_id(self):
+        return self.account_id
+
+    @property
+    def customer_code(self):
+        return f"KH{self.account_id:04d}"
+
+    @property
+    def admin_code(self):
+        return f"AD{self.account_id:04d}"
+
+    @property
+    def staff_code(self):
+        return f"ST{self.account_id:04d}"
+
+
+    @property
+    def code(self):
+        if self.role == AccountRole.ADMIN:
+            return self.admin_code
+        elif self.role == AccountRole.MANAGER:
+            return self.staff_code
+        return self.customer_code
 
     @property
     def profile(self):
-        if self.role == AccountRole.ADMIN:
-            return self.admin
-        elif self.role == AccountRole.MANAGER:
-            return self.staff
-        elif self.role == AccountRole.CUSTOMER:
-            return getattr(self, "customer", None)
-        return None
+        return self
+
+    @property
+    def account(self):
+        return self
+
+    @account.setter
+    def account(self, value):
+        if value is not None and hasattr(value, "pk") and value.pk:
+            self.pk = value.pk
+            if hasattr(value, "email") and value.email:
+                self.email = value.email
 
     @property
     def display_name(self):
-        prof = self.profile
-        if prof and getattr(prof, "full_name", None):
-            return prof.full_name
-        return self.email
+        return self.full_name or self.email
 
     def save(self, *args, **kwargs):
         self.email = AccountManager.normalize_account_email(self.email)
         if self.pk is not None:
-            saved_email = type(self).objects.filter(pk=self.pk).values_list("email", flat=True).first()
-            if saved_email is not None and saved_email != self.email:
-                raise ValidationError({"email": "Account email cannot be changed"})
+            saved = type(self).objects.filter(pk=self.pk).values("email", "role").first()
+            if saved is not None and saved["email"] != self.email:
+                if saved["role"] != AccountRole.CUSTOMER:
+                    raise ValidationError({"email": "Account email cannot be changed"})
+                if type(self).objects.filter(email=self.email).exclude(pk=self.pk).exists():
+                    raise ValidationError({"email": "Email is already in use"})
         try:
             self.role = normalize_account_role(self.role)
             self.status = normalize_account_status(self.status)
@@ -112,64 +164,17 @@ class Role(models.Model):
         return f"{self.role_code} - {self.role_name}"
 
 
-class Admin(models.Model):
-    admin_id = models.AutoField(primary_key=True)
-    account = models.OneToOneField(
-        Account,
-        on_delete=models.RESTRICT,
-        related_name="admin_profile",
-        db_column="account_id",
-    )
-    admin_code = models.CharField(max_length=30, unique=True)
-    full_name = models.CharField(max_length=150)
-    phone = models.CharField(max_length=20, null=True, blank=True)
-    date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=20, null=True, blank=True)
-    address = models.CharField(max_length=255, null=True, blank=True)
-    status = models.CharField(max_length=20, default="ACTIVE")
-    created_at = models.DateTimeField(default=timezone.now, editable=False)
-    updated_at = models.DateTimeField(auto_now=True)
-
+class Admin(Account):
     class Meta:
-        db_table = "admins"
-        constraints = [
-            models.UniqueConstraint(fields=["account"], name="uq_admins_account_id"),
-            models.UniqueConstraint(fields=["admin_code"], name="uq_admins_code"),
-            models.CheckConstraint(condition=models.Q(status__in=["ACTIVE", "INACTIVE"]), name="chk_admins_status"),
-        ]
+        proxy = True
 
     def __str__(self):
         return f"{self.admin_code} - {self.full_name}"
 
 
-class Staff(models.Model):
-    staff_id = models.AutoField(primary_key=True)
-    account = models.OneToOneField(
-        Account,
-        on_delete=models.RESTRICT,
-        related_name="staff_profile",
-        db_column="account_id",
-    )
-    staff_code = models.CharField(max_length=30, unique=True)
-    full_name = models.CharField(max_length=150)
-    phone = models.CharField(max_length=20, null=True, blank=True)
-    date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=20, null=True, blank=True)
-    address = models.CharField(max_length=255, null=True, blank=True)
-    position = models.CharField(max_length=100, null=True, blank=True)
-    hire_date = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=20, default="ACTIVE")
-    created_at = models.DateTimeField(default=timezone.now, editable=False)
-    updated_at = models.DateTimeField(auto_now=True)
-
+class Staff(Account):
     class Meta:
-        db_table = "staffs"
-        constraints = [
-            models.UniqueConstraint(fields=["account"], name="uq_staffs_account_id"),
-            models.UniqueConstraint(fields=["staff_code"], name="uq_staffs_code"),
-            models.CheckConstraint(condition=models.Q(status__in=["ACTIVE", "INACTIVE"]), name="chk_staffs_status"),
-        ]
+        proxy = True
 
     def __str__(self):
         return f"{self.staff_code} - {self.full_name}"
-

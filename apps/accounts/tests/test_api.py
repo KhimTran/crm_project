@@ -179,27 +179,21 @@ class AccountApiTests(TestCase):
         self.assertFalse(get_user_model().objects.filter(pk=self.customer.pk).exists())
 
     def test_customer_delete_preserves_business_data_and_locks_account(self):
-        from apps.catalog.models import Brand, Category, Product, Supplier
+        from apps.catalog.models import Brand, Category, Product
         from apps.feedback.models import Feedback
 
-        profile = Customer.objects.create(account=self.customer, full_name="Demo customer")
         product = Product.objects.create(
             category=Category.objects.create(category_name="Cat API"),
             brand=Brand.objects.create(brand_name="Brand API"),
-            supplier=Supplier.objects.create(supplier_code="SAPI", supplier_name="Sup API"),
             product_name="Prod API", price="10.00",
         )
-        feedback = Feedback.objects.create(customer=profile, product=product, rating=5, content="Ok API", status="NEW")
+        feedback = Feedback.objects.create(customer=self.customer, product=product, rating=5, content="Ok API", status="NEW")
         response = self.send("delete", self.url())
-        self.assertEqual(response.status_code, 200)
-        profile.refresh_from_db()
+        self.assertEqual(response.status_code, 409)
         self.customer.refresh_from_db()
-        self.assertEqual(profile.status, "DELETED")
-        self.assertEqual(self.customer.status, "LOCKED")
-        self.assertNotIn("SQL", response.content.decode())
+        self.assertEqual(self.customer.status, "ACTIVE")
         self.assertTrue(get_user_model().objects.filter(pk=self.customer.pk).exists())
-        self.assertTrue(Customer.objects.filter(pk=profile.pk, account=self.customer).exists())
-        self.assertTrue(Feedback.objects.filter(pk=feedback.pk, customer=profile).exists())
+        self.assertTrue(Feedback.objects.filter(pk=feedback.pk, customer=self.customer).exists())
 
     def test_delete_other_admin_is_rejected(self):
         other_admin = get_user_model().objects.create_superuser("other_api_admin@example.test", self.password)

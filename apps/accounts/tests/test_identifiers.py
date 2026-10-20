@@ -4,7 +4,7 @@ from django.test import TestCase
 
 
 BUSINESS_TABLES = {
-    "accounts", "customers", "categories", "brands", "suppliers", "products",
+    "accounts", "roles", "categories", "brands", "products",
     "customer_preferences", "feedbacks", "surveys", "survey_questions",
     "survey_options", "survey_recipients", "survey_responses", "survey_answers",
 }
@@ -64,9 +64,7 @@ class IdentifierTypeTests(TestCase):
                 with self.subTest(fk=f"{table}.{column}"):
                     self.assertEqual(columns[(table, column)], "int")
         for table, name in (
-            ("suppliers", "uq_suppliers_code"),
             ("survey_recipients", "uq_survey_recipients_survey_customer"),
             ("survey_responses", "uq_survey_responses_recipient"),
         ):
             self.assertIn((table, name), constraints)
-        self.assertIn(("products", "idx_products_supplier"), indexes)

@@ -117,7 +117,7 @@ class AdminPortalUiTests(TestCase):
         self.assertNotContains(response, "Authorization")
         for modal_id, title in (("createModal", "Create Account"), ("roleModal", "Change Role"),
                                 ("resetModal", "Reset Password"), ("confirmModal", "Confirm action")):
-            self.assertContains(response, f'id="{modal_id}Title">{title}</h2></div>')
+            self.assertContains(response, f'id="{modal_id}Title">{title}</h2>')
         self.assertContains(response, 'type="button" data-bs-dismiss="modal">Cancel</button>', count=4)
         for label in ("Create Account", "Change Role", "Reset Password", "Lock", "Delete", "Database Tools"):
             self.assertContains(response, label)
@@ -288,7 +288,7 @@ class ManagerPortalUiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "CRM Manager Portal")
         # Manager sidebar modules
-        for label in ("Products", "Suppliers", "Categories", "Brands", "Customers", "Customer Report", "Feedback", "Surveys"):
+        for label in ("Products", "Categories", "Brands", "Customers", "Customer Report", "Feedback", "Surveys"):
             self.assertContains(response, label)
         # Admin features must be cleaned up / absent from Manager UI
         self.assertNotContains(response, "accounts_admin:list")

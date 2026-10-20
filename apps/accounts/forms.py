@@ -20,16 +20,14 @@ class AccountCreateForm(forms.Form):
     password_confirm = forms.CharField(widget=forms.PasswordInput)
 
     # Optional profile fields
-    full_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={"placeholder": "Họ và tên..."}))
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={"placeholder": "Số điện thoại..."}))
+    full_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={"placeholder": "Full name..."}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={"placeholder": "Phone number..."}))
     date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
     gender = forms.ChoiceField(
-        choices=[("", "-- Chọn giới tính --"), ("MALE", "Nam"), ("FEMALE", "Nữ"), ("OTHER", "Khác")],
+        choices=[("", "-- Select gender --"), ("MALE", "Male"), ("FEMALE", "Female"), ("OTHER", "Other")],
         required=False,
     )
-    address = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={"placeholder": "Địa chỉ..."}))
-    position = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"placeholder": "Vị trí/Chức vụ (Manager/Staff)..."}))
-    hire_date = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    address = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={"placeholder": "Address..."}))
 
     def clean_email(self):
         email = AccountManager.normalize_account_email(self.cleaned_data["email"])
@@ -53,21 +51,40 @@ class AccountCreateForm(forms.Form):
 
 class AccountProfileEditForm(forms.Form):
     full_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    email = forms.EmailField(max_length=255, required=False, widget=forms.EmailInput(attrs={"class": "form-control"}))
     phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}))
     gender = forms.ChoiceField(
-        choices=[("", "-- Chọn giới tính --"), ("MALE", "Nam"), ("FEMALE", "Nữ"), ("OTHER", "Khác")],
+        choices=[("", "-- Select gender --"), ("MALE", "Male"), ("FEMALE", "Female"), ("OTHER", "Other")],
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     address = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    position = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    hire_date = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}))
-    status = forms.ChoiceField(
-        choices=[("ACTIVE", "Active"), ("INACTIVE", "Inactive")],
+    playing_level = forms.ChoiceField(
+        choices=[
+            ("", "-- Select playing level --"),
+            ("BEGINNER", "Beginner"),
+            ("RECREATIONAL", "Recreational"),
+            ("COMPETITIVE", "Competitive"),
+        ],
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+
+    def __init__(self, *args, account_id=None, **kwargs):
+        self.account_id = account_id
+        super().__init__(*args, **kwargs)
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if email:
+            email = AccountManager.normalize_account_email(email)
+            qs = Account.objects.filter(email=email)
+            if self.account_id:
+                qs = qs.exclude(pk=self.account_id)
+            if qs.exists():
+                raise forms.ValidationError("Email is already in use")
+        return email
 
 
 class AccountRoleForm(forms.Form):
@@ -75,7 +92,7 @@ class AccountRoleForm(forms.Form):
 
 
 class AccountListFilterForm(forms.Form):
-    q = forms.CharField(required=False, strip=True, max_length=255, widget=forms.TextInput(attrs={"placeholder": "Tìm theo email, tên, mã...", "autocomplete": "off"}))
+    q = forms.CharField(required=False, strip=True, max_length=255, widget=forms.TextInput(attrs={"placeholder": "Search email, name, code...", "autocomplete": "off"}))
     role = CanonicalChoiceField(choices=[("", "All roles"), *AccountRole.choices], required=False)
     status = CanonicalChoiceField(choices=[("", "All statuses"), *AccountStatus.choices], required=False)
 

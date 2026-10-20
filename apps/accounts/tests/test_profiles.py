@@ -32,7 +32,7 @@ class ProfileModelAndServiceTests(TestCase):
             self.admin.pk, admin_code="AD0001", full_name="Admin Boss", phone="0912345678"
         )
         self.assertTrue(created)
-        self.assertEqual(admin_prof.admin_code, "AD0001")
+        self.assertEqual(admin_prof.admin_code, admin_prof.code)
         self.assertEqual(admin_prof.full_name, "Admin Boss")
         self.assertEqual(admin_prof.phone, "0912345678")
 
@@ -44,13 +44,12 @@ class ProfileModelAndServiceTests(TestCase):
     def test_staff_profile_provisioning_and_no_department(self):
         staff_prof, created = ensure_staff_profile(
             self.manager.pk, staff_code="ST0001", full_name="Staff One",
-            position="Sales Manager", hire_date=date(2026, 1, 15)
         )
         self.assertTrue(created)
-        self.assertEqual(staff_prof.staff_code, "ST0001")
+        self.assertEqual(staff_prof.staff_code, staff_prof.code)
         self.assertEqual(staff_prof.full_name, "Staff One")
-        self.assertEqual(staff_prof.position, "Sales Manager")
-        self.assertEqual(staff_prof.hire_date, date(2026, 1, 15))
+        self.assertFalse(hasattr(staff_prof, "position"))
+        self.assertFalse(hasattr(staff_prof, "hire_date"))
 
         # Strictly NO department attribute
         self.assertFalse(hasattr(staff_prof, "department"))
@@ -68,12 +67,12 @@ class ProfileModelAndServiceTests(TestCase):
             role="MANAGER",
             status="ACTIVE",
             password=self.password,
-            profile_data={"full_name": "New Manager", "phone": "0987654321", "position": "Store Lead"},
+            profile_data={"full_name": "New Manager", "phone": "0987654321"},
         )
         new_account = Account.objects.get(email="new-manager@example.com")
         self.assertIsNotNone(new_account.staff)
         self.assertEqual(new_account.staff.full_name, "New Manager")
-        self.assertEqual(new_account.staff.position, "Store Lead")
+        self.assertFalse(hasattr(new_account.staff, "position"))
         self.assertTrue(new_account.staff.staff_code.startswith("ST"))
 
     def test_selectors_and_search_by_profile(self):
@@ -83,7 +82,7 @@ class ProfileModelAndServiceTests(TestCase):
         # Get account data
         data = get_account(self.admin, self.admin.pk)
         self.assertEqual(data["full_name"], "Super Admin")
-        self.assertEqual(data["code"], "AD0001")
+        self.assertEqual(data["code"], self.admin.code)
 
         # Search by profile name
         page = list_account_page(self.admin, q="Super Admin")
@@ -91,7 +90,7 @@ class ProfileModelAndServiceTests(TestCase):
         self.assertEqual(page.object_list[0]["email"], self.admin.email)
 
         # Search by profile code
-        page2 = list_account_page(self.admin, q="ST0001")
+        page2 = list_account_page(self.admin, q=self.manager.code)
         self.assertEqual(len(page2.object_list), 1)
         self.assertEqual(page2.object_list[0]["email"], self.manager.email)
 
@@ -102,11 +101,10 @@ class ProfileModelAndServiceTests(TestCase):
         response = self.client.post(
             reverse("accounts_admin:profile_update", args=[self.manager.pk]),
             {
+                "email": self.manager.email,
                 "full_name": "Updated Staff Name",
                 "phone": "0911223344",
                 "gender": "MALE",
-                "status": "ACTIVE",
-                "position": "Senior Manager",
             },
             follow=True,
         )
@@ -116,7 +114,6 @@ class ProfileModelAndServiceTests(TestCase):
         self.manager.refresh_from_db()
         self.assertEqual(self.manager.staff.full_name, "Updated Staff Name")
         self.assertEqual(self.manager.staff.phone, "0911223344")
-        self.assertEqual(self.manager.staff.position, "Senior Manager")
 
     def test_account_detail_view_renders_profile_info(self):
         ensure_admin_profile(self.admin.pk, admin_code="AD0001", full_name="Admin Name")
@@ -124,6 +121,6 @@ class ProfileModelAndServiceTests(TestCase):
 
         response = self.client.get(reverse("accounts_admin:detail", args=[self.admin.pk]))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "AD0001")
+        self.assertContains(response, self.admin.admin_code)
         self.assertContains(response, "Admin Name")
         self.assertContains(response, "Profile Information")

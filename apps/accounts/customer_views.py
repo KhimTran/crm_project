@@ -88,7 +88,7 @@ def register(request):
             for field, errors in (exc.message_dict if hasattr(exc, "message_dict") else {"__all__": exc.messages}).items():
                 form.add_error(field if field in form.fields else None, errors)
         else:
-            messages.success(request, "Đăng ký thành công. Bạn có thể đăng nhập.")
+            messages.success(request, "Registration successful. You can now log in.")
             return redirect("customer_auth:login")
     return render(request, "accounts/customer/form.html", {"form": form, "title": "Đăng ký khách hàng", "submit_label": "Đăng ký"})
 
@@ -107,7 +107,7 @@ def password_change(request):
             form.save()
             transaction.on_commit(lambda: logger.info("password_changed actor=%s target=%s", account.pk, account.pk))
             update_session_auth_hash(request, account)
-            messages.success(request, "Đã đổi mật khẩu.")
+            messages.success(request, "Password changed successfully.")
             return redirect(get_home_path(account))
     return render(request, "accounts/customer/form.html", {"form": form, "title": "Đổi mật khẩu", "submit_label": "Đổi mật khẩu"})
 

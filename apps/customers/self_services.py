@@ -24,7 +24,7 @@ def _profile_data(data, *, instance=None):
 
 @transaction.atomic
 def register_customer(*, email, password, profile_data):
-    """Always create an ACTIVE CUSTOMER and its profile, or roll back both."""
+    """Always create an ACTIVE CUSTOMER, or roll back."""
     profile = _profile_data(profile_data)
     email = AccountManager.normalize_account_email(email)
     if Account.objects.filter(email=email).exists():
@@ -33,13 +33,12 @@ def register_customer(*, email, password, profile_data):
         with transaction.atomic():
             account = Account.objects.create_user(
                 email, password, role=AccountRole.CUSTOMER, status=AccountStatus.ACTIVE,
+                **profile,
             )
     except (IntegrityError, ValidationError) as exc:
-        # Only classify a real duplicate; do not hide unrelated integrity failures.
         if Account.objects.filter(email=email).exists():
             raise ValidationError({"email": "Email đã được sử dụng."}) from exc
         raise
-    Customer.objects.create(account=account, status="ACTIVE", **profile)
     transaction.on_commit(lambda: logger.info("customer_registered target=%s", account.pk))
     return account
 
@@ -47,17 +46,12 @@ def register_customer(*, email, password, profile_data):
 def own_customer(actor, *, for_update=False):
     if not getattr(actor, "is_authenticated", False):
         raise PermissionDenied("Bạn cần đăng nhập.")
-    accounts = Account.objects.filter(pk=actor.pk, role=AccountRole.CUSTOMER, status=AccountStatus.ACTIVE)
+    accounts = Customer.objects.filter(pk=actor.pk, status=AccountStatus.ACTIVE)
     if for_update:
         accounts = accounts.select_for_update()
-    if accounts.first() is None:
-        raise PermissionDenied("Tài khoản không có quyền sửa hồ sơ khách hàng.")
-    customers = Customer.objects.filter(account_id=actor.pk, status="ACTIVE", deleted_at__isnull=True)
-    if for_update:
-        customers = customers.select_for_update()
-    customer = customers.first()
+    customer = accounts.first()
     if customer is None:
-        raise PermissionDenied("Hồ sơ chưa khả dụng. Vui lòng liên hệ quản lý.")
+        raise PermissionDenied("Hồ sơ chưa khả dụng hoặc tài khoản không có quyền.")
     return customer
 
 

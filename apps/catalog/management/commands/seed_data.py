@@ -37,12 +37,9 @@ class Command(BaseCommand):
             admin = Account.objects.create_superuser("demo-admin@example.test", demo_password)
         ensure_admin_profile(admin.pk, admin_code="AD0001", full_name="System Administrator")
 
-        customer_account = Account.objects.filter(email="demo-customer@example.test").first()
-        if customer_account is None:
-            customer_account = Account.objects.create_user("demo-customer@example.test", demo_password)
-        customer, _ = Customer.objects.get_or_create(
-            account=customer_account, defaults={"full_name": "Demo customer"}
-        )
+        customer = Account.objects.filter(email="demo-customer@example.test").first()
+        if customer is None:
+            customer = Account.objects.create_user("demo-customer@example.test", demo_password, full_name="Demo customer")
         CustomerPreference.objects.get_or_create(
             customer=customer, preference_type="CATEGORY", preference_value="Badminton rackets"
         )

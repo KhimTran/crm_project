@@ -80,13 +80,14 @@ class Command(BaseCommand):
 
         customers = []
         for i in range(1, 25):
-            account = Account.objects.filter(email=f"survey-customer-{i:02d}@example.test").first() \
-                or Account.objects.create_user(f"survey-customer-{i:02d}@example.test", password)
-            customer, created = Customer.objects.get_or_create(account=account, defaults={
-                "full_name": f"Khách hàng mẫu {i:02d}",
-                "date_of_birth": date.today() - timedelta(days=365 * rng.randint(16, 60)),
-                "playing_level": LEVELS[i % 3]})
-            if created:
+            customer = Account.objects.filter(email=f"survey-customer-{i:02d}@example.test").first()
+            if customer is None:
+                customer = Account.objects.create_user(
+                    f"survey-customer-{i:02d}@example.test", password,
+                    full_name=f"Khách hàng mẫu {i:02d}",
+                    date_of_birth=date.today() - timedelta(days=365 * rng.randint(16, 60)),
+                    playing_level=LEVELS[i % 3],
+                )
                 CustomerPreference.objects.get_or_create(customer=customer, preference_type="CATEGORY",
                                                          preference_value=PREFS[i % len(PREFS)])
             customers.append(customer)

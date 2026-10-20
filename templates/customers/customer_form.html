@@ -1,14 +1,14 @@
 {% extends crm_layout %}
 {% load static portal_text %}
-{% block title %}{% t "Thêm khách hàng" "Create Customer" %}{% endblock %}
-{% block page_title %}{% t "Thêm khách hàng" "Create Customer" %}{% endblock %}
+{% block title %}{% if is_edit %}{% t "Chỉnh sửa khách hàng" "Edit Customer" %}{% else %}{% t "Thêm khách hàng" "Create Customer" %}{% endif %}{% endblock %}
+{% block page_title %}{% if is_edit %}{% t "Chỉnh sửa khách hàng" "Edit Customer" %}{% else %}{% t "Thêm khách hàng" "Create Customer" %}{% endif %}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 
 {% block content %}
 <div id="customers-content">
-<div class="portal-section-intro">{% if in_admin_portal %}<a class="btn btn-outline-secondary btn-sm customer-back-link" href="{% url 'customers:list' %}">&larr; {% t "Về danh sách" "Back to list" %}</a>{% else %}<a href="{% url 'customers:list' %}">{% t "Về danh sách" "Back to list" %}</a>{% endif %}</div>
+<div class="portal-section-intro">{% if in_admin_portal %}<a class="btn btn-outline-secondary btn-sm customer-back-link" href="{% if is_edit %}{% url 'customers:detail' customer.customer_id %}{% else %}{% url 'customers:list' %}{% endif %}">&larr; {% if is_edit %}{% t "Quay lại" "Back" %}{% else %}{% t "Về danh sách" "Back to list" %}{% endif %}</a>{% else %}<a href="{% if is_edit %}{% url 'customers:detail' customer.customer_id %}{% else %}{% url 'customers:list' %}{% endif %}">{% if is_edit %}{% t "Quay lại" "Back" %}{% else %}{% t "Về danh sách" "Back to list" %}{% endif %}</a>{% endif %}</div>
 <section class="{% if in_admin_portal %}portal-panel{% else %}crm-card{% endif %} customer-create-page">
-  <form method="post" action="{% url 'customers:create' %}" id="customer-create-form" novalidate
+  <form method="post" action="{% if is_edit %}{% url 'customers:edit' customer.customer_id %}{% else %}{% url 'customers:create' %}{% endif %}" id="customer-create-form" novalidate
         data-failure="{% t 'Chưa xác nhận được kết quả lưu. Vui lòng kiểm tra kết nối và thử lại; nếu email đã tồn tại, kiểm tra danh sách Customers.' 'Could not confirm the save. Check your connection and try again; if the email already exists, check Customers.' %}"
         data-invalid="{% t 'Vui lòng kiểm tra các trường được đánh dấu bên dưới.' 'Please check the highlighted fields below.' %}"
         data-forbidden="{% t 'Phiên đăng nhập đã hết hạn hoặc bạn không có quyền. Đăng nhập lại trước khi thử lại.' 'Your session has expired or access was denied. Sign in again before retrying.' %}">
@@ -23,7 +23,9 @@
         <h2>{% t "Thông tin tài khoản" "Account Information" %}</h2>
         {% include "customers/_customer_create_field.html" with field=form.full_name %}
         {% include "customers/_customer_create_field.html" with field=form.email %}
+        {% if form.password %}
         {% include "customers/_customer_create_field.html" with field=form.password %}
+        {% endif %}
         {% include "customers/_customer_create_field.html" with field=form.phone %}
       </div>
       <div class="customer-create-box">
@@ -36,12 +38,12 @@
     </div>
 
     <div class="customer-create-actions">
-      <button type="submit" class="{% if in_admin_portal %}btn btn-primary{% else %}crm-btn{% endif %}" data-saving="{% t 'Đang lưu…' 'Saving…' %}">{% t "Lưu khách hàng" "Save Customer" %}</button>
-      <a class="{% if in_admin_portal %}btn btn-outline-secondary{% else %}crm-btn crm-btn-secondary{% endif %}" href="{% url 'customers:list' %}">{% t "Hủy" "Cancel" %}</a>
+      <button type="submit" class="{% if in_admin_portal %}btn btn-primary{% else %}crm-btn{% endif %}" data-saving="{% t 'Đang lưu…' 'Saving…' %}">{% if is_edit %}{% t "Lưu thay đổi" "Save Changes" %}{% else %}{% t "Lưu khách hàng" "Save Customer" %}{% endif %}</button>
+      <a class="{% if in_admin_portal %}btn btn-outline-secondary{% else %}crm-btn crm-btn-secondary{% endif %}" href="{% if is_edit %}{% url 'customers:detail' customer.customer_id %}{% else %}{% url 'customers:list' %}{% endif %}">{% t "Hủy" "Cancel" %}</a>
       <span id="customer-save-status" role="status" aria-live="polite"></span>
     </div>
   </form>
 </section>
 </div>
 {% endblock %}
-{% block extra_js %}<script src="{% static 'js/customer_create.js' %}" defer></script>{% endblock %}
+{% block extra_js %}{% if not is_edit %}<script src="{% static 'js/customer_create.js' %}" defer></script>{% endif %}{% endblock %}

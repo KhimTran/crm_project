@@ -149,7 +149,7 @@ class FeedbackViewTests(FeedbackTestData):
         self.client.force_login(self.staff)
         response = self.client.get(reverse("crm_feedbacks:list"),
                                    {"date_from": "2026-10-05", "date_to": "2026-10-01"})
-        self.assertContains(response, "Đến ngày phải sau hoặc bằng Từ ngày.")
+        self.assertContains(response, "The To date must be on or after the From date.")
 
     def test_staff_replies_and_resolves(self):
         self.client.force_login(self.staff)
@@ -157,7 +157,7 @@ class FeedbackViewTests(FeedbackTestData):
         response = self.client.post(url, {"status": FeedbackStatus.RESOLVED,
                                           "manager_note": "Shop sẽ căng lại miễn phí."}, follow=True)
         self.assertRedirects(response, reverse("crm_feedbacks:list"))
-        self.assertContains(response, "Đã cập nhật phản hồi")
+        self.assertContains(response, "updated")
         self.feedback.refresh_from_db()
         self.assertEqual(self.feedback.status, FeedbackStatus.RESOLVED)
         self.assertEqual(self.feedback.handled_by, self.staff)
@@ -168,7 +168,7 @@ class FeedbackViewTests(FeedbackTestData):
         self.client.force_login(self.manager)
         response = self.client.post(reverse("crm_feedbacks:detail", args=[self.feedback.pk]),
                                     {"status": FeedbackStatus.RESOLVED, "manager_note": ""})
-        self.assertContains(response, "Cần nhập câu trả lời")
+        self.assertContains(response, "A reply is required before marking as Resolved.")
         self.feedback.refresh_from_db()
         self.assertEqual(self.feedback.status, FeedbackStatus.NEW)
 

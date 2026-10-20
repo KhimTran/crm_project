@@ -16,7 +16,7 @@ from .configuration import rating_bounds
 from .questionnaire import NOT_USED
 
 
-COMPLETED_MESSAGE = "Bạn đã hoàn thành khảo sát này và không thể gửi lại."
+COMPLETED_MESSAGE = "You have already completed this survey and cannot submit it again."
 
 
 def require_survey_manager(actor):
@@ -30,9 +30,11 @@ def require_survey_manager(actor):
     return account
 
 
-# tv4: khách được mời khảo sát: hồ sơ chưa bị xóa mềm và tài khoản đang hoạt động (không khóa)
+# tv4: khách được mời khảo sát: tài khoản đang hoạt động (không khóa) và thuộc role CUSTOMER
 def eligible_customers():
-    return Customer.objects.filter(status="ACTIVE", account__status=AccountStatus.ACTIVE)
+    return Customer.objects.filter(status=AccountStatus.ACTIVE, role="CUSTOMER").exclude(
+        groups__name__in=("CRM_MANAGER", "CUSTOMER_SERVICE")
+    )
 
 
 def send_survey(actor, survey, customer_ids):
@@ -369,9 +371,7 @@ def preference_choices():
 
 
 def filter_customers(audience="all", age_groups=(), playing_levels=(), preferences=()):
-    """ACTIVE customers with an ACTIVE account. Different filters combine with AND,
-    several values inside one filter combine with OR."""
-    qs = Customer.objects.filter(status="ACTIVE", account__status=AccountStatus.ACTIVE)
+    qs = eligible_customers()
     if audience == "all":
         return qs
     today = timezone.localdate()

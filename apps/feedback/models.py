@@ -6,13 +6,25 @@ from .constants import FeedbackStatus
 
 class Feedback(models.Model):
     feedback_id = models.AutoField(primary_key=True)
-    customer = models.ForeignKey("customers.Customer", on_delete=models.PROTECT, db_column="customer_id")
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        db_column="customer_id",
+        related_name="feedbacks",
+    )
     product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT, db_column="product_id")
     rating = models.PositiveSmallIntegerField()
     content = models.TextField()
     status = models.CharField(max_length=20)
     manager_note = models.TextField(null=True, blank=True)
-    handled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, db_column="handled_by", null=True, blank=True)
+    handled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        db_column="handled_by",
+        null=True,
+        blank=True,
+        related_name="handled_feedbacks",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
 
@@ -27,7 +39,6 @@ class Feedback(models.Model):
         ]
         constraints = [models.CheckConstraint(condition=models.Q(rating__gte=1, rating__lte=5), name="chk_feedbacks_rating")]
 
-    # tv4: nhãn tiếng Việt của trạng thái (cột status không khai báo choices để không sinh migration)
     @property
     def status_label(self):
         return FeedbackStatus(self.status).label if self.status in FeedbackStatus.values else self.status

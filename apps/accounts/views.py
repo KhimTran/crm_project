@@ -78,19 +78,18 @@ def account_detail(request, account_id):
     account = _get_account_or_404(request.user, account_id)
     prof = account.get("profile") or {}
     initial_profile = {
+        "email": account.get("email", ""),
         "full_name": prof.get("full_name", ""),
         "phone": prof.get("phone", ""),
         "date_of_birth": prof.get("date_of_birth"),
         "gender": prof.get("gender", ""),
         "address": prof.get("address", ""),
-        "position": prof.get("position", ""),
-        "hire_date": prof.get("hire_date"),
-        "status": prof.get("status", "ACTIVE"),
+        "playing_level": prof.get("playing_level", ""),
     }
     return render(request, "accounts/admin/account_detail.html", {
         "account": account,
         "role_form": AccountRoleForm(initial={"role": account["role"]}),
-        "profile_form": AccountProfileEditForm(initial=initial_profile),
+        "profile_form": AccountProfileEditForm(initial=initial_profile, account_id=account_id),
         "active_section": "accounts",
     })
 
@@ -99,7 +98,7 @@ def account_detail(request, account_id):
 @require_POST
 def account_profile_update(request, account_id):
     account = _get_account_or_404(request.user, account_id)
-    form = AccountProfileEditForm(request.POST)
+    form = AccountProfileEditForm(request.POST, account_id=account_id)
     if not form.is_valid():
         for err in form.errors.values():
             messages.error(request, err.as_text())
@@ -125,7 +124,7 @@ def account_create(request):
         try:
             profile_data = {
                 key: form.cleaned_data[key]
-                for key in ("full_name", "phone", "date_of_birth", "gender", "address", "position", "hire_date")
+                for key in ("full_name", "phone", "date_of_birth", "gender", "address")
                 if form.cleaned_data.get(key)
             }
             account = create_account(

@@ -17,7 +17,7 @@ PASSWORD = "CrmFixture!2026"
 class CustomerFeedbackTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.manager = Account.objects.create_user("manager@example.com", "Quanly@12345")
+        cls.manager = Account.objects.create_user("manager@example.com", "Quanly@12345", role="MANAGER")
         cls.manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
         category = Category.objects.create(category_name="Vợt")
         brand = Brand.objects.create(brand_name="Yonex")
@@ -41,7 +41,7 @@ class CustomerFeedbackTests(TestCase):
         response = self.client.post(reverse("feedbacks:create"),
                                     {"product": self.racket.pk, "rating": 4, "content": "  Vợt đầm tay  "}, follow=True)
         self.assertRedirects(response, reverse("feedbacks:mine"))
-        self.assertContains(response, "Cảm ơn bạn đã gửi phản hồi")
+        self.assertContains(response, "Thank you for your feedback!")
         feedback = Feedback.objects.get()
         self.assertEqual((feedback.customer, feedback.rating, feedback.content, feedback.status),
                          (self.an, 4, "Vợt đầm tay", FeedbackStatus.NEW))
@@ -136,8 +136,7 @@ class FeedbackBadgeTests(TestCase):
         cls.manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
         category = Category.objects.create(category_name="Vợt")
         brand = Brand.objects.create(brand_name="Yonex")
-        supplier = Supplier.objects.create(supplier_code="NCC01", supplier_name="NCC 1")
-        product = Product.objects.create(category=category, brand=brand, supplier=supplier,
+        product = Product.objects.create(category=category, brand=brand,
                                          product_name="Astrox 88D", price=3500000)
         customer = create_customer(password=PASSWORD, email="an@example.com", full_name="An", phone="0900000001")
         for status in ("NEW", "NEW", "RESOLVED"):

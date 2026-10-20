@@ -13,7 +13,7 @@ def _start_of_day(day):
 
 # tv4: 4.1.4 truy vấn danh sách phản hồi kèm khách hàng, sản phẩm, người xử lý; mới nhất trước
 def feedback_queryset():
-    return (Feedback.objects.select_related("customer__account", "product", "handled_by")
+    return (Feedback.objects.select_related("customer", "product", "handled_by")
             .order_by("-created_at", "-feedback_id"))
 
 
@@ -23,7 +23,7 @@ def filter_feedbacks(qs, params):
     q = params.get("q")
     if q:
         qs = qs.filter(Q(content__icontains=q) | Q(customer__full_name__icontains=q)
-                       | Q(customer__account__email__icontains=q) | Q(product__product_name__icontains=q))
+                       | Q(customer__email__icontains=q) | Q(product__product_name__icontains=q))
     if params.get("status"):
         qs = qs.filter(status=params["status"])
     if params.get("product"):

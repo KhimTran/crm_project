@@ -3,13 +3,7 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.catalog.models import Brand, Category, Product, Status, Supplier
-
-SUPPLIERS = (
-    ("SUP001", "Yonex Vietnam"), ("SUP002", "Lining Sports"),
-    ("SUP003", "Victor Distribution"), ("SUP004", "Mizuno Sports"),
-    ("SUP005", "Kawasaki Badminton"), ("SUP006", "Apacs Vietnam"),
-)
+from apps.catalog.models import Brand, Category, Product, Status
 
 CATEGORIES = (
     ("Badminton rackets", "Vợt cầu lông các dòng thiên công, thủ và toàn diện"),
@@ -18,13 +12,12 @@ CATEGORIES = (
     ("Badminton apparel", "Quần áo cầu lông"),
 )
 
-# (tên thương hiệu, mã nhà cung cấp, mô tả)
 BRANDS = (
-    ("Yonex", "SUP001", "Thương hiệu cầu lông Nhật Bản"),
-    ("Lining", "SUP002", "Thương hiệu thể thao Trung Quốc"),
-    ("Victor", "SUP003", "Thương hiệu cầu lông Đài Loan"),
-    ("Mizuno", "SUP004", "Thương hiệu thể thao Nhật Bản"),
-    ("Apacs", "SUP006", "Thương hiệu cầu lông Malaysia"),
+    ("Yonex", "Thương hiệu cầu lông Nhật Bản"),
+    ("Lining", "Thương hiệu thể thao Trung Quốc"),
+    ("Victor", "Thương hiệu cầu lông Đài Loan"),
+    ("Mizuno", "Thương hiệu thể thao Nhật Bản"),
+    ("Apacs", "Thương hiệu cầu lông Malaysia"),
 )
 
 # (danh mục, thương hiệu, tên sản phẩm, mô tả, giá VND)
@@ -125,12 +118,6 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        suppliers = {}
-        for code, name in SUPPLIERS:
-            suppliers[code], _ = Supplier.objects.get_or_create(
-                supplier_code=code, defaults={"supplier_name": name}
-            )
-
         categories = {}
         for name, description in CATEGORIES:
             categories[name], _ = Category.objects.update_or_create(
@@ -139,13 +126,11 @@ class Command(BaseCommand):
             )
 
         brands = {}
-        supplier_of_brand = {}
-        for name, supplier_code, description in BRANDS:
+        for name, description in BRANDS:
             brands[name], _ = Brand.objects.update_or_create(
                 brand_name=name,
                 defaults={"description": description, "status": Status.ACTIVE},
             )
-            supplier_of_brand[name] = suppliers[supplier_code]
 
         created = 0
         for category_name, brand_name, name, description, price in PRODUCTS:
@@ -160,7 +145,6 @@ class Command(BaseCommand):
                 defaults["image_url"] = IMAGES[name]
             _, was_created = Product.objects.update_or_create(
                 product_name=name,
-                supplier=supplier_of_brand[brand_name],
                 defaults=defaults,
             )
             created += was_created

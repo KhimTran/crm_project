@@ -104,21 +104,19 @@ def _pct(part, whole):
     return round(part * 100 / whole, 1) if whole else None
 
 
-# tv4: 4.1.5 tỷ lệ tài khoản hoạt động / bị khóa của khách chưa xóa
+# Tỷ lệ tài khoản hoạt động / bị khóa của khách hàng
 def account_status_report():
-    """Khách chưa xóa mềm theo accounts.status; % = số / tổng khách chưa xóa (None khi chưa có khách).
-    CSDL không lưu lý do khóa nên không chia theo lý do."""
     customers = customer_queryset()
     total = customers.count()
-    active = customers.filter(account__status=AccountStatus.ACTIVE).count()
-    locked = customers.filter(account__status=AccountStatus.LOCKED).count()
+    active = customers.filter(status=AccountStatus.ACTIVE).count()
+    locked = customers.filter(status=AccountStatus.LOCKED).count()
     return {"total": total, "active": active, "locked": locked,
             "active_pct": _pct(active, total), "locked_pct": _pct(locked, total)}
 
 
-# tv4: 4.1.5 số khách hàng đã xóa (xóa mềm: status DELETED)
+# Không sử dụng xóa mềm (DELETED) nên số khách xóa mềm = 0
 def deleted_count():
-    return Customer.objects.filter(status=CustomerStatus.DELETED).count()
+    return 0
 
 
 # tv4: 4.1.5 số phản hồi theo tháng (theo created_at, giờ địa phương) và theo trạng thái xử lý hiện tại
@@ -173,7 +171,7 @@ def summary(today=None):
     return {
         "total": customers.count(),
         "new_this_month": customers.filter(created_at__gte=month_start).count(),
-        "locked": customers.filter(account__status=AccountStatus.LOCKED).count(),
+        "locked": customers.filter(status=AccountStatus.LOCKED).count(),
         "feedbacks": feedbacks.count(),
         "avg_rating": round(float(rating), 2) if rating is not None else None,
     }

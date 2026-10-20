@@ -58,14 +58,14 @@ class SaveCustomerTests(TestCase):
         response = self.save(email="bad", password="123", phone="123", date_of_birth="2999-01-01")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(set(response.json()["errors"]), {"email", "phone", "password", "date_of_birth"})
-        self.assertFalse(Customer.objects.exists())
+        self.assertFalse(Customer.objects.filter(email="saved@save.test").exists())
         self.assertEqual(self.save().status_code, 201)
         # Even if two HTTP requests get through, the same account is not created twice.
         duplicate = self.save()
         self.assertEqual(duplicate.status_code, 400)
         self.assertIn("already in use", duplicate.json()["errors"]["email"][0])
         self.assertIn("already in use", duplicate.json()["errors"]["phone"][0])
-        self.assertEqual(Customer.objects.count(), 1)
+        self.assertEqual(Customer.objects.filter(email="saved@save.test").count(), 1)
         self.assertEqual(Account.objects.filter(email="saved@save.test").count(), 1)
 
     def test_service_duplicate_races_are_field_errors(self):
@@ -75,10 +75,10 @@ class SaveCustomerTests(TestCase):
                 response = self.save()
                 self.assertEqual(response.status_code, 409)
                 self.assertIn(field, response.json()["errors"])
-        self.assertFalse(Customer.objects.exists())
+        self.assertFalse(Customer.objects.filter(email="saved@save.test").exists())
 
     def test_database_failure_rolls_back_and_retry_succeeds(self):
-        with patch("apps.customers.services.Customer.objects.create", side_effect=IntegrityError("private DB details")):
+        with patch("apps.customers.services.Account.objects.create_user", side_effect=IntegrityError("private DB details")):
             response = self.save()
         self.assertEqual(response.status_code, 503)
         self.assertIn("Unable to save", response.json()["errors"]["__all__"][0])
@@ -92,7 +92,7 @@ class SaveCustomerTests(TestCase):
             response = self.save()
         self.assertEqual(response.status_code, 503)
         self.assertFalse(Account.objects.filter(email="saved@save.test").exists())
-        self.assertFalse(Customer.objects.exists())
+        self.assertFalse(Customer.objects.filter(email="saved@save.test").exists())
 
     def test_json_requires_existing_permissions_active_session_and_csrf(self):
         for actor in (None, self.shopper):
@@ -104,7 +104,7 @@ class SaveCustomerTests(TestCase):
         Account.objects.filter(pk=self.manager.pk).update(status="LOCKED")
         self.assertNotEqual(self.save().status_code, 201)
         Account.objects.filter(pk=self.manager.pk).update(status="ACTIVE")
-        self.assertFalse(Customer.objects.exists())
+        self.assertFalse(Customer.objects.filter(email="saved@save.test").exists())
         csrf_client = Client(enforce_csrf_checks=True)
         csrf_client.force_login(self.manager)
         self.assertEqual(csrf_client.post(self.url, self.payload(), HTTP_ACCEPT="application/json").status_code, 403)

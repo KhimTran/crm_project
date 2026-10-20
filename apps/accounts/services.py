@@ -3,8 +3,6 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.db.models.deletion import ProtectedError
 
-from apps.customers.constants import CustomerStatus
-from apps.customers.models import Customer
 from .constants import AccountRole, AccountStatus, normalize_account_role, normalize_account_status
 from .errors import (
     AccountAlreadyActive, AccountAlreadyLocked, AccountDeleteProtectedError,
@@ -37,10 +35,12 @@ def _protect_final_admin(account, active_admin_ids):
 
 
 def _has_protected_references(account_id):
-    # The SQL schema uses RESTRICT for surveys and SET NULL for feedbacks.
-    # Even SET NULL would erase handler attribution, so both block hard delete.
-    references = (("feedbacks", "handled_by"),
-                  ("surveys", "created_by"), ("django_admin_log", "user_id"))
+    references = (
+        ("feedbacks", "handled_by"),
+        ("feedbacks", "customer_id"),
+        ("surveys", "created_by"),
+        ("django_admin_log", "user_id"),
+    )
     existing_tables = set(connection.introspection.table_names())
     with connection.cursor() as cursor:
         for table, column in references:
@@ -48,6 +48,15 @@ def _has_protected_references(account_id):
                 cursor.execute(f"SELECT 1 FROM `{table}` WHERE `{column}` = %s LIMIT 1", [account_id])
                 if cursor.fetchone() is not None:
                     return True
+        if "survey_recipients" in existing_tables and "survey_responses" in existing_tables:
+            cursor.execute(
+                """SELECT 1 FROM `survey_recipients` r
+                   JOIN `survey_responses` resp ON r.recipient_id = resp.recipient_id
+                   WHERE r.customer_id = %s LIMIT 1""",
+                [account_id],
+            )
+            if cursor.fetchone() is not None:
+                return True
     return False
 
 
@@ -59,21 +68,23 @@ def create_account(actor, *, email, role, status, password, profile_data=None):
     email = AccountManager.normalize_account_email(email)
     if Account.objects.filter(email=email).exists():
         raise DuplicateAccountEmail("Email is already in use")
+
+    profile_kwargs = profile_data or {}
+    fields_to_set = {
+        "full_name": profile_kwargs.get("full_name") or "",
+        "phone": profile_kwargs.get("phone") or None,
+        "date_of_birth": profile_kwargs.get("date_of_birth") or None,
+        "gender": profile_kwargs.get("gender") or None,
+        "address": profile_kwargs.get("address") or None,
+        "playing_level": profile_kwargs.get("playing_level") or None,
+    }
     try:
-        account = Account.objects.create_user(email, password, role=role, status=status)
+        account = Account.objects.create_user(
+            email, password, role=role, status=status,
+            **{k: v for k, v in fields_to_set.items() if v is not None or k == "full_name"}
+        )
     except IntegrityError as exc:
         raise DuplicateAccountEmail("Email is already in use") from exc
-    profile_kwargs = profile_data or {}
-    if role == AccountRole.CUSTOMER:
-        from apps.customers.provisioning import ensure_customer_profile
-        full_name = profile_kwargs.get("full_name") or ""
-        ensure_customer_profile(account.pk, full_name=full_name)
-    elif role == AccountRole.ADMIN:
-        from .provisioning import ensure_admin_profile
-        ensure_admin_profile(account.pk, **profile_kwargs)
-    elif role == AccountRole.MANAGER:
-        from .provisioning import ensure_staff_profile
-        ensure_staff_profile(account.pk, **profile_kwargs)
     return account_data(account)
 
 
@@ -81,25 +92,19 @@ def create_account(actor, *, email, role, status, password, profile_data=None):
 def update_account_profile(actor, account_id, profile_data):
     require_active_admin(actor)
     account = _locked_target(account_id)
-    clean_data = {k: v for k, v in profile_data.items() if v is not None}
-    if account.role == AccountRole.ADMIN:
-        from .provisioning import ensure_admin_profile
-        admin, _ = ensure_admin_profile(account.pk, **clean_data)
-        return admin
-    elif account.role == AccountRole.MANAGER:
-        from .provisioning import ensure_staff_profile
-        staff, _ = ensure_staff_profile(account.pk, **clean_data)
-        return staff
-    elif account.role == AccountRole.CUSTOMER:
-        from apps.customers.models import Customer
-        customer = Customer.objects.filter(account=account).first()
-        if customer:
-            for k, v in clean_data.items():
-                if hasattr(customer, k):
-                    setattr(customer, k, v)
-            customer.save()
-            return customer
-    return None
+    if "email" in profile_data and profile_data["email"]:
+        new_email = AccountManager.normalize_account_email(profile_data["email"])
+        if Account.objects.filter(email=new_email).exclude(pk=account.pk).exists():
+            raise DuplicateAccountEmail("Email is already in use")
+        account.email = new_email
+
+    allowed_fields = ("full_name", "phone", "date_of_birth", "gender", "address", "playing_level")
+    for k in allowed_fields:
+        if k in profile_data:
+            val = profile_data[k] or (None if k != "full_name" else "")
+            setattr(account, k, val)
+    account.save()
+    return account
 
 
 @transaction.atomic
@@ -155,17 +160,6 @@ def change_account_role(actor, account_id, role):
         _protect_final_admin(account, active_admin_ids)
     Account.objects.filter(pk=account.pk).update(role=role)
     account.refresh_from_db()
-
-    if role == AccountRole.CUSTOMER:
-        from apps.customers.provisioning import ensure_customer_profile
-        ensure_customer_profile(account.pk, full_name="")
-    elif role == AccountRole.MANAGER:
-        from .provisioning import ensure_staff_profile
-        ensure_staff_profile(account.pk)
-    elif role == AccountRole.ADMIN:
-        from .provisioning import ensure_admin_profile
-        ensure_admin_profile(account.pk)
-
     return account_data(account)
 
 
@@ -196,18 +190,6 @@ def delete_account(actor, account_id):
     if account.role == AccountRole.ADMIN:
         raise CannotModifyOtherAdmin("Cannot delete another ADMIN account")
     _protect_final_admin(account, active_admin_ids)
-
-    # Any account that owns a customer profile is soft-deleted: the profile becomes DELETED,
-    # the account is locked and orders/feedbacks/surveys stay attached to it.
-    customer = Customer.objects.select_for_update().filter(account_id=account.pk).first()
-    if customer is not None:
-        from apps.customers.services import delete_customer
-
-        if customer.status != CustomerStatus.DELETED:
-            delete_customer(customer.pk)
-        elif account.status != AccountStatus.LOCKED:
-            Account.objects.filter(pk=account.pk).update(status=AccountStatus.LOCKED)
-        return {"account_id": account_id, "customer_deleted": True}
 
     if _has_protected_references(account.account_id):
         raise AccountDeleteProtectedError("Account has business records; lock it instead")

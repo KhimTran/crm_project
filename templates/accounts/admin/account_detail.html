@@ -75,14 +75,6 @@
         <dt class="col-sm-4 text-muted">Address</dt>
         <dd class="col-sm-8">{{ account.profile.address|default:"—" }}</dd>
 
-        {% if account.role == 'MANAGER' %}
-        <dt class="col-sm-4 text-muted">Position</dt>
-        <dd class="col-sm-8">{{ account.profile.position|default:"—" }}</dd>
-
-        <dt class="col-sm-4 text-muted">Hire Date</dt>
-        <dd class="col-sm-8">{{ account.profile.hire_date|date:"Y-m-d"|default:"—" }}</dd>
-        {% endif %}
-
         {% if account.role == 'CUSTOMER' %}
         <dt class="col-sm-4 text-muted">Playing Level</dt>
         <dd class="col-sm-8">{{ account.profile.playing_level|default:"—" }}</dd>
@@ -120,9 +112,17 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label" for="id_full_name">Full Name <span class="text-danger">*</span></label>
-            {{ profile_form.full_name }}
-            {{ profile_form.full_name.errors }}
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label" for="id_full_name">Full Name <span class="text-danger">*</span></label>
+              {{ profile_form.full_name }}
+              {{ profile_form.full_name.errors }}
+            </div>
+            <div class="col-6">
+              <label class="form-label" for="id_email">Email <span class="text-danger">*</span></label>
+              {{ profile_form.email }}
+              {{ profile_form.email.errors }}
+            </div>
           </div>
           <div class="row g-3 mb-3">
             <div class="col-6">
@@ -142,31 +142,21 @@
               {{ profile_form.date_of_birth }}
               {{ profile_form.date_of_birth.errors }}
             </div>
+            {% if account.role == 'CUSTOMER' %}
             <div class="col-6">
-              <label class="form-label" for="id_status">Status</label>
-              {{ profile_form.status }}
-              {{ profile_form.status.errors }}
+              <label class="form-label" for="id_playing_level">Playing Level</label>
+              {{ profile_form.playing_level }}
+              {{ profile_form.playing_level.errors }}
             </div>
+            {% else %}
+            <div class="col-6"></div>
+            {% endif %}
           </div>
           <div class="mb-3">
             <label class="form-label" for="id_address">Address</label>
             {{ profile_form.address }}
             {{ profile_form.address.errors }}
           </div>
-          {% if account.role == 'MANAGER' %}
-          <div class="row g-3 mb-3">
-            <div class="col-6">
-              <label class="form-label" for="id_position">Position</label>
-              {{ profile_form.position }}
-              {{ profile_form.position.errors }}
-            </div>
-            <div class="col-6">
-              <label class="form-label" for="id_hire_date">Hire Date</label>
-              {{ profile_form.hire_date }}
-              {{ profile_form.hire_date.errors }}
-            </div>
-          </div>
-          {% endif %}
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>

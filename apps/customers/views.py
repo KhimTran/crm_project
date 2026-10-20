@@ -17,7 +17,7 @@ from apps.feedback.models import Feedback
 
 from .constants import CustomerStatus, PreferenceType
 from .errors import CustomerNotFound, CustomerServiceError, DuplicateCustomerEmail, DuplicateCustomerPhone
-from .forms import CustomerCreateForm, CustomerFilterForm, CustomerLockForm
+from .forms import CustomerCreateForm, CustomerEditForm, CustomerFilterForm, CustomerLockForm
 from .models import Customer, CustomerPreference
 from . import reports
 from .portal_text import localize_form, localize_rows, portal_english, say, tr
@@ -25,7 +25,10 @@ from .selectors import customer_queryset, filter_customers
 from .self_service_choices import CATEGORY_PREFERENCE_TYPE
 from .self_service_forms import CustomerCategoryPreferencesForm, CustomerProfileForm
 from .self_services import own_customer, update_own_profile
-from .services import create_customer, customer_related_counts, delete_customer, lock_customer, unlock_customer
+from .services import (
+    create_customer, customer_related_counts, delete_customer,
+    lock_customer, unlock_customer, update_customer,
+)
 
 PAGE_SIZE = 10
 
@@ -71,17 +74,14 @@ def customer_create(request):
                 # behind a failed response that invites the user to submit again.
                 with transaction.atomic():
                     customer = create_customer(**form.cleaned_data)
-                    success = say(
-                        f"Đã thêm khách hàng {customer.customer_code} – {customer.full_name}.",
-                        f"Customer {customer.customer_code} – {customer.full_name} created.",
-                    )
+                    success = f"Customer {customer.customer_code} – {customer.full_name} created."
                     if wants_json:
                         context = {**_customer_list_context(request), "created_message": success}
                         response = JsonResponse({
                             "customer_id": customer.pk,
                             "message": success,
                             "list_url": reverse("customers:list"),
-                            "page_title": say("Khách hàng", "Customers"),
+                            "page_title": "Customers",
                             "html": render_to_string("customers/_customer_list.html", context, request=request),
                         }, status=201)
                 if wants_json:
@@ -99,8 +99,7 @@ def customer_create(request):
         except ValidationError as exc:
             form.add_error("password", exc)
         except DatabaseError:
-            form.add_error(None, say("Không thể lưu khách hàng lúc này. Vui lòng thử lại.",
-                                     "Unable to save the customer right now. Please try again."))
+            form.add_error(None, "Unable to save the customer right now. Please try again.")
             status = 503
         if wants_json:
             return JsonResponse({"errors": {
@@ -115,16 +114,11 @@ def customer_create(request):
     )
 
 
-# tv4: lấy khách hàng chưa bị xóa.
+# Lấy khách hàng
 def _get_active_customer_or_404(customer_id):
-    customer = (
-        Customer.objects.select_related("account")
-        .filter(pk=customer_id)
-        .exclude(status=CustomerStatus.DELETED)
-        .first()
-    )
+    customer = Customer.objects.filter(pk=customer_id).first()
     if customer is None:
-        raise Http404("Không tìm thấy khách hàng")
+        raise Http404("Customer not found")
     return customer
 
 
@@ -149,6 +143,51 @@ def customer_detail(request, customer_id):
     })
 
 
+@role_required("ADMIN", "MANAGER", "CRM_MANAGER")
+@require_http_methods(["GET", "POST"])
+@portal_english
+def customer_edit(request, customer_id):
+    customer = _get_active_customer_or_404(customer_id)
+    if customer.role != AccountRole.CUSTOMER:
+        raise Http404("Only customer accounts can be edited here")
+
+    if request.method == "POST":
+        form = CustomerEditForm(request.POST, customer_id=customer_id)
+        if form.is_valid():
+            try:
+                update_customer(
+                    customer_id,
+                    email=form.cleaned_data["email"],
+                    full_name=form.cleaned_data["full_name"],
+                    phone=form.cleaned_data.get("phone"),
+                    date_of_birth=form.cleaned_data.get("date_of_birth"),
+                    gender=form.cleaned_data.get("gender"),
+                    address=form.cleaned_data.get("address"),
+                    playing_level=form.cleaned_data.get("playing_level"),
+                )
+            except (DuplicateCustomerEmail, DuplicateCustomerPhone, CustomerServiceError) as exc:
+                form.add_error(None, str(exc))
+            else:
+                messages.success(request, f"Customer {customer.customer_code} – {customer.full_name} updated successfully.")
+                return redirect("customers:detail", customer_id=customer_id)
+    else:
+        form = CustomerEditForm(initial={
+            "full_name": customer.full_name,
+            "email": customer.email,
+            "phone": customer.phone or "",
+            "date_of_birth": customer.date_of_birth,
+            "gender": customer.gender or "",
+            "address": customer.address or "",
+            "playing_level": customer.playing_level or "",
+        }, customer_id=customer_id)
+
+    return render(request, "customers/customer_form.html", {
+        "form": form,
+        "is_edit": True,
+        "customer": customer,
+    })
+
+
 # tv4: sau khi khóa/mở khóa thì quay lại trang đã bấm (chi tiết hoặc danh sách)
 def _back_after_action(request, customer_id):
     if request.POST.get("from") == "detail":
@@ -169,11 +208,10 @@ def customer_lock(request, customer_id):
     except CustomerNotFound as exc:
         raise Http404(str(exc)) from exc
     except CustomerServiceError as exc:
-        messages.error(request, tr(str(exc)))
+        messages.error(request, str(exc))
     else:
-        suffix = say(f" Lý do: {reason}", f" Reason: {reason}") if reason else ""
-        messages.success(request, say(f"Đã khóa tài khoản {customer.customer_code} – {customer.full_name}.",
-                                      f"Account {customer.customer_code} – {customer.full_name} locked.") + suffix)
+        suffix = f" Reason: {reason}" if reason else ""
+        messages.success(request, f"Account {customer.customer_code} – {customer.full_name} locked.{suffix}")
     return _back_after_action(request, customer_id)
 
 
@@ -187,10 +225,9 @@ def customer_unlock(request, customer_id):
     except CustomerNotFound as exc:
         raise Http404(str(exc)) from exc
     except CustomerServiceError as exc:
-        messages.error(request, tr(str(exc)))
+        messages.error(request, str(exc))
     else:
-        messages.success(request, say(f"Đã mở khóa tài khoản {customer.customer_code} – {customer.full_name}.",
-                                      f"Account {customer.customer_code} – {customer.full_name} unlocked."))
+        messages.success(request, f"Account {customer.customer_code} – {customer.full_name} unlocked.")
     return _back_after_action(request, customer_id)
 
 
@@ -206,13 +243,11 @@ def customer_delete(request, customer_id):
         except CustomerNotFound as exc:
             raise Http404(str(exc)) from exc
         except CustomerServiceError as exc:
-            messages.error(request, tr(str(exc)))
+            messages.error(request, str(exc))
         else:
             messages.success(
                 request,
-                say(f"Đã xóa khách hàng {customer.customer_code} – "
-                    f"{customer.full_name}.",
-                    f"Customer {customer.customer_code} – {customer.full_name} deleted."),
+                f"Customer {customer.customer_code} – {customer.full_name} deleted.",
             )
         return redirect("customers:list")
     return render(request, "customers/customer_confirm_delete.html",
@@ -275,7 +310,7 @@ def profile(request):
                         errors,
                     )
             else:
-                messages.success(request, "Đã cập nhật hồ sơ và sở thích.")
+                messages.success(request, "Profile and preferences updated successfully.")
                 return redirect("customers:profile")
 
     other_preferences = (
