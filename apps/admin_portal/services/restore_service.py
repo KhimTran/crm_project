@@ -57,8 +57,17 @@ def restore_database_from_backup(filename: str, confirmation: str, *, actor,
         raise ValueError("Confirm the maintenance window and pause all external database writers before restoring.")
     verify_database_backup(file_path)
 
-    bin_dir = os.getenv("MYSQL_BIN")
-    executable = (Path(bin_dir) / "mysql.exe") if bin_dir else shutil.which("mysql")
+    bin_dir = os.getenv("MYSQL_BIN") or getattr(settings, "MYSQL_BIN", None)
+    executable = None
+    if bin_dir:
+        clean_bin = Path(str(bin_dir).strip("'\""))
+        candidate = clean_bin / "mysql.exe"
+        if candidate.is_file():
+            executable = candidate
+        elif (clean_bin / "mysql").is_file():
+            executable = clean_bin / "mysql"
+    if not executable:
+        executable = shutil.which("mysql")
     if not executable or not Path(executable).is_file():
         raise RuntimeError("mysql executable is unavailable on the system.")
     middleware = "apps.admin_portal.services.maintenance.DatabaseMaintenanceMiddleware"

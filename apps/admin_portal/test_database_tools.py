@@ -313,3 +313,47 @@ class DatabaseRestoreHttpTests(TestCase):
         self.assertContains(response, self.data["restore_confirm"])
         self.assertContains(response, 'name="target_database"')
         self.assertContains(response, 'name="maintenance_ack"')
+    @patch("apps.admin_portal.views.create_database_backup")
+    def test_backup_http_view_rejects_get_and_requires_active_admin(self, mock_backup):
+        mock_backup.return_value = Path("test_backup.sql")
+        url = reverse("database_backup")
+        # Anonymous
+        self.assertEqual(self.client.post(url).status_code, 302)
+        # Manager & Customer
+        for user in (self.manager, self.customer):
+            self.client.force_login(user)
+            self.assertEqual(self.client.post(url).status_code, 403)
+        # Admin GET -> 405 Method Not Allowed
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.get(url).status_code, 405)
+        # Admin POST -> 302 redirect with success message
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse("database_tools"))
+        mock_backup.assert_called_once_with(actor_id=self.admin.pk)
+
+    def test_download_backup_http_view(self):
+        fixture = publish_fixture("downloadable.sql")
+        valid_url = reverse("database_download_backup", args=["downloadable.sql"])
+        # Non-admin rejected
+        self.client.force_login(self.customer)
+        self.assertEqual(self.client.get(valid_url).status_code, 403)
+        self.client.force_login(self.manager)
+        self.assertEqual(self.client.get(valid_url).status_code, 403)
+        # Admin download valid backup
+        self.client.force_login(self.admin)
+        response = self.client.get(valid_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(b"".join(response.streaming_content), DUMP)
+        # Path traversal / invalid filename
+        bad_url = reverse("database_download_backup", args=["..settings.py"])
+        bad_response = self.client.get(bad_url)
+        self.assertRedirects(bad_response, reverse("database_tools"))
+
+    def test_backup_and_restore_scripts_exist_and_non_empty(self):
+        repo_root = Path(__file__).resolve().parent.parent.parent
+        backup_bat = repo_root / "scripts" / "backup.bat"
+        restore_bat = repo_root / "scripts" / "restore.bat"
+        self.assertTrue(backup_bat.is_file())
+        self.assertGreater(backup_bat.stat().st_size, 0)
+        self.assertTrue(restore_bat.is_file())
+        self.assertGreater(restore_bat.stat().st_size, 0)

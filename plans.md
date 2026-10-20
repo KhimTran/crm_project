@@ -1386,3 +1386,14 @@ was used without printing credentials.
 - Files/semantics/deployment instructions: docs/survey_questionnaire_update.md;
   owner-approved design: docs/survey_questionnaire_proposal.md. Existing
   uncommitted work from the Customers task and .env.example preserved.
+
+### Database Backup and Restore completion — 2026-10-20
+
+- [x] Inspected, completed and verified full Database Backup & Restore functionality across the project.
+- [x] Preserved existing code architecture, function signatures, URL structure, and templates (`templates/admin/portal/database.html`, `base.html`, etc.).
+- [x] Configured `MYSQL_BIN = os.getenv('MYSQL_BIN')` in `config/settings.py` and updated `backup_service.py` & `restore_service.py` to seamlessly resolve `mysqldump` and `mysql` binaries from `MYSQL_BIN` (stripping quotes) or system `PATH`.
+- [x] Implemented `scripts/backup.bat` with dual-mode execution (Python service coordination with automatic verified SHA-256 manifest generation, plus direct mysqldump fallback), secure credentials via `MYSQL_PWD`, safe non-zero error detection, and English output.
+- [x] Implemented `scripts/restore.bat` with CLI path argument validation, interactive `RESTORE` confirmation prompt, non-interactive bypass (`--yes` / `--non-interactive`), automated pre-restore safety backup, `mysql.exe` import execution, and English output.
+- [x] Added HTTP view tests for GET blocking (405), download backup authorization and path traversal protection, as well as script existence checks in `apps/admin_portal/test_database_tools.py` (16/16 tests pass).
+- [x] Ran Django checks (`manage.py check` 0 issues, `makemigrations --check --dry-run` 0 changes).
+- [x] Executed full project test suite (`manage.py test`: 419 passed, 1 skipped, 0 failures).

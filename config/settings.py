@@ -69,6 +69,8 @@ DATABASES = {'default': {
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"},
 }}
 
+MYSQL_BIN = os.getenv('MYSQL_BIN')
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
