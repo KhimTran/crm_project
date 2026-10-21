@@ -10,6 +10,7 @@ from apps.customers.models import Customer, CustomerPreference
 from apps.customers.seed import DEMO_CUSTOMER_PASSWORD, demo_email
 from apps.feedback.constants import FeedbackStatus
 from apps.feedback.models import Feedback
+from apps.feedback.seed import CONTENTS, DEMO_BRAND_NAME
 
 
 # tv4: test seed 40 khách hàng + phản hồi demo, chạy lại không trùng
@@ -60,3 +61,18 @@ class SeedDemoDataTests(TestCase):
         self.assertTrue(all(r["count"] > 0 for r in age_rows))
         months_with_customers = [r for r in reports.new_customers_by_month() if r["count"]]
         self.assertGreaterEqual(len(months_with_customers), 6)
+
+    # tv4: chạy seed_catalog trước thì phản hồi demo gắn với sản phẩm thật, đủ 4 danh mục, nội dung đúng loại
+    def test_feedbacks_use_real_catalog_products_when_available(self):
+        call_command("seed_catalog", verbosity=0)
+        self.seed_twice()
+        feedbacks = Feedback.objects.select_related("product__brand", "product__category").filter(
+            customer__account__email__in=[demo_email(i) for i in range(1, 41)])
+        self.assertGreaterEqual(feedbacks.count(), 30)
+        self.assertFalse(feedbacks.filter(product__brand__brand_name=DEMO_BRAND_NAME).exists())
+        self.assertEqual(set(feedbacks.values_list("product__category__category_name", flat=True)),
+                         {"Badminton rackets", "Badminton shoes", "Shuttlecocks", "Badminton apparel"})
+        apparel_contents = {c for texts in CONTENTS["apparel"].values() for c in texts}
+        apparel = feedbacks.filter(product__category__category_name="Badminton apparel")
+        self.assertTrue(apparel.exists())
+        self.assertTrue(all(f.content in apparel_contents for f in apparel))

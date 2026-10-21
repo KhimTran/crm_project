@@ -1,5 +1,7 @@
 """Dữ liệu demo phản hồi (TV4) – được gọi từ `python manage.py seed_data` sau khi đã có khách hàng và sản phẩm.
 
+Nên chạy `python manage.py seed_catalog` trước `seed_data` để phản hồi gắn với sản phẩm thật;
+nếu chưa có sản phẩm thật thì dùng tạm sản phẩm demo ("Demo racket ...").
 Idempotent theo (khách hàng, sản phẩm, nội dung): chạy lại không sinh trùng.
 """
 
@@ -35,7 +37,16 @@ CONTENTS = {
         "mid": ["Cầu bay được nhưng hơi nhanh so với sân của mình.", "Chất lượng tạm ổn, vài quả bị lệch."],
         "bad": ["Cầu gãy lông nhanh, một ống chỉ dùng được vài trận.", "Nhiều quả bay lắc, không đều."],
     },
+    "apparel": {
+        "good": ["Áo thoáng khí, thấm mồ hôi nhanh, mặc đánh cả buổi vẫn dễ chịu.",
+                 "Vải mềm, co giãn tốt, form áo vừa vặn."],
+        "mid": ["Áo đẹp nhưng size hơi rộng so với bảng size.", "Chất vải ổn, tuy nhiên màu hơi khác ảnh."],
+        "bad": ["Áo bị phai màu sau vài lần giặt.", "Đường may bị bung chỉ ở vai sau một tuần."],
+    },
 }
+# Thương hiệu của sản phẩm giả do seed_data tạo; ưu tiên bỏ qua để phản hồi gắn với sản phẩm thật.
+DEMO_BRAND_NAME = "Demo brand"
+CATEGORY_KINDS = {"Badminton shoes": "shoe", "Shuttlecocks": "shuttle", "Badminton apparel": "apparel"}
 REPLIES = {
     "good": "Cảm ơn bạn đã tin dùng sản phẩm của cửa hàng! Hẹn gặp lại bạn.",
     "mid": "Cảm ơn góp ý của bạn. Cửa hàng hỗ trợ căng lại cước/đổi size miễn phí, bạn mang sản phẩm qua shop nhé.",
@@ -47,8 +58,18 @@ STATUS_CYCLE = [FeedbackStatus.NEW, FeedbackStatus.RESOLVED, FeedbackStatus.IN_P
 RATINGS = [5, 5, 4, 4, 4, 3, 3, 2, 1]
 
 
-# tv4: đoán loại sản phẩm (vợt / giày / cầu) từ tên để chọn nội dung phản hồi phù hợp
+# tv4: sản phẩm đang bán dùng cho phản hồi demo – ưu tiên sản phẩm thật, chưa có thì dùng sản phẩm demo
+def _demo_products():
+    products = Product.objects.filter(status=ProductStatus.ACTIVE).select_related("category").order_by("product_id")
+    real = list(products.exclude(brand__brand_name=DEMO_BRAND_NAME))
+    return real or list(products)
+
+
+# tv4: loại sản phẩm (vợt / giày / cầu / áo) theo danh mục, dự phòng đoán từ tên, để chọn nội dung phù hợp
 def _product_kind(product):
+    kind = CATEGORY_KINDS.get(product.category.category_name)
+    if kind:
+        return kind
     name = product.product_name.lower()
     if "giày" in name or "shoe" in name:
         return "shoe"
@@ -66,7 +87,7 @@ def _sentiment(rating):
 @transaction.atomic
 def seed_feedbacks(handler, count=DEMO_FEEDBACK_COUNT):
     customers = demo_customers()
-    products = list(Product.objects.filter(status=ProductStatus.ACTIVE).order_by("product_id"))
+    products = _demo_products()
     if not customers or not products:
         return 0
     rng = random.Random(2026)
