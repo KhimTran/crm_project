@@ -107,8 +107,7 @@ def _load(surveys):
         options[row["option_id"]] = {"question_id": row["question_id"], "index": index,
                                      "text": row["option_text"], "is_other": row["option_id"] in other_ids}
     responses = list(SurveyResponse.objects.filter(recipient__survey__in=surveys, status=RESPONSE_SUBMITTED)
-                     .values("response_id", "submitted_at", "recipient__customer__full_name",
-                             "recipient__customer__deleted_at")
+                     .values("response_id", "submitted_at", "recipient__customer__full_name")
                      .order_by("-submitted_at", "-response_id"))
     answers = defaultdict(lambda: defaultdict(list))
     for row in SurveyAnswer.objects.filter(response__recipient__survey__in=surveys,
@@ -194,8 +193,8 @@ def _brands(responses, answers):
 
 # tv4: tên khách hoặc None (Khách ẩn danh)
 def _customer(response):
-    name = (response["recipient__customer__full_name"] or "").strip()
-    return name if name and response["recipient__customer__deleted_at"] is None else None
+    name = (response.get("recipient__customer__full_name") or "").strip()
+    return name or None
 
 
 # tv4: tag cảm xúc theo điểm câu 3

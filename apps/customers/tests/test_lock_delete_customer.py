@@ -4,9 +4,11 @@ from django.urls import reverse
 
 from apps.accounts.constants import AccountStatus
 from apps.accounts.models import Account
-from apps.catalog.models import Brand, Category, Product, Supplier
+from apps.catalog.models import Brand, Category, Product
 from apps.customers.constants import CustomerStatus
-from apps.customers.errors import CustomerAlreadyActive, CustomerAlreadyDeleted, CustomerAlreadyLocked
+from apps.customers.errors import (
+    CustomerAlreadyActive, CustomerAlreadyLocked, CustomerNotFound, CustomerServiceError,
+)
 from apps.customers.models import Customer
 from apps.customers.services import (
     create_customer, customer_related_counts, delete_customer, lock_customer, unlock_customer,
@@ -44,8 +46,8 @@ class LockUnlockServiceTests(TestCase):
         second, _ = make_customer(2)
         lock_customer(first.pk)
         second.account.refresh_from_db()
-        self.assertEqual(second.account.status, AccountStatus.ACTIVE)
-        self.assertEqual(Customer.objects.get(pk=first.pk).status, CustomerStatus.ACTIVE)
+        self.assertEqual(second.status, AccountStatus.ACTIVE)
+        self.assertEqual(Customer.objects.get(pk=first.pk).status, AccountStatus.LOCKED)
 
     def test_double_lock_and_double_unlock_are_rejected(self):
         customer, _ = make_customer()
@@ -59,22 +61,21 @@ class LockUnlockServiceTests(TestCase):
         customer, _ = make_customer()
         delete_customer(customer.pk)
         for action in (lock_customer, unlock_customer, delete_customer):
-            with self.assertRaises(CustomerAlreadyDeleted):
+            with self.assertRaises(CustomerNotFound):
                 action(customer.pk)
 
 
-# tv4: test 4.1.2 xóa mềm giữ lịch sử và khóa tài khoản
+# test xóa cứng và bảo vệ lịch sử ràng buộc
 class DeleteServiceTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.manager = Account.objects.create_user("manager@example.com", "Quanly@12345")
+        cls.manager = Account.objects.create_user("manager@example.com", "Quanly@12345", role="MANAGER")
         category = Category.objects.create(category_name="Vợt")
         brand = Brand.objects.create(brand_name="Yonex")
-        supplier = Supplier.objects.create(supplier_code="NCC01", supplier_name="NCC 1")
-        cls.product = Product.objects.create(category=category, brand=brand, supplier=supplier,
+        cls.product = Product.objects.create(category=category, brand=brand,
                                              product_name="Astrox 88D", price=3500000)
 
-    def test_soft_delete_keeps_history_and_locks_account(self):
+    def test_delete_with_history_is_rejected_and_without_history_is_hard_deleted(self):
         customer, password = make_customer()
         Feedback.objects.create(customer=customer, product=self.product, rating=5, content="Tốt", status="NEW")
         survey = Survey.objects.create(title="Vợt mới", status="OPEN", created_by=self.manager)
@@ -83,15 +84,14 @@ class DeleteServiceTests(TestCase):
         self.assertEqual(customer_related_counts(customer),
                          {"feedbacks": 1, "surveys_sent": 1, "surveys_answered": 1})
 
-        delete_customer(customer.pk)
-        customer.refresh_from_db()
-        customer.account.refresh_from_db()
-        self.assertEqual(customer.status, CustomerStatus.DELETED)
-        self.assertIsNotNone(customer.deleted_at)
-        self.assertEqual(customer.account.status, AccountStatus.LOCKED)
-        self.assertEqual(Feedback.objects.filter(customer=customer).count(), 1)
-        self.assertEqual(SurveyRecipient.objects.filter(customer=customer).count(), 1)
-        self.assertFalse(self.client.login(email=customer.account.email, password=password))
+        with self.assertRaises(CustomerServiceError):
+            delete_customer(customer.pk)
+
+        clean_customer, _ = make_customer(2)
+        clean_pk = clean_customer.pk
+        delete_customer(clean_pk)
+        self.assertFalse(Customer.objects.filter(pk=clean_pk).exists())
+        self.assertFalse(Account.objects.filter(pk=clean_pk).exists())
 
 
 # tv4: test 4.1.2/4.1.3 các view khóa, mở, xóa và phân quyền
@@ -114,14 +114,14 @@ class LockDeleteViewTests(TestCase):
         response = self.client.post(reverse("customers:lock", args=[self.customer.pk]),
                                     {"reason": "Spam phản hồi"}, follow=True)
         self.assertEqual(self.status(), AccountStatus.LOCKED)
-        self.assertContains(response, "Đã khóa tài khoản")
-        self.assertContains(response, "Lý do: Spam phản hồi")
+        self.assertContains(response, "locked")
+        self.assertContains(response, "Reason: Spam phản hồi")
         self.assertContains(response, "Đã khóa")
         self.assertContains(response, "Mở khóa")
 
         response = self.client.post(reverse("customers:unlock", args=[self.customer.pk]), follow=True)
         self.assertEqual(self.status(), AccountStatus.ACTIVE)
-        self.assertContains(response, "Đã mở khóa tài khoản")
+        self.assertContains(response, "unlocked")
 
     def test_lock_and_unlock_reject_get(self):
         self.client.force_login(self.manager)
@@ -133,7 +133,7 @@ class LockDeleteViewTests(TestCase):
         self.client.force_login(self.manager)
         self.client.post(reverse("customers:lock", args=[self.customer.pk]))
         response = self.client.post(reverse("customers:lock", args=[self.customer.pk]), follow=True)
-        self.assertContains(response, "đã bị khóa")
+        self.assertContains(response, "already locked")
 
     def test_unknown_customer_returns_404(self):
         self.client.force_login(self.manager)
@@ -150,9 +150,9 @@ class LockDeleteViewTests(TestCase):
 
         response = self.client.post(url, follow=True)
         self.assertRedirects(response, reverse("customers:list"))
-        self.assertContains(response, "Đã xóa khách hàng")
-        self.assertEqual(Customer.objects.get(pk=self.customer.pk).status, CustomerStatus.DELETED)
-        self.assertEqual(self.status(), AccountStatus.LOCKED)
+        self.assertContains(response, "deleted")
+        self.assertFalse(Customer.objects.filter(pk=self.customer.pk).exists())
+        self.assertFalse(Account.objects.filter(pk=self.customer.pk).exists())
         self.assertEqual(self.client.get(url).status_code, 404)
 
     def test_customer_service_and_customer_cannot_lock_or_delete(self):

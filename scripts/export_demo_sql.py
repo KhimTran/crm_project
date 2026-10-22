@@ -46,8 +46,7 @@ def inspect_source(connection):
     from django.db.migrations.executor import MigrationExecutor
 
     from apps.accounts.models import Account
-    from apps.catalog.management.commands.seed_data import SUPPLIERS
-    from apps.catalog.models import Brand, Category, Product, Supplier
+    from apps.catalog.models import Brand, Category, Product
     from apps.customers.seed import DEMO_CUSTOMER_COUNT, demo_email
     from apps.surveys.models import Survey
 
@@ -92,10 +91,8 @@ def inspect_source(connection):
     }
     if set(Account.objects.values_list("email", flat=True)) != expected_emails:
         raise ExportError("Source accounts differ from seed_data; refusing possible personal data")
-    if set(Supplier.objects.values_list("supplier_code", flat=True)) != {code for code, _ in SUPPLIERS}:
-        raise ExportError("Source suppliers differ from seed_data")
     if set(Product.objects.values_list("product_name", flat=True)) != {
-        f"Demo racket {index}" for index in range(1, len(SUPPLIERS) + 1)
+        f"Demo racket {index}" for index in range(1, 9)
     }:
         raise ExportError("Source products differ from seed_data")
     for queryset, expected in (

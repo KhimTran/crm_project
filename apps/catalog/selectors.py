@@ -1,22 +1,13 @@
 from django.core.paginator import Paginator
 from django.db.models import Q
 
-from .models import Brand, Category, Product, Supplier
-
-SUPPLIER_SORTS = {
-    "id": "supplier_id",
-    "code": "supplier_code",
-    "name": "supplier_name",
-    "status": "status",
-    "created": "created_at",
-}
+from .models import Brand, Category, Product
 
 PRODUCT_SORTS = {
     "id": "product_id",
     "name": "product_name",
     "category": "category__category_name",
     "brand": "brand__brand_name",
-    "supplier": "supplier__supplier_name",
     "price": "price",
     "status": "status",
     "created": "created_at",
@@ -30,37 +21,18 @@ def _order(query, sorts, sort, direction, default_key, tie_breaker):
     return query.order_by(field, tie_breaker)
 
 
-def list_supplier_page(*, page=1, q="", status="", sort="", direction="", page_size=20):
-    query = Supplier.objects.all()
-    search = q.strip()
-    if search:
-        query = query.filter(
-            Q(supplier_code__icontains=search)
-            | Q(supplier_name__icontains=search)
-            | Q(email__icontains=search)
-            | Q(phone__icontains=search)
-        )
-    if status:
-        query = query.filter(status=status)
-    query = _order(query, SUPPLIER_SORTS, sort, direction, "name", "supplier_id")
-    return Paginator(query, page_size).get_page(page)
-
-
-def list_product_page(*, page=1, q="", status="", supplier_id="", category_id="",
+def list_product_page(*, page=1, q="", status="", category_id="",
                       brand_id="", sort="", direction="", page_size=10):
-    query = Product.objects.select_related("category", "brand", "supplier")
+    query = Product.objects.select_related("category", "brand")
     search = q.strip()
     if search:
         query = query.filter(
             Q(product_name__icontains=search)
-            | Q(supplier__supplier_name__icontains=search)
             | Q(brand__brand_name__icontains=search)
             | Q(category__category_name__icontains=search)
         )
     if status:
         query = query.filter(status=status)
-    if supplier_id:
-        query = query.filter(supplier_id=supplier_id)
     if category_id:
         query = query.filter(category_id=category_id)
     if brand_id:

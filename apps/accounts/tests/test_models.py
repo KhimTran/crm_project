@@ -127,7 +127,9 @@ class AccountFoundationTests(TestCase):
         self.assertEqual(account_model._meta.get_field("last_login").column, "last_login_at")
         with connection.cursor() as cursor:
             columns = [column.name for column in connection.introspection.get_table_description(cursor, "accounts")]
-        self.assertEqual(columns, [
+        self.assertEqual(set(columns), {
             "account_id", "email", "password_hash", "role", "status",
             "last_login_at", "created_at", "updated_at",
-        ])
+            "full_name", "phone", "date_of_birth", "gender", "address",
+            "playing_level",
+        })

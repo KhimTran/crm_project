@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db import models
 from django.db import connections, transaction
 
 from apps.accounts.constants import AccountRole
@@ -15,7 +16,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Legacy CRM employees may have role CUSTOMER plus a staff group.
-        accounts = Account.objects.filter(role=AccountRole.CUSTOMER, customer__isnull=True).exclude(
+        accounts = Account.objects.filter(role=AccountRole.CUSTOMER).filter(
+            models.Q(full_name__isnull=True) | models.Q(full_name="")
+        ).exclude(
             groups__name__in=("CRM_MANAGER", "CUSTOMER_SERVICE"),
         ).order_by("account_id")
         if options["account_id"]:

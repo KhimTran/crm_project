@@ -4,7 +4,7 @@
 
 Role `MANAGER` is added to `accounts.role` alongside `ADMIN` and `CUSTOMER`. Valid stored values are `ADMIN`, `MANAGER`, and `CUSTOMER`.
 Custom **Admin UI** is mounted at `/admin/` exclusively for active `ADMIN` accounts, containing Account management (creation, listing, role/permission assignment, lock/unlock, password reset, deletion) and Database tools (backup, restore, seed).
-**Manager UI** is mounted at `/manager/` for active `MANAGER` accounts, containing Catalog management (Products, Categories, Brands, Suppliers) and CRM navigation (Customers, Customer Reports, Feedback, Surveys). All account management and database tools are removed from `/manager/`.
+**Manager UI** is mounted at `/manager/` for active `MANAGER` accounts, containing Catalog management (Products, Categories, Brands) and CRM navigation (Customers, Customer Reports, Feedback, Surveys). All account management and database tools are removed from `/manager/`.
 Django's built-in admin site is relocated to `/django-admin/`. Legacy `/admin-portal/` is deprecated/removed.
 Active `ADMIN` accounts access `/admin/`. Active `MANAGER` accounts access `/manager/`. `CUSTOMER` and `LOCKED` accounts are blocked from both portals.
 

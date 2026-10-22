@@ -81,7 +81,7 @@
             showErrors([...new Set(problems)]);
             return;
         }
-        if (!confirm("Sau khi nộp bạn không thể sửa hoặc làm lại. Nộp bài?")) return;
+        if (!confirm("Once submitted, you cannot edit or retake this survey. Submit now?")) return;
         document.getElementById("sv-answers").value = JSON.stringify(answers);
         pending = true;
         button.disabled = true;

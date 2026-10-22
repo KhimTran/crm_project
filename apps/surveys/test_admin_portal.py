@@ -57,5 +57,5 @@ class SurveyAdminPortalTests(TestCase):
         self.client.force_login(manager)
         response = self.client.get(reverse("surveys:manage_list"))
         self.assertTemplateUsed(response, "layouts/base_crm.html")
-        self.assertContains(response, "+ Tạo khảo sát")
+        self.assertContains(response, "Tạo khảo sát")
         self.assertNotContains(response, "Create Survey")

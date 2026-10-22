@@ -63,6 +63,5 @@ class AccountPasswordResetForm(PasswordResetForm):
         return AccountManager.normalize_account_email(self.cleaned_data["email"])
 
     def get_users(self, email):
-        # Account.is_active is a property, so the built-in ORM filter cannot work.
         return (account for account in Account.objects.filter(email=email, status=AccountStatus.ACTIVE)
                 if account.has_usable_password())

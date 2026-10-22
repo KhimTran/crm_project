@@ -3,7 +3,8 @@ import logging
 from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from apps.accounts.forms import PersonalPasswordChangeForm, PersonalProfileEditForm
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden
@@ -256,6 +257,53 @@ def seed_data(request):
     return redirect("database_tools")
 
 
+
+@account_admin_required
+@require_http_methods(["GET", "POST"])
+def admin_profile(request):
+    user = request.user
+    profile_form = PersonalProfileEditForm(
+        request.POST if "save_profile" in request.POST else None,
+        initial={
+            "full_name": user.full_name,
+            "phone": user.phone or "",
+            "date_of_birth": user.date_of_birth,
+            "gender": user.gender or "",
+            "address": user.address or "",
+        },
+    )
+    password_form = PersonalPasswordChangeForm(
+        user,
+        request.POST if "change_password" in request.POST else None,
+    )
+
+    if request.method == "POST":
+        if "save_profile" in request.POST and profile_form.is_valid():
+            user.full_name = profile_form.cleaned_data["full_name"]
+            user.phone = profile_form.cleaned_data["phone"] or None
+            user.date_of_birth = profile_form.cleaned_data["date_of_birth"] or None
+            user.gender = profile_form.cleaned_data["gender"] or None
+            user.address = profile_form.cleaned_data["address"] or None
+            user.save()
+            messages.success(request, "Personal profile updated successfully.")
+            return redirect("admin_profile")
+
+        if "change_password" in request.POST and password_form.is_valid():
+            new_password = password_form.cleaned_data["new_password"]
+            user.set_password(new_password)
+            user.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Password changed successfully.")
+            return redirect("admin_profile")
+
+    return render(request, "admin/portal/profile.html", {
+        "active_section": "profile",
+        "profile_form": profile_form,
+        "password_form": password_form,
+        "account": user,
+    })
+
+
 # --- Manager Portal Views (/manager) ---
 
 @require_GET
@@ -271,6 +319,52 @@ def manager_home(request):
 def manager_logout(request):
     logout(request)
     return redirect("manager_login")
+
+
+@manager_required
+@require_http_methods(["GET", "POST"])
+def manager_profile(request):
+    user = request.user
+    profile_form = PersonalProfileEditForm(
+        request.POST if "save_profile" in request.POST else None,
+        initial={
+            "full_name": user.full_name,
+            "phone": user.phone or "",
+            "date_of_birth": user.date_of_birth,
+            "gender": user.gender or "",
+            "address": user.address or "",
+        },
+    )
+    password_form = PersonalPasswordChangeForm(
+        user,
+        request.POST if "change_password" in request.POST else None,
+    )
+
+    if request.method == "POST":
+        if "save_profile" in request.POST and profile_form.is_valid():
+            user.full_name = profile_form.cleaned_data["full_name"]
+            user.phone = profile_form.cleaned_data["phone"] or None
+            user.date_of_birth = profile_form.cleaned_data["date_of_birth"] or None
+            user.gender = profile_form.cleaned_data["gender"] or None
+            user.address = profile_form.cleaned_data["address"] or None
+            user.save()
+            messages.success(request, "Personal profile updated successfully.")
+            return redirect("manager_profile")
+
+        if "change_password" in request.POST and password_form.is_valid():
+            new_password = password_form.cleaned_data["new_password"]
+            user.set_password(new_password)
+            user.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Password changed successfully.")
+            return redirect("manager_profile")
+
+    return render(request, "manager/profile.html", {
+        "active_section": "profile",
+        "profile_form": profile_form,
+        "password_form": password_form,
+        "account": user,
+    })
 
 
 # Aliases for backwards compatibility

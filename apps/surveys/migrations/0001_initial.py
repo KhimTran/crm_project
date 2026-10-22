@@ -17,7 +17,6 @@ def align_mysql_schema(apps, schema_editor):
             'customers': [('created_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'), ('updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), ('deleted_at', 'DATETIME NULL')],
             'categories': [('created_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'), ('updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')],
             'brands': [('created_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'), ('updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')],
-            'suppliers': [('created_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'), ('updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')],
             'products': [('created_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'), ('updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')],
             'customer_preferences': [('created_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP')],
             'feedbacks': [('created_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'), ('resolved_at', 'DATETIME NULL')],
@@ -43,7 +42,6 @@ def align_mysql_schema(apps, schema_editor):
             ('customers', 'status', "VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'"),
             ('categories', 'status', "VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'"),
             ('brands', 'status', "VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'"),
-            ('suppliers', 'status', "VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'"),
             ('products', 'status', "VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'"),
             ('accounts', 'status', "VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'"),
             ('feedbacks', 'rating', 'TINYINT NOT NULL'),
@@ -86,7 +84,6 @@ def align_mysql_schema(apps, schema_editor):
             ('customers', 'account_id', 'accounts', 'account_id', 'fk_customers_account', 'CASCADE', 'RESTRICT'),
             ('products', 'category_id', 'categories', 'category_id', 'fk_products_category', 'CASCADE', 'RESTRICT'),
             ('products', 'brand_id', 'brands', 'brand_id', 'fk_products_brand', 'CASCADE', 'RESTRICT'),
-            ('products', 'supplier_id', 'suppliers', 'supplier_id', 'fk_products_supplier', 'CASCADE', 'RESTRICT'),
             ('customer_preferences', 'customer_id', 'customers', 'customer_id', 'fk_customer_preferences_customer', 'CASCADE', 'CASCADE'),
             ('feedbacks', 'customer_id', 'customers', 'customer_id', 'fk_feedbacks_customer', 'CASCADE', 'RESTRICT'),
             ('feedbacks', 'product_id', 'products', 'product_id', 'fk_feedbacks_product', 'CASCADE', 'RESTRICT'),
@@ -124,6 +121,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('catalog', '0001_initial'),
         ('customers', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]

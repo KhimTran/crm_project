@@ -62,7 +62,7 @@ class AdminAccessTests(TestCase):
 
         for url, text in ((reverse("crm_feedbacks:list"), "Customer Feedback"),
                           (reverse("customers:detail", args=[self.customer.pk]), "Customer Information"),
-                          (reverse("surveys:results"), "Total Surveys")):
+                          (reverse("surveys:manage_list"), "Surveys")):
             self.assertContains(self.client.get(url), text)
 
         response = self.client.post(reverse("customers:create"), {"full_name": "A", "email": "x@example.com",

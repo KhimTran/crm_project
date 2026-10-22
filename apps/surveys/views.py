@@ -40,7 +40,7 @@ def send(request, survey_id):
         result = send_survey(request.user, survey, customer_ids)
     except (ValidationError, ValueError) as exc:
         return HttpResponseBadRequest(str(exc))
-    messages.success(request, f"Đã gửi khảo sát cho {result['created']} khách hàng. Bỏ qua {result['skipped']} khách hàng đã nhận khảo sát trước đó.")
+    messages.success(request, f"Survey sent to {result['created']} customers. Skipped {result['skipped']} customers who already received this survey.")
     return redirect("surveys:send_result", survey_id=survey.pk)
 
 
@@ -56,7 +56,7 @@ def take(request, recipient_id):
     try:
         response, can_answer = start_survey(request.user, recipient_id)
     except PermissionDenied:
-        return HttpResponseForbidden("Không có quyền thực hiện khảo sát này.")
+        return HttpResponseForbidden("You do not have permission to take this survey.")
     except SurveyRecipient.DoesNotExist as exc:
         raise Http404 from exc
     except ValidationError as exc:
@@ -78,19 +78,19 @@ def submit(request, recipient_id):
             raise ValueError
         submitted = submit_survey(request.user, recipient_id, answers)
     except PermissionDenied:
-        return HttpResponseForbidden("Không có quyền thực hiện khảo sát này.")
+        return HttpResponseForbidden("You do not have permission to take this survey.")
     except SurveyRecipient.DoesNotExist as exc:
         raise Http404 from exc
     except (ValidationError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         if wants_json:
-            errors = exc.messages if isinstance(exc, ValidationError) else ["Dữ liệu câu trả lời không hợp lệ."]
+            errors = exc.messages if isinstance(exc, ValidationError) else ["Invalid answer data."]
             return JsonResponse({"errors": errors}, status=400)
         return HttpResponseBadRequest(str(exc))
     except DatabaseError:
         if wants_json:
-            return JsonResponse({"errors": ["Không thể lưu câu trả lời lúc này. Vui lòng thử lại."]}, status=503)
-        return HttpResponseBadRequest("Không thể lưu câu trả lời lúc này. Vui lòng thử lại.")
-    messages.success(request, "Đã gửi câu trả lời." if submitted else COMPLETED_MESSAGE)
+            return JsonResponse({"errors": ["Unable to save answers right now. Please try again."]}, status=503)
+        return HttpResponseBadRequest("Unable to save answers right now. Please try again.")
+    messages.success(request, "Answers submitted successfully." if submitted else COMPLETED_MESSAGE)
     if wants_json:
         return JsonResponse({"submitted": submitted, "redirect_url": reverse("surveys:result", args=[recipient_id])})
     return redirect("surveys:result", recipient_id=recipient_id)
@@ -101,7 +101,7 @@ def result(request, recipient_id):
     try:
         recipient = recipient_for_user(request.user, recipient_id)
     except PermissionDenied:
-        return HttpResponseForbidden("Không có quyền xem khảo sát này.")
+        return HttpResponseForbidden("Access denied: You cannot view this survey.")
     except SurveyRecipient.DoesNotExist as exc:
         raise Http404 from exc
     return render(request, "surveys/result.html", {"recipient": recipient, "completed_message": COMPLETED_MESSAGE})
@@ -137,7 +137,52 @@ def manage_list(request):
     items = list(Survey.objects.annotate(sent=Count("surveyrecipient", distinct=True)).order_by("-survey_id"))
     for survey in items:  # chỉ Nháp chưa gửi cho ai mới sửa/xóa được (cùng quy tắc với manage_delete)
         survey.editable = survey.status == SurveyStatus.DRAFT and not survey.sent
-    return render(request, "surveys/manage_list.html", {"items": items})
+        done = survey.surveyrecipient_set.filter(status=RECIPIENT_COMPLETED).count()
+        survey.pending = max(survey.sent - done, 0)
+        survey.rate = round(done * 100 / survey.sent, 1) if survey.sent else None
+        survey.status_label = tr(SurveyStatus(survey.status).label) if survey.status in SurveyStatus.values else survey.status
+    return render(request, "surveys/manage_list.html", {
+        "items": items,
+        "surveys": items,
+        "overview": survey_overview(),
+    })
+
+
+# tv4: 4.1.7 trang Survey Results riêng (tách khỏi Customer Report), số liệu từ bộ 8 câu hỏi đã phát hành.
+@manager_required
+@require_GET
+@portal_english
+def survey_results(request):
+    from .survey_report import build_report, published_questionnaire_surveys
+
+    surveys = published_questionnaire_surveys().order_by("-survey_id").only("survey_id", "title")
+    selected_survey, survey_error = None, ""
+    if request.GET.get("survey_id"):
+        try:
+            selected_survey = surveys.filter(pk=int(request.GET["survey_id"])).first()
+        except (ValueError, OverflowError):
+            pass
+        if selected_survey is None:
+            survey_error = say("Khảo sát được chọn không tồn tại, chưa phát hành hoặc không thuộc bộ 8 câu hỏi.",
+                               "The selected survey does not exist, is unpublished or is not an 8-question survey.")
+    report = None if survey_error else build_report(selected_survey)
+    charts = None
+    if report:
+        charts = {
+            "purchases": [{"label": r["label"], "n": r["n"], "pct": r["pct"]} for r in report["purchases"]["rows"]],
+            "brands": [{"label": r["label"], "n": r["n"], "share_pct": r["share_pct"],
+                        "respondent_pct": r["respondent_pct"]} for r in report["brands"]["rows"]],
+            "trend": [{"label": r["label"], "avg": r["avg"], "n": r["n"]} for r in report["csat_trend"]],
+            "labels": {"respondents": say("người chọn", "respondents"),
+                       "share": say("lượt chọn", "of selections"),
+                       "respondent_share": say("người trả lời có chọn hãng này", "of respondents chose this brand"),
+                       "csat": say("CSAT trung bình", "Average CSAT"),
+                       "responses": say("lượt trả lời", "responses")},
+        }
+    return render(request, "surveys/results_report.html", {
+        "generated_at": timezone.localtime(), "surveys": surveys, "selected_survey": selected_survey,
+        "survey_error": survey_error, "report": report, "charts": charts,
+    })
 
 
 # ───────────────────────── tv4: trình soạn khảo sát (trang tạo + trang sửa dùng chung) ─────────────────────────
@@ -320,7 +365,7 @@ def _builder_labels():
         "noMatch": ("Không tìm thấy khách hàng phù hợp.", "No matching customers."),
         "selectedCount": ("Đã chọn {n} khách hàng", "{n} customer(s) selected"),
     }
-    return {key: say(vi, en) for key, (vi, en) in pairs.items()}
+    return {key: en for key, (vi, en) in pairs.items()}
 
 
 # tv4: ghi nhớ mã form đã tạo khảo sát để lần gửi lặp (bấm 2 lần, F5) không tạo bản trùng
@@ -334,7 +379,7 @@ def _remember_builder_token(request, token, survey_id):
 def _save_builder(request, survey, form, audience_form, question_forms, *, fixed, use_template, publish):
     with transaction.atomic():
         if survey is not None and _survey_locked(Survey.objects.select_for_update().get(pk=survey.pk)):
-            raise ValidationError("Không sửa câu hỏi của khảo sát đã gửi hoặc đã có câu trả lời.")
+            raise ValidationError("Cannot edit questions for a survey that has been sent or has responses.")
         saved = form.save(commit=False)
         if survey is None:
             saved.created_by = request.user
@@ -357,7 +402,7 @@ def _survey_builder(request, survey):
     posted = request.method == "POST"
     locked = survey is not None and _survey_locked(survey)
     if posted and locked:
-        messages.error(request, tr("Chỉ sửa được khảo sát ở trạng thái Nháp."))
+        messages.error(request, "Only draft surveys can be edited.")
         return redirect("surveys:manage_edit", survey_id=survey.pk)
     fixed = survey is not None and survey.template_key == TEMPLATE_KEY
     mode = "create" if survey is None else "readonly" if locked else "fixed" if fixed else "edit"
@@ -374,7 +419,7 @@ def _survey_builder(request, survey):
         if survey is None:
             done = request.session.get(BUILDER_TOKENS, {}).get(token)
             if done and Survey.objects.filter(pk=done).exists():
-                messages.info(request, say("Khảo sát này đã được lưu trước đó.", "This survey has already been saved."))
+                messages.info(request, "This survey has already been saved.")
                 return redirect("surveys:manage_edit", survey_id=done)
         # tương thích: tạo bằng bộ 8 câu mẫu chỉ còn ở backend (trang không còn ô chọn này)
         use_template = survey is None and bool(request.POST.get("use_template"))
@@ -386,7 +431,7 @@ def _survey_builder(request, survey):
                 request.POST.get("questions_json"), instances)
         valid = all([form.is_valid(), audience_form.is_valid()]) and not question_errors and not general_errors
         if valid and action == "publish" and not (fixed or use_template or question_forms):
-            general_errors.append(say("Khảo sát chưa có câu hỏi nào.", "The survey has no questions yet."))
+            general_errors.append("The survey has no questions yet.")
             valid = False
         if valid:
             try:
@@ -402,16 +447,13 @@ def _survey_builder(request, survey):
                 if survey is None:
                     _remember_builder_token(request, token, saved.pk)
                 if result is not None:
-                    note = say(f" (bỏ qua {result['skipped']} người đã nhận trước đó)",
-                               f" ({result['skipped']} previous recipient(s) skipped)") if result["skipped"] else ""
-                    messages.success(request, say(f"Đã phát hành khảo sát cho {result['created']} khách hàng{note}.",
-                                                  f"Survey published to {result['created']} customer(s){note}."))
+                    note = f" ({result['skipped']} previous recipient(s) skipped)" if result["skipped"] else ""
+                    messages.success(request, f"Survey published to {result['created']} customer(s){note}.")
                     return redirect("surveys:manage_detail", survey_id=saved.pk)
                 if use_template:
-                    messages.success(request, say("Đã tạo khảo sát với bộ 8 câu hỏi phiên bản 1.",
-                                                  "Survey created with the 8-question questionnaire, version 1."))
+                    messages.success(request, "Survey created with the 8-question questionnaire, version 1.")
                 else:
-                    messages.success(request, say("Đã lưu khảo sát Nháp.", "Draft survey saved."))
+                    messages.success(request, "Draft survey saved.")
                 url = reverse("surveys:manage_edit", args=[saved.pk])
                 return redirect(url + "?add=1" if action == "save_add" and not (fixed or use_template) else url)
     if mode == "readonly":  # chỉ xem: khóa mọi ô (vẫn mở/đóng được từng câu hỏi để xem)
@@ -470,11 +512,10 @@ def manage_audience_count(request):
 def manage_delete(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     if survey.status != SurveyStatus.DRAFT or SurveyRecipient.objects.filter(survey=survey).exists():
-        messages.error(request, say("Chỉ xóa được khảo sát Nháp chưa gửi cho ai. Hãy dùng \"Đóng khảo sát\".",
-                                    "Only Draft surveys that were never sent can be deleted. Use \"Close Survey\" instead."))
+        messages.error(request, "Only Draft surveys that were never sent can be deleted. Use \"Close Survey\" instead.")
         return redirect("surveys:manage_detail", survey_id=survey.pk)
     survey.delete()
-    messages.success(request, say("Đã xóa khảo sát.", "Survey deleted."))
+    messages.success(request, "Survey deleted.")
     return redirect("surveys:manage_list")
 
 
@@ -530,10 +571,8 @@ def manage_send(request, survey_id):
             except (AccountPermissionDenied, ValidationError) as exc:
                 messages.error(request, tr(exc.messages[0] if isinstance(exc, ValidationError) else str(exc)))
                 return redirect("surveys:manage_detail", survey_id=survey.pk)
-            note = say(f" (bỏ qua {result['skipped']} người đã nhận trước đó)",
-                       f" ({result['skipped']} previous recipient(s) skipped)") if result["skipped"] else ""
-            messages.success(request, say(f"Đã gửi khảo sát cho {result['created']} khách hàng{note}.",
-                                          f"Survey sent to {result['created']} customer(s){note}."))
+            note = f" ({result['skipped']} previous recipient(s) skipped)" if result["skipped"] else ""
+            messages.success(request, f"Survey sent to {result['created']} customer(s){note}.")
             return redirect("surveys:manage_detail", survey_id=survey.pk)
         preview = customers.count()
     return render(request, "surveys/manage_send.html",
@@ -550,7 +589,7 @@ def manage_close(request, survey_id):
     except ValidationError as exc:
         messages.error(request, tr(exc.messages[0]))
     else:
-        messages.success(request, say("Đã đóng khảo sát.", "Survey closed."))
+        messages.success(request, "Survey closed.")
     return redirect("surveys:manage_detail", survey_id=survey.pk)
 
 
@@ -561,8 +600,7 @@ def manage_close(request, survey_id):
 def manage_clone(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     copy = clone_survey(request.user, survey)
-    messages.success(request, say("Đã tạo bản sao Nháp. Hãy kiểm tra thời gian và nội dung trước khi gửi.",
-                                  "Draft copy created. Check its schedule and content before sending."))
+    messages.success(request, "Draft copy created. Check its schedule and content before sending.")
     return redirect("surveys:manage_detail", survey_id=copy.pk)
 
 
@@ -580,10 +618,10 @@ def manage_stats(request, survey_id):
 @require_GET
 def my_surveys(request):
     close_expired()
-    customer = Customer.objects.filter(account=request.user, status="ACTIVE").first()
+    customer = Customer.objects.filter(pk=request.user.pk, status="ACTIVE").first()
     todo, done, closed = [], [], []
     if customer is None:
-        messages.error(request, "Tài khoản chưa có hồ sơ khách hàng.")
+        messages.error(request, "Account has no customer profile.")
     else:
         rows = SurveyRecipient.objects.filter(customer=customer).exclude(survey__status=SurveyStatus.DRAFT) \
             .select_related("survey").order_by("-sent_at")

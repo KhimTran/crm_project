@@ -26,7 +26,7 @@ class CustomerSelfServiceTests(TestCase):
         self.assertTrue(account.check_password(self.password))
         self.assertFalse(account.groups.exists())
         self.assertFalse(account.user_permissions.exists())
-        self.assertEqual(Customer.objects.get(account=account).status, "ACTIVE")
+        self.assertEqual(Customer.objects.get(pk=account.pk).status, "ACTIVE")
 
     def test_duplicate_and_invalid_password_leave_no_partial_rows(self):
         self.register()
@@ -38,7 +38,7 @@ class CustomerSelfServiceTests(TestCase):
         self.assertEqual(Customer.objects.count(), 1)
 
     def test_profile_failure_rolls_back_account_creation(self):
-        with patch("apps.customers.self_services.Customer.objects.create", side_effect=IntegrityError("profile failure")):
+        with patch("apps.customers.self_services.Account.objects.create_user", side_effect=IntegrityError("profile failure")):
             with self.assertRaises(IntegrityError):
                 self.register()
         self.assertEqual(Account.objects.count(), 0)
@@ -57,13 +57,13 @@ class CustomerSelfServiceTests(TestCase):
     def test_profile_and_preferences_never_modify_account_or_other_customer(self):
         owner = self.register()
         other = self.register("other@customer.test")
-        other_customer = Customer.objects.get(account=other)
+        other_customer = Customer.objects.get(pk=other.pk)
         update_own_profile(owner, profile_data={"full_name": "Updated", "account_id": other.pk,
                            "email": "changed@test.test", "role": "ADMIN", "status": "DELETED"},
                            category_ids=[Category.objects.create(category_name="Badminton rackets").pk])
         owner.refresh_from_db()
         self.assertEqual((owner.email, owner.role, owner.status), ("owner@customer.test", "CUSTOMER", "ACTIVE"))
-        self.assertEqual(Customer.objects.get(account=owner).full_name, "Updated")
+        self.assertEqual(Customer.objects.get(pk=owner.pk).full_name, "Updated")
         other_customer.refresh_from_db()
         self.assertEqual(other_customer.full_name, "Khách hàng")
         self.assertEqual(CustomerPreference.objects.get().customer.account_id, owner.pk)
@@ -71,31 +71,27 @@ class CustomerSelfServiceTests(TestCase):
     def test_foreign_preference_and_invalid_category_roll_back(self):
         owner = self.register()
         other = self.register("other@customer.test")
-        preference = CustomerPreference.objects.create(customer=Customer.objects.get(account=other), preference_type="CATEGORY", preference_value="Other")
+        preference = CustomerPreference.objects.create(customer=Customer.objects.get(pk=other.pk), preference_type="CATEGORY", preference_value="Other")
         with self.assertRaises(ValidationError):
             update_own_profile(owner, profile_data={"full_name": "Stolen"}, remove_preference_ids=[preference.pk])
         self.assertTrue(CustomerPreference.objects.filter(pk=preference.pk).exists())
         with self.assertRaises(ValidationError):
             update_own_profile(owner, profile_data={"full_name": "Changed"}, category_ids=[999999])
-        self.assertFalse(CustomerPreference.objects.filter(customer__account=owner).exists())
-        self.assertEqual(Customer.objects.get(account=owner).full_name, "Khách hàng")
+        self.assertFalse(CustomerPreference.objects.filter(customer=owner).exists())
+        self.assertEqual(Customer.objects.get(pk=owner.pk).full_name, "Khách hàng")
 
     def test_locked_deleted_and_admin_cannot_update_customer_profile(self):
         owner = self.register()
         Account.objects.filter(pk=owner.pk).update(status="LOCKED")
         with self.assertRaises(PermissionDenied):
             update_own_profile(owner, profile_data={"full_name": "Locked"})
-        Account.objects.filter(pk=owner.pk).update(status="ACTIVE")
-        Customer.objects.filter(account=owner).update(status="DELETED", deleted_at=timezone.now())
-        with self.assertRaises(PermissionDenied):
-            update_own_profile(owner, profile_data={"full_name": "Deleted"})
         admin = Account.objects.create_superuser("admin@customer.test", self.password)
         with self.assertRaises(PermissionDenied):
             update_own_profile(admin, profile_data={"full_name": "Admin"})
 
     def test_category_sync_multiple_remove_and_repeat_without_duplicates(self):
         owner = self.register()
-        customer = Customer.objects.get(account=owner)
+        customer = Customer.objects.get(pk=owner.pk)
         first = Category.objects.create(category_name="Rackets")
         second = Category.objects.create(category_name="Shoes")
         for _ in range(2):
@@ -110,7 +106,7 @@ class CustomerSelfServiceTests(TestCase):
 
     def test_unmatched_inactive_and_other_types_preserved_and_explicit_removal_scoped(self):
         owner = self.register()
-        customer = Customer.objects.get(account=owner)
+        customer = Customer.objects.get(pk=owner.pk)
         Category.objects.create(category_name="Old shoes", status="INACTIVE")
         legacy = CustomerPreference.objects.create(customer=customer, preference_type="CATEGORY", preference_value="Missing category")
         inactive = CustomerPreference.objects.create(customer=customer, preference_type="CATEGORY", preference_value="Old shoes")
@@ -126,7 +122,7 @@ class CustomerSelfServiceTests(TestCase):
 
     def test_duplicate_existing_rows_and_duplicate_category_names_store_one_name(self):
         owner = self.register()
-        customer = Customer.objects.get(account=owner)
+        customer = Customer.objects.get(pk=owner.pk)
         first = Category.objects.create(category_name="Rackets")
         second = Category.objects.create(category_name="Rackets")
         for _ in range(2):
@@ -136,7 +132,7 @@ class CustomerSelfServiceTests(TestCase):
 
     def test_inactive_forged_category_rejected_and_create_failure_atomic(self):
         owner = self.register()
-        customer = Customer.objects.get(account=owner)
+        customer = Customer.objects.get(pk=owner.pk)
         first = Category.objects.create(category_name="Rackets")
         second = Category.objects.create(category_name="Shoes")
         inactive = Category.objects.create(category_name="Inactive", status="INACTIVE")
@@ -153,7 +149,7 @@ class CustomerSelfServiceTests(TestCase):
 
     def test_tv4_choices_reject_unknown_and_preserve_then_update_legacy(self):
         owner = self.register(gender="MALE", playing_level="RECREATIONAL")
-        customer = Customer.objects.get(account=owner)
+        customer = Customer.objects.get(pk=owner.pk)
         for field, values in (("gender", ("MALE", "FEMALE", "OTHER")),
                               ("playing_level", ("BEGINNER", "RECREATIONAL", "COMPETITIVE"))):
             for value in values:

@@ -40,12 +40,9 @@ class AdminCustomerSyncTests(TestCase):
         self.assertEqual(account.role, AccountRole.CUSTOMER)
 
         # Check linked Customer automatically created
-        customer = Customer.objects.filter(account=account).first()
+        customer = Customer.objects.filter(pk=account.pk).first()
         self.assertIsNotNone(customer)
-        self.assertEqual(customer.full_name, "")
         self.assertEqual(customer.status, "ACTIVE")
-        self.assertIsNone(customer.phone)
-        self.assertIsNone(customer.date_of_birth)
 
     def test_cross_visibility_admin_and_manager(self):
         """CUSTOMER created by ADMIN appears in MANAGER list, and vice versa."""
@@ -58,7 +55,7 @@ class AdminCustomerSyncTests(TestCase):
             password=self.password,
         )
         # Verify it appears in MANAGER's customer_queryset
-        qs_emails = list(customer_queryset().values_list("account__email", flat=True))
+        qs_emails = list(customer_queryset().values_list("email", flat=True))
         self.assertIn("from_admin@sync.test", qs_emails)
 
         # 2. MANAGER creates a customer (via create_customer service)
@@ -76,7 +73,7 @@ class AdminCustomerSyncTests(TestCase):
         self.assertIn("from_manager@sync.test", page_emails)
 
     def test_admin_can_delete_customer_created_by_manager(self):
-        """ADMIN soft-deletes CUSTOMER accounts created by MANAGER (profile DELETED, account LOCKED)."""
+        """ADMIN hard-deletes CUSTOMER accounts without business history created by MANAGER."""
         manager_customer = create_customer(
             email="manager_created_to_delete@sync.test",
             password=self.password,
@@ -86,26 +83,24 @@ class AdminCustomerSyncTests(TestCase):
             brands=["Victor"],
         )
         target_account_id = manager_customer.account_id
-        target_customer_id = manager_customer.customer_id
 
         # Verify Customer and Preferences exist
-        self.assertTrue(Customer.objects.filter(pk=target_customer_id).exists())
-        self.assertTrue(CustomerPreference.objects.filter(customer_id=target_customer_id).exists())
+        self.assertTrue(Customer.objects.filter(pk=target_account_id).exists())
+        self.assertTrue(CustomerPreference.objects.filter(customer_id=target_account_id).exists())
 
         # ADMIN deletes this customer account
         result = delete_account(self.admin, target_account_id)
-        self.assertEqual(result, {"account_id": target_account_id, "customer_deleted": True})
+        self.assertEqual(result, {"account_id": target_account_id})
 
-        # Account, Customer and Preferences are kept; profile is DELETED and account LOCKED
-        account = get_user_model().objects.get(pk=target_account_id)
-        self.assertEqual(account.status, AccountStatus.LOCKED)
-        self.assertEqual(Customer.objects.get(pk=target_customer_id).status, "DELETED")
-        self.assertTrue(CustomerPreference.objects.filter(customer_id=target_customer_id).exists())
-        self.assertNotIn(target_customer_id, customer_queryset().values_list("customer_id", flat=True))
+        # Account, Customer and Preferences are hard deleted
+        self.assertFalse(get_user_model().objects.filter(pk=target_account_id).exists())
+        self.assertFalse(Customer.objects.filter(pk=target_account_id).exists())
+        self.assertFalse(CustomerPreference.objects.filter(customer_id=target_account_id).exists())
 
     def test_admin_delete_customer_with_business_history_preserves_history(self):
-        """Deleting a customer with feedback soft-deletes it and keeps the feedback."""
-        from apps.catalog.models import Brand, Category, Product, Supplier
+        """Deleting a customer with feedback is blocked to protect business history."""
+        from apps.accounts.errors import AccountDeleteProtectedError
+        from apps.catalog.models import Brand, Category, Product
         from apps.feedback.models import Feedback
 
         customer = create_customer(
@@ -117,7 +112,6 @@ class AdminCustomerSyncTests(TestCase):
         product = Product.objects.create(
             category=Category.objects.create(category_name="Cat Test"),
             brand=Brand.objects.create(brand_name="Brand Test"),
-            supplier=Supplier.objects.create(supplier_code="S_TEST", supplier_name="Sup Test"),
             product_name="Product Test", price="20.00",
         )
         feedback = Feedback.objects.create(
@@ -125,12 +119,12 @@ class AdminCustomerSyncTests(TestCase):
             content="Feedback content", status="NEW",
         )
 
-        delete_account(self.admin, customer.account_id)
+        with self.assertRaises(AccountDeleteProtectedError):
+            delete_account(self.admin, customer.account_id)
 
         # Account, Customer and feedback are preserved
         customer.refresh_from_db()
-        self.assertEqual(customer.status, "DELETED")
-        self.assertEqual(customer.account.status, AccountStatus.LOCKED)
+        self.assertEqual(customer.status, "ACTIVE")
         self.assertTrue(Feedback.objects.filter(pk=feedback.pk, customer=customer).exists())
 
     def test_admin_protection_rules(self):

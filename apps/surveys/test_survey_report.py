@@ -222,7 +222,7 @@ class SurveyReportTests(TestCase):
         self.respond(when=NOW - timedelta(days=2), csat=5, purchases=(0, 4), comment="Căng vợt chuẩn kg")
         self.respond(when=NOW - timedelta(days=1), csat=3, purchases=(1,), comment="   ")
         deleted = self.respond(when=NOW, csat=2, purchases=(3,), comment="x" * 200)
-        Customer.objects.filter(pk=deleted.recipient.customer_id).update(deleted_at=NOW)
+        Customer.objects.filter(pk=deleted.recipient.customer_id).update(full_name="")
         comments = build_report(now=NOW)["comments"]
         self.assertEqual(len(comments), 2)  # blank question 8 is skipped
         newest, oldest = comments

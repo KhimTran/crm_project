@@ -51,26 +51,20 @@ class CustomerAccountLifecycleTests(TestCase):
         self.assertRedirects(response, reverse("customers:list"))
         self.assertNotContains(response, self.password)
         account = Account.objects.get(email="new@lifecycle.test")
-        customer = Customer.objects.get(account=account)
+        customer = Customer.objects.get(pk=account.pk)
         session = self.assert_login_and_own_profile(account)
         pref = CustomerPreference.objects.create(customer=customer, preference_type="BRAND", preference_value="Yonex")
         self.client.force_login(self.admin)
         response = self.client.post(reverse("accounts_admin:delete", args=[account.pk]), follow=True)
-        self.assertContains(response, "Customer deleted and account locked")
-        customer.refresh_from_db()
-        account.refresh_from_db()
-        self.assertEqual((customer.status, account.status), ("DELETED", "LOCKED"))
-        self.assertIsNotNone(customer.deleted_at)
-        self.assertTrue(CustomerPreference.objects.filter(pk=pref.pk).exists())
+        self.assertContains(response, "Account deleted")
+        self.assertFalse(Account.objects.filter(pk=account.pk).exists())
+        self.assertFalse(Customer.objects.filter(pk=account.pk).exists())
+        self.assertFalse(CustomerPreference.objects.filter(pk=pref.pk).exists())
         self.assertFalse(Client().login(email=account.email, password=self.password))
         self.assertNotEqual(session.get(reverse("customers:profile")).status_code, 200)
         # The old list is refetched after a redirect; no cached row remains.
         self.client.force_login(self.manager)
         self.assertNotContains(self.client.get(reverse("customers:list")), account.email)
-        deleted_at = customer.deleted_at
-        delete_account(self.admin, account.pk)
-        customer.refresh_from_db()
-        self.assertEqual(customer.deleted_at, deleted_at)
 
     def test_admin_html_and_api_create_both_appear_for_manager_and_have_profile(self):
         for mode in ("html", "api"):
@@ -87,7 +81,7 @@ class CustomerAccountLifecycleTests(TestCase):
                     self.assertNotIn("password_hash", response.json())
                 self.assertNotContains(response, self.password, status_code=response.status_code)
                 account = Account.objects.get(email=data["email"])
-                self.assertEqual(Customer.objects.filter(account=account).count(), 1)
+                self.assertEqual(Customer.objects.filter(pk=account.pk).count(), 1)
                 self.client.force_login(self.manager)
                 self.assertContains(self.client.get(reverse("customers:list")), account.email)
                 self.assert_login_and_own_profile(account)
@@ -109,26 +103,25 @@ class CustomerAccountLifecycleTests(TestCase):
         response = self.client.post(reverse("customers:create"), self.customer_payload(
             play_styles=["Forged style"], brands=["Forged brand"], role="ADMIN", status="LOCKED"))
         self.assertEqual(response.status_code, 302)
-        customer = Customer.objects.get(account__email="new@lifecycle.test")
-        self.assertEqual(customer.account.role, "CUSTOMER")
-        self.assertEqual(customer.account.status, "ACTIVE")
+        customer = Customer.objects.get(email="new@lifecycle.test")
+        self.assertEqual(customer.role, "CUSTOMER")
+        self.assertEqual(customer.status, "ACTIVE")
         self.assertFalse(customer.customerpreference_set.exists())
         response = self.client.post(reverse("customers:create"), self.customer_payload())
-        self.assertContains(response, "Email đã được sử dụng")
-        self.assertContains(response, "Số điện thoại đã được sử dụng")
+        self.assertContains(response, "Email is already in use")
+        self.assertContains(response, "Phone number is already in use")
         self.assertNotContains(response, self.password)
 
     def test_service_password_validation_and_profile_failure_roll_back_account(self):
         with self.assertRaises(ValidationError):
             create_customer(**self.customer_payload(password="123"))
         self.assertFalse(Account.objects.filter(email="new@lifecycle.test").exists())
-        with patch("apps.customers.services.Customer.objects.create", side_effect=IntegrityError("profile failure")):
+        with patch("apps.customers.services.CustomerPreference.objects.bulk_create", side_effect=IntegrityError("profile failure")):
             with self.assertRaises(IntegrityError):
-                create_customer(**self.customer_payload())
+                create_customer(**self.customer_payload(play_styles=["ATTACK"]))
         self.assertFalse(Account.objects.filter(email="new@lifecycle.test").exists())
-        with patch("apps.customers.provisioning.Customer.objects.get_or_create", side_effect=IntegrityError("profile failure")):
-            with self.assertRaises(IntegrityError):
-                create_account(self.admin, email="rollback@lifecycle.test", role="CUSTOMER", status="ACTIVE", password=self.password)
+        with self.assertRaises(ValidationError):
+            create_account(self.admin, email="rollback@lifecycle.test", role="CUSTOMER", status="ACTIVE", password="123")
         self.assertFalse(Account.objects.filter(email="rollback@lifecycle.test").exists())
 
     def test_own_profile_ignores_foreign_ids_and_customer_cannot_manage_accounts(self):
@@ -157,7 +150,7 @@ class CustomerAccountLifecycleTests(TestCase):
         self.assertEqual(client.post(reverse("customers:create"), self.customer_payload()).status_code, 403)
         token = client.get(reverse("customers:create")).cookies["csrftoken"].value
         self.assertEqual(client.post(reverse("customers:create"), self.customer_payload(), HTTP_X_CSRFTOKEN=token).status_code, 302)
-        customer = Customer.objects.get(account__email="new@lifecycle.test")
+        customer = Customer.objects.get(email="new@lifecycle.test")
         client.force_login(self.admin)
         self.assertEqual(client.post(reverse("accounts_admin:delete", args=[customer.account_id])).status_code, 403)
 
@@ -166,32 +159,25 @@ class RepairCustomerProfilesTests(TestCase):
     password = "Repair!2026Secure"
 
     def test_preview_apply_repeat_preserves_existing_profiles_staff_and_credentials(self):
-        missing = Account.objects.create_user("missing@repair.test", self.password)
-        locked = Account.objects.create_user("locked@repair.test", self.password, status="LOCKED")
-        manager = Account.objects.create_user("manager@repair.test", self.password)
-        manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
-        staff = Account.objects.create_user("staff@repair.test", self.password)
-        staff.groups.add(Group.objects.create(name="CUSTOMER_SERVICE"))
-        admin = Account.objects.create_superuser("admin@repair.test", self.password)
-        existing = Account.objects.create_user("existing@repair.test", self.password)
-        profile = Customer.objects.create(account=existing, full_name="Existing", status="DELETED")
-        pref = CustomerPreference.objects.create(customer=profile, preference_type="PLAY_STYLE", preference_value="Saved")
+        missing = Account.objects.create_user("missing@repair.test", self.password, full_name="")
+        locked = Account.objects.create_user("locked@repair.test", self.password, status="LOCKED", full_name="")
+        manager = Account.objects.create_user("manager@repair.test", self.password, role="MANAGER", full_name="Manager")
+        staff = Account.objects.create_user("staff@repair.test", self.password, role="MANAGER", full_name="Staff")
+        admin = Account.objects.create_superuser("admin@repair.test", self.password, full_name="Admin")
+        existing = Account.objects.create_user("existing@repair.test", self.password, full_name="Existing")
+        pref = CustomerPreference.objects.create(customer=existing, preference_type="PLAY_STYLE", preference_value="Saved")
         original_hashes = dict(Account.objects.values_list("pk", "password"))
-        self.client.force_login(missing)
-        self.assertEqual(self.client.get(reverse("customers:profile")).status_code, 403)
         out = StringIO()
         call_command("repair_customer_profiles", stdout=out)
         self.assertIn("Missing profiles: 2", out.getvalue())
-        self.assertFalse(Customer.objects.filter(account=missing).exists())
         call_command("repair_customer_profiles", apply=True, account_id=[missing.pk], stdout=StringIO())
-        self.assertEqual(self.client.get(reverse("customers:profile")).status_code, 200)
+        missing.refresh_from_db()
+        self.assertEqual(missing.full_name, "missing@repair.test")
         call_command("repair_customer_profiles", apply=True, stdout=StringIO())
         call_command("repair_customer_profiles", apply=True, stdout=StringIO())
-        self.assertEqual(Customer.objects.count(), 3)
-        for account in (manager, staff, admin):
-            self.assertFalse(Customer.objects.filter(account=account).exists())
-        profile.refresh_from_db()
         locked.refresh_from_db()
-        self.assertEqual((profile.full_name, profile.status, locked.status), ("Existing", "DELETED", "LOCKED"))
+        existing.refresh_from_db()
+        self.assertEqual(locked.full_name, "locked@repair.test")
+        self.assertEqual(existing.full_name, "Existing")
         self.assertTrue(CustomerPreference.objects.filter(pk=pref.pk).exists())
         self.assertEqual(dict(Account.objects.values_list("pk", "password")), original_hashes)

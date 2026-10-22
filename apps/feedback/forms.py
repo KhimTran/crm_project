@@ -31,7 +31,7 @@ class FeedbackFilterForm(forms.Form):
         cleaned = super().clean()
         date_from, date_to = cleaned.get("date_from"), cleaned.get("date_to")
         if date_from and date_to and date_from > date_to:
-            self.add_error("date_to", "Đến ngày phải sau hoặc bằng Từ ngày.")
+            self.add_error("date_to", "The To date must be on or after the From date.")
         return cleaned
 
 
@@ -47,7 +47,7 @@ class FeedbackHandleForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         if cleaned.get("status") == FeedbackStatus.RESOLVED and not cleaned.get("manager_note"):
-            self.add_error("manager_note", "Cần nhập câu trả lời trước khi đánh dấu Đã xử lý.")
+            self.add_error("manager_note", "A reply is required before marking as Resolved.")
         return cleaned
 
 

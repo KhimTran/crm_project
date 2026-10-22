@@ -91,7 +91,7 @@ for _vi, _en in EN_TEXT.items():
     EN.setdefault(_vi, _en)
 
 
-# tv4: tài khoản Admin xem màn hình TV4 trong Admin Portal (bằng tiếng Anh)
+# tv4: tài khoản Admin/Manager xem màn hình TV4 trong Portal (bằng tiếng Anh)
 def is_portal_user(user):
     return getattr(user, "is_authenticated", False) and getattr(user, "role", None) in (AccountRole.ADMIN, AccountRole.MANAGER)
 
@@ -113,7 +113,6 @@ def say(vi, en):
     return en if is_english() else vi
 
 
-# tv4: decorator cho view TV4: Admin thì chạy view trong ngữ cảnh tiếng Anh
 def portal_english(view):
     @wraps(view)
     def wrapped(request, *args, **kwargs):

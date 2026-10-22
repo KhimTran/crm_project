@@ -75,26 +75,26 @@ def seed_customers(count=DEMO_CUSTOMER_COUNT, password=DEMO_CUSTOMER_PASSWORD):
         if account is None:
             # Chỉ đặt trạng thái khóa khi tạo mới, để mở khóa kh40 rồi seed lại không bị khóa lại.
             status = AccountStatus.LOCKED if index == LOCKED_DEMO_INDEX else AccountStatus.ACTIVE
-            account = Account(email=email, role=AccountRole.CUSTOMER, status=status)
+            account = Account(
+                email=email, role=AccountRole.CUSTOMER, status=status,
+                full_name=profile["full_name"], phone=profile["phone"],
+                date_of_birth=profile["date_of_birth"], gender=profile["gender"],
+                address=profile["address"], playing_level=profile["playing_level"],
+            )
             if password_hash is None:
                 # Băm một lần bằng Django hasher rồi dùng chung cho các tài khoản demo (cùng mật khẩu demo).
                 validate_password(password, account)
                 password_hash = make_password(password)
             account.password = password_hash
             account.save()
-        if not Customer.objects.filter(account=account).exists():
-            customer = Customer.objects.create(
-                account=account, full_name=profile["full_name"], phone=profile["phone"],
-                date_of_birth=profile["date_of_birth"], gender=profile["gender"], address=profile["address"],
-                playing_level=profile["playing_level"], status=CustomerStatus.ACTIVE,
-            )
+            Account.objects.filter(pk=account.pk).update(created_at=now - timedelta(days=profile["days_ago"]))
+
             CustomerPreference.objects.bulk_create(
-                [CustomerPreference(customer=customer, preference_type=PreferenceType.PLAY_STYLE, preference_value=v)
+                [CustomerPreference(customer=account, preference_type=PreferenceType.PLAY_STYLE, preference_value=v)
                  for v in profile["play_styles"]]
-                + [CustomerPreference(customer=customer, preference_type=PreferenceType.BRAND, preference_value=v)
+                + [CustomerPreference(customer=account, preference_type=PreferenceType.BRAND, preference_value=v)
                    for v in profile["brands"]]
             )
-            Customer.objects.filter(pk=customer.pk).update(created_at=now - timedelta(days=profile["days_ago"]))
             created += 1
     return created
 
@@ -102,6 +102,5 @@ def seed_customers(count=DEMO_CUSTOMER_COUNT, password=DEMO_CUSTOMER_PASSWORD):
 # tv4: danh sách khách hàng demo theo thứ tự kh01…kh40 (để seed phản hồi)
 def demo_customers(count=DEMO_CUSTOMER_COUNT):
     emails = [demo_email(i) for i in range(1, count + 1)]
-    customers = {c.account.email: c for c in Customer.objects.select_related("account")
-                 .filter(account__email__in=emails)}
+    customers = {c.email: c for c in Customer.objects.filter(email__in=emails)}
     return [customers[e] for e in emails if e in customers]

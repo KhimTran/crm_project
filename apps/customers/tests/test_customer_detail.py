@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from apps.accounts.constants import AccountStatus
 from apps.accounts.models import Account
-from apps.catalog.models import Brand, Category, Product, Supplier
+from apps.catalog.models import Brand, Category, Product
 from apps.customers.services import create_customer, delete_customer
 from apps.feedback.models import Feedback
 
@@ -23,8 +23,7 @@ class CustomerDetailViewTests(TestCase):
         cls.staff.groups.add(Group.objects.create(name="CUSTOMER_SERVICE"))
         category = Category.objects.create(category_name="Vợt")
         brand = Brand.objects.create(brand_name="Yonex")
-        supplier = Supplier.objects.create(supplier_code="NCC01", supplier_name="NCC 1")
-        cls.product = Product.objects.create(category=category, brand=brand, supplier=supplier,
+        cls.product = Product.objects.create(category=category, brand=brand,
                                              product_name="Astrox 88D", price=3500000)
 
     def setUp(self):
@@ -64,6 +63,7 @@ class CustomerDetailViewTests(TestCase):
     def test_deleted_or_unknown_customer_returns_404(self):
         self.client.force_login(self.manager)
         self.assertEqual(self.client.get(reverse("customers:detail", args=[9999])).status_code, 404)
+        self.feedback.delete()
         delete_customer(self.customer.pk)
         self.assertEqual(self.client.get(self.url).status_code, 404)
 
