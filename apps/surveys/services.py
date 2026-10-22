@@ -365,7 +365,8 @@ def playing_level_choices():
 
 
 def preference_choices():
-    values = (CustomerPreference.objects.order_by("preference_value")
+    # tv4: tên hãng tự nhập khi chọn Other là văn bản tự do, không đưa vào danh sách lọc
+    values = (CustomerPreference.objects.exclude(preference_type="FAVORITE_BRAND_OTHER").order_by("preference_value")
               .values_list("preference_value", flat=True).distinct()[:60])
     return [(v, v) for v in values]
 

@@ -49,3 +49,13 @@ AGE_GROUPS = [
     ("55_PLUS", "Từ 55", 55, None),
 ]
 AGE_GROUP_CHOICES = [(value, label) for value, label, _, _ in AGE_GROUPS]
+
+
+# tv4: thương hiệu cầu lông yêu thích (đúng 1 thương hiệu / khách) lưu trong customer_preferences, không thêm cột mới.
+# FAVORITE_BRAND = 1 dòng với giá trị là một trong FAVORITE_BRANDS; FAVORITE_BRAND_OTHER = tên hãng tự nhập khi chọn "Other".
+# Tách khỏi loại BRAND (nhiều giá trị do quản lý/seed nhập) để không lẫn với bộ lọc khách hàng hiện có.
+FAVORITE_BRAND_TYPE = "FAVORITE_BRAND"
+FAVORITE_BRAND_OTHER_TYPE = "FAVORITE_BRAND_OTHER"
+FAVORITE_BRAND_OTHER = "Other"
+FAVORITE_BRANDS = ("Yonex", "Li-Ning", "Victor", "Mizuno", FAVORITE_BRAND_OTHER)
+FAVORITE_BRAND_OTHER_MAX_LENGTH = 100

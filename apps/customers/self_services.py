@@ -8,6 +8,7 @@ from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.managers import AccountManager
 from apps.accounts.models import Account
 from apps.catalog.models import Category, Status
+from .favorite_brand import set_favorite_brand
 from .models import Customer, CustomerPreference
 from .self_service_choices import CATEGORY_PREFERENCE_TYPE
 from .self_service_forms import CustomerCategoryPreferencesForm, CustomerProfileForm
@@ -20,6 +21,14 @@ def _profile_data(data, *, instance=None):
     if not form.is_valid():
         raise ValidationError(form.errors)
     return form.cleaned_data
+
+
+# tv4: tách thương hiệu yêu thích khỏi dữ liệu hồ sơ (không phải cột của bảng customers)
+def _split_favorite_brand(profile):
+    profile = dict(profile)
+    brand = profile.pop("favorite_brand", None)
+    other_name = profile.pop("favorite_brand_other", "") or ""
+    return profile, brand, other_name
 
 
 @transaction.atomic
@@ -59,7 +68,7 @@ def own_customer(actor, *, for_update=False):
 def update_own_profile(actor, *, profile_data, category_ids=(), remove_preference_ids=()):
     """Sync only own CATEGORY names; preserve unmatched rows unless explicitly removed."""
     customer = own_customer(actor, for_update=True)
-    profile = _profile_data(profile_data, instance=customer)
+    profile, brand, other_name = _split_favorite_brand(_profile_data(profile_data, instance=customer))
     existing = list(CustomerPreference.objects.select_for_update().filter(
         customer=customer, preference_type=CATEGORY_PREFERENCE_TYPE,
     ).order_by("preference_id"))
@@ -89,5 +98,6 @@ def update_own_profile(actor, *, profile_data, category_ids=(), remove_preferenc
     for field, value in profile.items():
         setattr(customer, field, value)
     customer.save(update_fields=[*profile, "updated_at"])
+    set_favorite_brand(customer, brand, other_name)
     transaction.on_commit(lambda: logger.info("customer_profile_updated actor=%s target=%s", actor.pk, customer.pk))
     return customer

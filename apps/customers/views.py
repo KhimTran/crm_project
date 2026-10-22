@@ -272,10 +272,18 @@ def customer_report(request):
         "accounts": reports.account_status_report(),
         "deleted": reports.deleted_count(),
     }
+    # tv4: thương hiệu yêu thích; lỗi truy vấn chỉ làm hỏng card này (error state), không làm hỏng cả báo cáo
+    try:
+        customer_charts["favorite_brands"] = reports.favorite_brand_report()
+        favorite_brand_error = False
+    except DatabaseError:
+        customer_charts["favorite_brands"] = None
+        favorite_brand_error = True
 
     return render(request, "customers/customer_report.html", {
         "generated_at": timezone.localtime(),
         "summary": reports.summary(), "customer_charts": customer_charts, "customer_extra": customer_extra,
+        "favorite_brand_error": favorite_brand_error,
     })
 
 
