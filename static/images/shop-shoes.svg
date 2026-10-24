@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 400" role="img" aria-labelledby="title">
+  <title id="title">Minh họa loại sản phẩm: giày thể thao</title>
+  <rect width="480" height="400" fill="#fffaf4"/>
+  <circle cx="246" cy="199" r="144" fill="#fff0df"/>
+  <ellipse cx="242" cy="316" rx="160" ry="11" fill="#e9dccf"/>
+  <g transform="translate(23 -45) scale(.87)">
+    <path d="m91 226 21-88 21 16 32 42 70 24 40 14 34 39v30H93Z" fill="#e8d8c8" stroke="#212b31" stroke-width="4" stroke-linejoin="round"/>
+    <path d="m93 284 199-6 19 13v18H88Z" fill="#fff" stroke="#212b31" stroke-width="4"/>
+    <path d="m130 183 100 49-24 44H91Z" fill="#ef6b2e"/>
+    <path d="m179 211-15 23m32-15-16 23m31-14-16 23" stroke="#fffaf4" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <path d="M73 252 88 191l18-37q12 6 25 23l39 41 51 5 48-25 20 17 17 30 47 16q35 11 51 29v19H73Z" fill="#212b31" stroke="#212b31" stroke-width="4" stroke-linejoin="round"/>
+  <path d="m130 202 45 26 80-15-38 65H79l9-56Z" fill="#ef6b2e"/>
+  <path d="m113 250 63 23 45-50-32 4Z" fill="#f58646"/>
+  <path d="m194 229 60-8m-69 19 58-7m-68 19 56-7m-66 20 56-7" stroke="#fffaf4" stroke-width="5" stroke-linecap="round"/>
+  <path d="M73 278q113 16 205 11l53-3q41-4 75 4v19q-130 16-333-1Z" fill="#fff" stroke="#212b31" stroke-width="4"/>
+  <path d="m84 301 313 1" stroke="#d1c0ad" stroke-width="4" stroke-dasharray="12 7"/>
+  <path d="m345 267 18 6m-8-2 14 6" stroke="#71818a" stroke-width="3"/>
+</svg>

@@ -1,0 +1,1 @@
+<th scope="col"><a class="text-decoration-none text-reset" href="?sort={{ key }}&amp;dir={% if sort == key and direction == 'asc' %}desc{% else %}asc{% endif %}{% if base_query %}&amp;{{ base_query }}{% endif %}">{{ label }}{% if sort == key %} {% if direction == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>

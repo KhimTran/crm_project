@@ -1,0 +1,71 @@
+{% load portal_text %}
+{% if created_message %}<div class="{% if in_admin_portal %}alert alert-success{% else %}crm-message success{% endif %}" role="status" tabindex="-1" id="customer-created-message">{{ created_message }}</div>{% endif %}
+<div class="customers-page">
+<div class="crm-toolbar">
+  {% if in_admin_portal %}<span>Customer records in the CRM: <strong>{{ page.paginator.count }}</strong> found.</span>
+  {% else %}<span>Tìm thấy <strong>{{ page.paginator.count }}</strong> khách hàng.</span>{% endif %}
+  {% if can_manage %}<a class="{% if in_admin_portal %}btn btn-primary{% else %}crm-btn{% endif %}" href="{% url 'customers:create' %}">{% t "+ Thêm khách hàng" "Create Customer" %}</a>{% endif %}
+</div>
+
+<form method="get" class="{% if in_admin_portal %}portal-panel{% else %}crm-card{% endif %} crm-filter" role="search" aria-label="{% t 'Lọc khách hàng' 'Filter customers' %}">
+  {% for field in form %}
+    <div class="crm-field">{{ field.label_tag }}{{ field }}{% if field.errors %}<ul class="crm-errorlist">{% for e in field.errors %}<li>{% t e %}</li>{% endfor %}</ul>{% endif %}</div>
+  {% endfor %}
+  <div class="crm-actions">
+    <button type="submit" class="{% if in_admin_portal %}btn btn-outline-primary{% else %}crm-btn{% endif %}">{% t "Lọc" "Search" %}</button>
+    <a class="{% if in_admin_portal %}btn btn-outline-secondary{% else %}crm-btn crm-btn-secondary{% endif %}" href="{% url 'customers:list' %}">{% t "Xóa lọc" "Clear" %}</a>
+  </div>
+</form>
+
+<div class="crm-card customer-table-region" role="region" aria-label="{% t 'Danh sách khách hàng' 'Customer results' %}" tabindex="0">
+  <table class="crm-table">
+    <thead>
+      <tr><th scope="col">{% t "Mã" "Code" %}</th><th scope="col">{% t "Họ tên" "Full Name" %}</th><th scope="col">Email</th><th scope="col">{% t "SĐT" "Phone" %}</th><th scope="col">{% t "Trình độ" "Level" %}</th><th scope="col">{% t "Tài khoản" "Account" %}</th><th scope="col">{% t "Ngày tạo" "Created At" %}</th><th scope="col">{% t "Thao tác" "Actions" %}</th></tr>
+    </thead>
+    <tbody>
+      {% for c in page %}
+        <tr>
+          <td>{{ c.customer_code }}</td>
+          <td><a href="{% url 'customers:detail' c.customer_id %}">{{ c.full_name|default:"(Chưa cập nhật)" }}</a></td>
+          <td>{{ c.account.email }}</td>
+          <td>{{ c.phone|default:"–" }}</td>
+          <td>{% t c.playing_level_label|default:"–" %}</td>
+          <td>
+            {% if c.account.status == "ACTIVE" %}<span class="crm-badge">{% t "Hoạt động" "ACTIVE" %}</span>
+            {% else %}<span class="crm-badge locked">{% t "Đã khóa" "LOCKED" %}</span>{% endif %}
+          </td>
+          <td>{{ c.created_at|date:date_fmt }}</td>
+          <td class="crm-row-actions">
+            <a class="crm-btn crm-btn-secondary" href="{% url 'customers:detail' c.customer_id %}">{% t "Xem" "View" %}</a>
+            {% if can_manage %}
+            {% if c.account.status == "ACTIVE" %}
+              <form method="post" action="{% url 'customers:lock' c.customer_id %}">
+                {% csrf_token %}
+                <input type="text" name="reason" maxlength="255" placeholder="{% t 'Lý do khóa' 'Lock reason' %}" aria-label="{% t 'Lý do khóa' 'Lock reason for' %} {{ c.full_name|default:c.customer_code }}">
+                <button type="submit" class="crm-btn crm-btn-secondary">{% t "Khóa" "Lock" %}</button>
+              </form>
+            {% else %}
+              <form method="post" action="{% url 'customers:unlock' c.customer_id %}">
+                {% csrf_token %}
+                <button type="submit" class="crm-btn crm-btn-secondary">{% t "Mở khóa" "Unlock" %}</button>
+              </form>
+            {% endif %}
+            <a class="crm-btn crm-btn-danger" href="{% url 'customers:delete' c.customer_id %}">{% t "Xóa" "Delete" %}</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8">{% t "Chưa có khách hàng nào." "No customers found." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.has_other_pages %}
+    <nav class="crm-pagination" aria-label="{% t 'Phân trang' 'Pagination' %}">
+      {% if page.has_previous %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page.previous_page_number }}">&laquo; {% t "Trước" "Previous" %}</a>{% endif %}
+      <span>{% t "Trang" "Page" %} {{ page.number }} / {{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page.next_page_number }}">{% t "Sau" "Next" %} &raquo;</a>{% endif %}
+    </nav>
+  {% endif %}
+</div>
+</div>

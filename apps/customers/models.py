@@ -1,3 +1,47 @@
+from django.conf import settings
 from django.db import models
 
-# Create your models here.
+from .constants import Gender, PlayingLevel
+
+
+class Customer(models.Model):
+    customer_id = models.AutoField(primary_key=True)
+    account = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, db_column="account_id")
+    full_name = models.CharField(max_length=150)
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=20, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    playing_level = models.CharField(max_length=30, null=True, blank=True)
+    status = models.CharField(max_length=20, default="ACTIVE")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "customers"
+
+    # tv4: mã khách hàng hiển thị dạng KH0001 (tính từ customer_id, không có cột riêng)
+    @property
+    def customer_code(self):
+        return f"KH{self.customer_id:04d}"
+
+    # tv4: nhãn tiếng Việt cho trình độ / giới tính (cột không khai báo choices để không sinh migration)
+    @property
+    def playing_level_label(self):
+        return PlayingLevel(self.playing_level).label if self.playing_level in PlayingLevel.values else self.playing_level
+
+    @property
+    def gender_label(self):
+        return Gender(self.gender).label if self.gender in Gender.values else self.gender
+
+
+class CustomerPreference(models.Model):
+    preference_id = models.AutoField(primary_key=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, db_column="customer_id")
+    preference_type = models.CharField(max_length=50)
+    preference_value = models.CharField(max_length=150)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "customer_preferences"

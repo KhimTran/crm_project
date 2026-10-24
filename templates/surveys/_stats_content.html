@@ -1,0 +1,37 @@
+{% load portal_text l10n %}
+{% if item.multi %}<p class="{% if report_mode %}customer-field-help{% else %}sv-help{% endif %}">{% t "Tỷ lệ tính trên số người trả lời hợp lệ của câu này; tổng tỷ lệ có thể vượt 100%." "Percentages use valid respondents to this question; totals may exceed 100%." %}</p>{% endif %}
+{% if item.no_data %}
+  <p>{% t "Chưa có dữ liệu" "No data yet" %}</p>
+{% elif item.rows %}
+  {% if item.avg is not None %}<p>{% t "Điểm trung bình:" "Average score:" %} <b>{{ item.avg }}</b> / {{ item.scale_max }}</p>{% endif %}
+  <table class="{% if report_mode %}crm-table{% else %}sv-table{% endif %}">
+    {% if report_mode %}<thead><tr><th>{% t "Lựa chọn / Điểm" "Option / Score" %}</th><th>{% t "Số lượt" "Responses" %}</th><th>{% t "Tỷ lệ" "Percentage" %}</th></tr></thead>{% endif %}
+    <tbody>{% for r in item.rows %}<tr><td {% if not report_mode %}style="width:30%"{% endif %}>{{ r.label }}</td>
+      {% if report_mode %}<td>{{ r.n }}</td><td>{{ r.pct }}%</td>
+      {% else %}<td><div class="sv-bar"><span style="width:{{ r.pct|unlocalize }}%"></span></div></td><td style="width:90px">{{ r.n }} ({{ r.pct }}%)</td>{% endif %}
+    </tr>{% endfor %}</tbody>
+  </table>
+{% elif item.criteria %}
+  {% for criterion in item.criteria %}
+    <p><strong>{{ criterion.label }}</strong></p>
+    <p>{% t "Điểm trung bình:" "Average score:" %} {% if criterion.avg is not None %}{{ criterion.avg }} / 5{% else %}–{% endif %}
+      · {% t "Số người chấm điểm:" "Scored:" %} {{ criterion.scored }}
+      · {% t "Không sử dụng:" "Not used:" %} {{ criterion.not_used }}
+      · {% t "Chưa trả lời:" "Unanswered:" %} {{ criterion.unanswered }}</p>
+    <p class="{% if report_mode %}customer-field-help{% else %}sv-help{% endif %}">{% t "Phân bố theo số người chấm điểm; không tính Không sử dụng và chưa trả lời vào điểm trung bình." "Score distribution uses scored responses; Not used and unanswered are excluded from the average." %}</p>
+    <table class="{% if report_mode %}crm-table{% else %}sv-table{% endif %}">
+      {% if report_mode %}<thead><tr><th>{% t "Điểm" "Score" %}</th><th>{% t "Số lượt" "Responses" %}</th><th>{% t "Tỷ lệ" "Percentage" %}</th></tr></thead>{% endif %}
+      <tbody>{% for r in criterion.rows %}<tr><td>{{ r.label }}</td>
+        {% if report_mode %}<td>{{ r.n }}</td><td>{% if r.pct is not None %}{{ r.pct }}%{% else %}—{% endif %}</td>
+        {% else %}<td><div class="sv-bar"><span style="width:{{ r.pct|default:0|unlocalize }}%"></span></div></td><td>{{ r.n }}{% if r.pct is not None %} ({{ r.pct }}%){% endif %}</td>{% endif %}
+      </tr>{% endfor %}</tbody>
+    </table>
+  {% endfor %}
+{% else %}
+  <ul>{% for a in item.texts %}<li>{{ a.answer_text|linebreaksbr }} — {{ a.response.recipient.customer.full_name }}</li>
+  {% empty %}<li>{% t "Chưa có câu trả lời." "No answers yet." %}</li>{% endfor %}</ul>
+{% endif %}
+{% if item.other_texts %}<p><strong>{% t "Nội dung Khác" "Other responses" %}</strong></p>
+  <ul>{% for a in item.other_texts %}<li>{{ a.answer_text|linebreaksbr }} — {{ a.response.recipient.customer.full_name }}</li>{% endfor %}</ul>
+{% endif %}
+<p class="{% if report_mode %}customer-field-help{% else %}sv-help{% endif %}">{% t "Chưa trả lời câu này:" "Unanswered question:" %} {{ item.unanswered }}</p>

@@ -1,0 +1,105 @@
+/* tv4: màn hình khách hàng/phản hồi/báo cáo khi Admin mở trong Admin Portal – đồng bộ với trang Products.
+   Chỉ áp dụng bên trong .portal-main nên khung CRM (base_crm) không bị ảnh hưởng. */
+
+.portal-main .crm-toolbar { margin: 1.6rem 0 1.1rem; color: #637680; }
+.portal-main .crm-summary { margin: 1.6rem 0 1.1rem; color: #637680; }
+
+/* Khung nội dung = portal-panel */
+.portal-main .crm-card,
+.portal-main .report-tile { background: #fff; border: 1px solid var(--portal-border); border-radius: .55rem; margin-bottom: 1.1rem; padding: 1.25rem; }
+.portal-main .crm-card h2, .portal-main .crm-feedback-grid h2, .portal-main .report-section h2 { font-size: 1.05rem; font-weight: 700; }
+.portal-main .crm-section { margin-top: 0; }
+.portal-main .report-tile strong { color: var(--portal-accent); }
+.portal-main .report-tile span, .portal-main .report-tile small, .portal-main .crm-dl dt { color: #637680; }
+
+/* Nút = Bootstrap btn / btn-outline-secondary / btn-outline-danger */
+.portal-main .crm-btn {
+  display: inline-block; padding: .375rem .75rem; border: 1px solid var(--bs-primary); border-radius: var(--bs-border-radius);
+  background: var(--bs-primary); color: #fff; font-size: 1rem; line-height: 1.5; text-decoration: none; cursor: pointer;
+}
+.portal-main .crm-btn:hover { background: #0b5ed7; border-color: #0a58ca; color: #fff; }
+.portal-main .crm-btn-secondary { background: transparent; border-color: var(--bs-secondary); color: var(--bs-secondary); }
+.portal-main .crm-btn-secondary:hover { background: var(--bs-secondary); border-color: var(--bs-secondary); color: #fff; }
+.portal-main .crm-btn-danger { background: transparent; border-color: var(--bs-danger); color: var(--bs-danger); }
+.portal-main .crm-btn-danger:hover { background: var(--bs-danger); border-color: var(--bs-danger); color: #fff; }
+.portal-main .crm-row-actions .crm-btn, .portal-main .crm-btn-sm { padding: .25rem .5rem; font-size: .875rem; border-radius: var(--bs-border-radius-sm); }
+
+/* Ô nhập liệu = form-control / form-select */
+.portal-main .crm-field label, .portal-main .crm-field legend { font-weight: 400; margin-bottom: .2rem; }
+.portal-main .crm-card input[type="text"], .portal-main .crm-card input[type="email"], .portal-main .crm-card input[type="date"],
+.portal-main .crm-card input[type="number"], .portal-main .crm-card input[type="search"], .portal-main .crm-card select,
+.portal-main .crm-card textarea, .portal-main .crm-row-actions input[type="text"] {
+  padding: .375rem .75rem; border: 1px solid #bdcbd2; border-radius: .35rem; background: #fff; color: var(--portal-text); font: inherit; max-width: 100%;
+}
+.portal-main .crm-card input:focus, .portal-main .crm-card select:focus, .portal-main .crm-card textarea:focus { outline: 2px solid #85bdcf; outline-offset: 1px; }
+.portal-main .crm-row-actions input[type="text"] { width: 9rem; padding: .25rem .5rem; font-size: .875rem; }
+.portal-main .crm-errorlist { color: #a93333; font-size: .82rem; }
+
+/* Bảng = portal-table, panel không đệm để bảng sát viền */
+.portal-main .crm-card:has(> .crm-table:first-child) { padding: 0; overflow-x: auto; }
+.portal-main .crm-table { width: 100%; margin: 0; border-collapse: collapse; }
+.portal-main .crm-table thead th {
+  padding: .9rem 1rem; background: #f5f8f9; border-bottom: 1px solid var(--portal-border);
+  color: #637680; font-size: .72rem; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap;
+}
+.portal-main .crm-table td { padding: .85rem 1rem; border-bottom: 1px solid #edf1f3; font-size: .87rem; vertical-align: middle; }
+.portal-main .crm-table tbody tr:last-child td { border-bottom: 0; }
+.portal-main .crm-table a { color: var(--portal-accent); }
+
+/* Nhãn trạng thái = portal-badge */
+.portal-main .crm-badge { display: inline-block; padding: .22rem .55rem; border-radius: .35rem; font-size: .72rem; font-weight: 750; letter-spacing: .025em; background: #e8f5ec; color: #246f3b; }
+.portal-main .crm-badge.locked { background: #fff1dc; color: #8a5b11; }
+.portal-main .crm-badge.fb-new { background: #fff1dc; color: #8a5b11; }
+.portal-main .crm-badge.fb-in_progress { background: #e7f1f5; color: #145974; }
+.portal-main .crm-badge.fb-resolved { background: #e8f5ec; color: #246f3b; }
+
+/* Phân trang = portal-pagination */
+.portal-main .crm-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .6rem .75rem; margin: 0; padding: .85rem 1rem; border-top: 1px solid var(--portal-border); color: #637680; font-size: .85rem; }
+.portal-main .crm-pagination a { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; padding: .35rem .7rem; border: 1px solid var(--portal-border); border-radius: .4rem; background: #fff; color: var(--portal-text); line-height: 1.25; text-decoration: none; }
+.portal-main .crm-pagination a:hover { border-color: var(--portal-accent); background: #eaf4f7; color: #15526a; }
+.portal-main .crm-pagination a:focus-visible { outline: 3px solid rgb(23 107 134 / 28%); outline-offset: 2px; }
+.portal-main .crm-pagination span { color: #637680; font-size: .85rem; }
+.portal-main .crm-quote { border-left-color: var(--portal-accent); background: #f5f8f9; }
+
+/* Khảo sát (TV5) trong Admin Portal: đồng bộ nút / bảng / thẻ / ô nhập với trang Products */
+.portal-main .sv-toolbar { margin: 1.6rem 0 1.1rem; }
+.portal-main .sv-toolbar h2 { margin: 0; font-size: 1.05rem; font-weight: 700; }
+.portal-main .sv-btn { padding: .375rem .75rem; border: 1px solid var(--bs-primary); border-radius: var(--bs-border-radius); background: var(--bs-primary); color: #fff; line-height: 1.5; }
+.portal-main .sv-btn:hover { background: #0b5ed7; border-color: #0a58ca; color: #fff; }
+.portal-main .sv-btn.sv-ghost { background: transparent; border-color: var(--bs-secondary); color: var(--bs-secondary); }
+.portal-main .sv-btn.sv-ghost:hover { background: var(--bs-secondary); color: #fff; }
+.portal-main .sv-btn.sv-danger { background: transparent; border-color: var(--bs-danger); color: var(--bs-danger); }
+.portal-main .sv-btn.sv-danger:hover { background: var(--bs-danger); color: #fff; }
+.portal-main .sv-btn.sv-small { padding: .25rem .5rem; font-size: .875rem; border-radius: var(--bs-border-radius-sm); }
+.portal-main .sv-btn:disabled { opacity: .65; cursor: not-allowed; }
+.portal-main .sv-card, .portal-main .sv-form { background: #fff; border: 1px solid var(--portal-border); border-radius: .55rem; margin-bottom: 1.1rem; padding: 1.25rem; }
+.portal-main .sv-form .sv-card { background: #f8fafb; }
+.portal-main .sv-form { margin-top: 1.6rem; }
+.portal-main .sv-kpi b { color: var(--portal-accent); }
+.portal-main .sv-card h3 { font-size: 1rem; font-weight: 700; }
+.portal-main .sv-table-scroll { background: #fff; border: 1px solid var(--portal-border); border-radius: .55rem; margin-bottom: 1.1rem; }
+.portal-main .sv-table { background: transparent; margin: 0; }
+.portal-main .sv-survey-list thead th { padding: .9rem 1rem; background: #f5f8f9; border-bottom: 1px solid var(--portal-border); color: #637680; font-size: .72rem; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.portal-main .sv-table td { padding: .85rem 1rem; border-bottom: 1px solid #edf1f3; font-size: .87rem; vertical-align: middle; }
+.portal-main .sv-table tr:last-child td { border-bottom: 0; }
+.portal-main .sv-table a { color: var(--portal-accent); }
+.portal-main .sv-badge { padding: .22rem .55rem; border-radius: .35rem; font-size: .72rem; font-weight: 750; letter-spacing: .025em; }
+.portal-main .sv-badge.ACTIVE { background: #e8f5ec; color: #246f3b; }
+.portal-main .sv-badge.DRAFT { background: #fff1dc; color: #8a5b11; }
+.portal-main .sv-badge.CLOSED { background: #edf1f3; color: #43545e; }
+.portal-main .sv-actions input[type=text], .portal-main .sv-actions select,
+.portal-main .sv-form input[type=text], .portal-main .sv-form input[type=datetime-local], .portal-main .sv-form textarea, .portal-main .sv-form select {
+  padding: .375rem .75rem; border: 1px solid #bdcbd2; border-radius: .35rem; background: #fff; color: var(--portal-text);
+}
+.portal-main .sv-form label { font-weight: 600; }
+.portal-main .sv-bar > span { background: var(--portal-accent); }
+
+/* Bản in báo cáo trong Admin Portal: bỏ sidebar, header, thông báo */
+@media print {
+  .portal-sidebar, .portal-header .btn, .portal-user, .portal-messages, .report-no-print { display: none !important; }
+  /* Trang thống kê khảo sát đã có tiêu đề in riêng (.sv-print-title) */
+  .portal-main:has(.sv-print-title) .portal-header { display: none !important; }
+  .portal-shell { display: block; }
+  .portal-main { padding: 0; }
+  body { background: #fff; }
+}

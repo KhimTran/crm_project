@@ -1,0 +1,97 @@
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{{ customer.customer_code }} – {{ customer.full_name }}{% endblock %}
+{% block page_title %}{{ customer.customer_code }} – {{ customer.full_name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">
+<link rel="stylesheet" href="{% static 'css/crm_feedbacks.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="crm-toolbar">
+  <a class="{% if in_admin_portal %}btn btn-outline-secondary btn-sm customer-back-link{% else %}crm-btn crm-btn-secondary crm-btn-sm{% endif %}" href="{% url 'customers:list' %}">{% if in_admin_portal %}&larr;{% else %}&laquo;{% endif %} {% t "Quay lại danh sách khách hàng" "Back to customers" %}</a>
+  {% if can_manage %}
+    <div class="crm-row-actions">
+      {% if customer.account.status == "ACTIVE" %}
+        <form method="post" action="{% url 'customers:lock' customer.customer_id %}">
+          {% csrf_token %}
+          <input type="hidden" name="from" value="detail">
+          <input type="text" name="reason" maxlength="255" placeholder="{% t 'Lý do khóa' 'Lock reason' %}" aria-label="{% t 'Lý do khóa' 'Lock reason' %}">
+          <button type="submit" class="crm-btn crm-btn-secondary">{% t "Khóa" "Lock" %}</button>
+        </form>
+      {% else %}
+        <form method="post" action="{% url 'customers:unlock' customer.customer_id %}">
+          {% csrf_token %}
+          <input type="hidden" name="from" value="detail">
+          <button type="submit" class="crm-btn crm-btn-secondary">{% t "Mở khóa" "Unlock" %}</button>
+        </form>
+      {% endif %}
+      <a class="crm-btn crm-btn-danger" href="{% url 'customers:delete' customer.customer_id %}">{% t "Xóa" "Delete" %}</a>
+    </div>
+  {% endif %}
+</div>
+
+<div class="crm-feedback-grid">
+  <section class="crm-card" aria-labelledby="cus-info">
+    <h2 id="cus-info">{% t "Thông tin khách hàng" "Customer Information" %}</h2>
+    <dl class="crm-dl">
+      <dt>{% t "Mã khách hàng" "Customer Code" %}</dt><dd>{{ customer.customer_code }}</dd>
+      <dt>{% t "Họ tên" "Full Name" %}</dt><dd>{{ customer.full_name }}</dd>
+      <dt>Email</dt><dd>{{ customer.account.email }}</dd>
+      <dt>{% t "Số điện thoại" "Phone" %}</dt><dd>{{ customer.phone|default:"–" }}</dd>
+      <dt>{% t "Ngày sinh" "Date of Birth" %}</dt><dd>{{ customer.date_of_birth|date:date_fmt|default:"–" }}</dd>
+      <dt>{% t "Giới tính" "Gender" %}</dt><dd>{% t customer.gender_label|default:"–" %}</dd>
+      <dt>{% t "Địa chỉ" "Address" %}</dt><dd>{{ customer.address|default:"–" }}</dd>
+      <dt>{% t "Trình độ" "Playing Level" %}</dt><dd>{% t customer.playing_level_label|default:"–" %}</dd>
+      <dt>{% t "Tài khoản" "Account" %}</dt>
+      <dd>{% if customer.account.status == "ACTIVE" %}<span class="crm-badge">{% t "Hoạt động" "ACTIVE" %}</span>{% else %}<span class="crm-badge locked">{% t "Đã khóa" "LOCKED" %}</span>{% endif %}</dd>
+      <dt>{% t "Đăng nhập gần nhất" "Last Login" %}</dt><dd>{% if customer.account.last_login %}{{ customer.account.last_login|date:datetime_fmt }}{% else %}{% t "Chưa đăng nhập" "Never" %}{% endif %}</dd>
+      <dt>{% t "Ngày tạo" "Created At" %}</dt><dd>{{ customer.created_at|date:datetime_fmt }}</dd>
+    </dl>
+  </section>
+
+  <section class="crm-card" aria-labelledby="cus-pref">
+    <h2 id="cus-pref">{% t "Sở thích" "Preferences" %}</h2>
+    {% if preferences %}
+      <dl class="crm-dl">
+        {% for type, values in preferences.items %}
+          <dt>{{ type }}</dt><dd>{{ values|join:", " }}</dd>
+        {% endfor %}
+      </dl>
+    {% else %}
+      <p>{% t "Khách hàng chưa khai báo sở thích." "This customer has not declared any preferences." %}</p>
+    {% endif %}
+    <h2>{% t "Tương tác" "Engagement" %}</h2>
+    <dl class="crm-dl">
+      <dt>{% t "Phản hồi đã gửi" "Feedback Sent" %}</dt><dd>{{ counts.feedbacks }}</dd>
+      <dt>{% t "Khảo sát được gửi" "Surveys Received" %}</dt><dd>{{ counts.surveys_sent }}</dd>
+      <dt>{% t "Khảo sát đã trả lời" "Surveys Answered" %}</dt><dd>{{ counts.surveys_answered }}</dd>
+    </dl>
+  </section>
+</div>
+
+<section class="crm-card crm-section" aria-labelledby="cus-feedbacks">
+  <h2 id="cus-feedbacks">{% t "Lịch sử phản hồi" "Feedback History" %}</h2>
+  <table class="crm-table">
+    <thead>
+      <tr><th>#</th><th>{% t "Ngày gửi" "Submitted At" %}</th><th>{% t "Sản phẩm" "Product" %}</th><th>{% t "Số sao" "Rating" %}</th><th>{% t "Nội dung" "Content" %}</th><th>{% t "Trạng thái" "Status" %}</th><th>{% t "Trả lời" "Reply" %}</th><th>{% t "Thao tác" "Actions" %}</th></tr>
+    </thead>
+    <tbody>
+      {% for f in feedbacks %}
+        <tr>
+          <td>{{ f.feedback_id }}</td>
+          <td>{{ f.created_at|date:datetime_fmt }}</td>
+          <td>{{ f.product.product_name }}</td>
+          <td><span class="crm-stars" aria-label="{{ f.rating }} {% t 'sao' 'stars' %}">{{ f.rating }}★</span></td>
+          <td>{{ f.content|truncatechars:80 }}</td>
+          <td><span class="crm-badge fb-{{ f.status|lower }}">{% t f.status_label %}</span></td>
+          <td>{{ f.manager_note|default:"–"|truncatechars:60 }}</td>
+          <td><a class="crm-btn crm-btn-secondary crm-btn-sm" href="{% url 'crm_feedbacks:detail' f.feedback_id %}">{% t "Xem / xử lý" "View / Handle" %}</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8">{% t "Khách hàng chưa gửi phản hồi nào." "This customer has not sent any feedback." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -10,6 +10,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 INSTALLED_APPS = [
+    'ninja',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -26,6 +27,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'apps.admin_portal.services.maintenance.DatabaseMaintenanceMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -47,6 +49,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.feedback.context_processors.crm_feedback_badge',
+                'apps.customers.context_processors.crm_layout',
             ],
         },
     },
@@ -82,7 +86,36 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-AUTH_USER_MODEL = 'accounts.TaiKhoan'
-LOGIN_URL = 'accounts:login'
+AUTH_USER_MODEL = 'accounts.Account'
+LOGIN_URL = 'customer_auth:login'
+
+# Console mail is for local development; configure SMTP for shared deployment.
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '25'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@example.test')
+PASSWORD_RESET_TIMEOUT = 3600
+
+# Operational audit stays outside the database being restored and is ignored by Git.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {'database_operation': {'format': '{asctime} {levelname} {name} {message}', 'style': '{'}},
+    'handlers': {
+        'database_operations': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'database' / 'backups' / 'operations.log',
+            'encoding': 'utf-8',
+            'delay': True,
+            'formatter': 'database_operation',
+        },
+    },
+    'loggers': {'apps.admin_portal': {'handlers': ['database_operations'], 'level': 'INFO', 'propagate': False}},
+}

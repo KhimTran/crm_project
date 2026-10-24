@@ -1,0 +1,47 @@
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{% t "Thêm khách hàng" "Create Customer" %}{% endblock %}
+{% block page_title %}{% t "Thêm khách hàng" "Create Customer" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
+
+{% block content %}
+<div id="customers-content">
+<div class="portal-section-intro">{% if in_admin_portal %}<a class="btn btn-outline-secondary btn-sm customer-back-link" href="{% url 'customers:list' %}">&larr; {% t "Về danh sách" "Back to list" %}</a>{% else %}<a href="{% url 'customers:list' %}">{% t "Về danh sách" "Back to list" %}</a>{% endif %}</div>
+<section class="{% if in_admin_portal %}portal-panel{% else %}crm-card{% endif %} customer-create-page">
+  <form method="post" action="{% url 'customers:create' %}" id="customer-create-form" novalidate
+        data-failure="{% t 'Chưa xác nhận được kết quả lưu. Vui lòng kiểm tra kết nối và thử lại; nếu email đã tồn tại, kiểm tra danh sách Customers.' 'Could not confirm the save. Check your connection and try again; if the email already exists, check Customers.' %}"
+        data-invalid="{% t 'Vui lòng kiểm tra các trường được đánh dấu bên dưới.' 'Please check the highlighted fields below.' %}"
+        data-forbidden="{% t 'Phiên đăng nhập đã hết hạn hoặc bạn không có quyền. Đăng nhập lại trước khi thử lại.' 'Your session has expired or access was denied. Sign in again before retrying.' %}">
+    {% csrf_token %}
+    <div class="{% if in_admin_portal %}alert alert-danger{% else %}crm-errorlist{% endif %}" id="customer-form-errors" role="alert" tabindex="-1" {% if not form.non_field_errors %}hidden{% endif %}>
+      {% for e in form.non_field_errors %}<p>{% t e %}</p>{% endfor %}
+    </div>
+    <p class="customer-required-note{% if in_admin_portal %} text-muted small{% endif %}">{% t "Các trường có dấu * là bắt buộc." "Fields marked * are required." %}</p>
+
+    <div class="customer-create-split">
+      <div class="customer-create-box">
+        <h2>{% t "Thông tin tài khoản" "Account Information" %}</h2>
+        {% include "customers/_customer_create_field.html" with field=form.full_name %}
+        {% include "customers/_customer_create_field.html" with field=form.email %}
+        {% include "customers/_customer_create_field.html" with field=form.password %}
+        {% include "customers/_customer_create_field.html" with field=form.phone %}
+      </div>
+      <div class="customer-create-box">
+        <h2>{% t "Thông tin cá nhân" "Personal Information" %}</h2>
+        {% include "customers/_customer_create_field.html" with field=form.date_of_birth %}
+        {% include "customers/_customer_create_field.html" with field=form.gender %}
+        {% include "customers/_customer_create_field.html" with field=form.address %}
+        {% include "customers/_customer_create_field.html" with field=form.playing_level %}
+      </div>
+    </div>
+
+    <div class="customer-create-actions">
+      <button type="submit" class="{% if in_admin_portal %}btn btn-primary{% else %}crm-btn{% endif %}" data-saving="{% t 'Đang lưu…' 'Saving…' %}">{% t "Lưu khách hàng" "Save Customer" %}</button>
+      <a class="{% if in_admin_portal %}btn btn-outline-secondary{% else %}crm-btn crm-btn-secondary{% endif %}" href="{% url 'customers:list' %}">{% t "Hủy" "Cancel" %}</a>
+      <span id="customer-save-status" role="status" aria-live="polite"></span>
+    </div>
+  </form>
+</section>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/customer_create.js' %}" defer></script>{% endblock %}

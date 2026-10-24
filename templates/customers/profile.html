@@ -1,0 +1,63 @@
+{% extends "layouts/base_customer.html" %}
+{% load static %}
+{% block title %}Hồ sơ cá nhân{% endblock %}
+{% block extra_js %}<script src="{% static 'js/favorite_brand.js' %}" defer></script>{% endblock %}
+{% block content %}
+<header class="customer-profile-header">
+  <div>
+    <p class="eyebrow">Tài khoản của bạn</p>
+    <h1>Hồ sơ cá nhân</h1>
+    <p>Cập nhật thông tin và lựa chọn cầu lông của bạn.</p>
+  </div>
+  <a class="shop-button shop-button-secondary" href="{% url 'customer_auth:password_change' %}">Đổi mật khẩu</a>
+</header>
+<section class="form-panel customer-profile-panel" aria-labelledby="profile-information-title">
+  <div class="profile-meta">
+    <span>Email tài khoản</span>
+    <strong>{{ request.user.email }}</strong>
+    <span>Không thể thay đổi.</span>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <section class="profile-section" aria-labelledby="profile-information-title">
+      <h2 id="profile-information-title">Thông tin cá nhân</h2>
+      {{ form.as_div }}
+    </section>
+    {{ preferences.non_field_errors }}
+    <fieldset class="preference-panel">
+      <legend>Danh mục bạn quan tâm</legend>
+      <p>Chọn những sản phẩm bạn muốn tìm hiểu. Bạn có thể chọn nhiều danh mục.</p>
+      {{ preferences.categories.errors }}
+      <div class="choice-grid">
+        {% for checkbox in preferences.categories %}
+          <label class="preference-choice">{{ checkbox.tag }}<span>{{ checkbox.choice_label }}</span></label>
+        {% empty %}<p>Hiện chưa có danh mục để chọn. Các sở thích đã lưu của bạn vẫn được giữ lại.</p>{% endfor %}
+      </div>
+    </fieldset>
+    {% if preferences.remove_preferences.field.choices %}
+      <fieldset class="preference-panel">
+        <legend>Sở thích đã lưu khác</legend>
+        <p>Những lựa chọn cũ này vẫn được giữ lại. Chỉ đánh dấu lựa chọn bạn muốn xóa.</p>
+        {{ preferences.remove_preferences.errors }}
+        <div class="choice-grid">
+          {% for checkbox in preferences.remove_preferences %}
+            <label class="preference-choice">{{ checkbox.tag }}<span>Xóa: {{ checkbox.choice_label }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% else %}{{ preferences.remove_preferences.errors }}{% endif %}
+    {% if other_preferences %}
+      <section class="preference-panel" aria-labelledby="other-preferences-title">
+        <h2 id="other-preferences-title">Lựa chọn khác đã lưu</h2>
+        <ul>{% for preference in other_preferences %}<li>{{ preference.preference_value }}</li>{% endfor %}</ul>
+        <p>Các lựa chọn này được giữ nguyên khi bạn lưu hồ sơ.</p>
+      </section>
+    {% endif %}
+    <div class="form-actions">
+      <button class="shop-button" type="submit">Save Changes</button>
+      <a class="shop-button shop-button-secondary" href="{% url 'customers:profile' %}">Cancel</a>
+      <a href="{% url 'shop:products' %}">Tiếp tục xem sản phẩm</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

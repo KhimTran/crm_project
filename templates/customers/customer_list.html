@@ -1,0 +1,9 @@
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{% t "Khách hàng" "Customers" %}{% endblock %}
+{% block page_title %}{% t "Khách hàng" "Customers" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
+
+{% block content %}
+<div id="customers-content">{% include "customers/_customer_list.html" %}</div>
+{% endblock %}

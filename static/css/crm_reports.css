@@ -1,0 +1,92 @@
+.report-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.report-tile { display: grid; gap: .2rem; padding: 1rem 1.25rem; background: #fff; border: 1px solid #d8e0eb; border-radius: .5rem; }
+.report-tile span, .report-tile small { color: #536984; font-size: .875rem; }
+.report-tile strong { font-size: 1.75rem; color: #18304e; }
+.report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.report-section { display: grid; gap: .75rem; align-content: start; break-inside: avoid; page-break-inside: avoid; }
+.report-wide { grid-column: 1 / -1; }
+.report-chart { position: relative; height: 260px; }
+.report-section .crm-table td:last-child, .report-section .crm-table th:last-child { text-align: right; }
+.report-grid + .report-grid { margin-top: 1rem; }
+.report-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.report-note { margin: 0; color: #536984; font-size: .875rem; }
+.report-scroll { overflow-x: auto; }
+.report-comments td { vertical-align: top; }
+.report-section .report-comments td:last-child, .report-section .report-comments th:last-child { text-align: left; }
+.report-comments .crm-badge { margin: 0 .2rem .2rem 0; }
+.report-comments summary { cursor: pointer; }
+.crm-badge.report-tag-neutral { background: #eef1f5; color: #3d4c5e; }
+.crm-badge.report-tag-note { background: #fdf0d5; color: #7a4d00; }
+.crm-badge.report-tag-topic { background: #e1ecfa; color: #1d4a80; }
+@media (max-width: 1200px) { .report-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .report-grid, .report-grid-3 { grid-template-columns: minmax(0, 1fr); } }
+
+/* tv4: 4.1.5 bản in: bỏ menu, nút, khung; giữ biểu đồ + bảng */
+@media print {
+  .crm-sidebar, .crm-skip-link, .crm-messages, .report-no-print { display: none !important; }
+  .crm-shell { display: block; }
+  .crm-header, .crm-main { padding: 0; }
+  body { background: #fff; }
+  .crm-card, .report-tile { border-color: #999; }
+  .report-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-chart { height: 220px; }
+}
+
+/* tv4: card Favorite Badminton Brands - Pie Chart + legend (bảng) cạnh nhau, xếp dọc trên màn hình nhỏ */
+.brand-report { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 1.5rem; align-items: center; }
+.brand-chart { height: 280px; }
+.brand-legend { display: grid; gap: .5rem; }
+.brand-legend tfoot th { border-top: 2px solid #d8e0eb; }
+.brand-swatch { display: inline-block; width: .75rem; height: .75rem; margin-right: .5rem; border-radius: 2px; background: #999; vertical-align: baseline; }
+.report-state { margin: 0; padding: 1rem; border: 1px dashed #c3cedd; border-radius: .5rem; color: #536984; text-align: center; background: #f7f9fc; }
+.brand-chart .report-state { position: absolute; inset: 0; display: grid; place-items: center; }
+.report-state-error { color: #8a1f1f; border-color: #e0a8a8; background: #fdf3f3; }
+@media (max-width: 900px) { .brand-report { grid-template-columns: minmax(0, 1fr); } .brand-chart { height: 240px; } }
+.brand-chart [hidden], .brand-chart canvas[hidden] { display: none; }
+
+/* tv4: Customer Report dùng cùng ngôn ngữ giao diện với trang Thống kê khảo sát (surveys/manage_detail): KPI, panel, biểu đồ bo góc */
+.rp-toolbar { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.rp-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; margin-bottom: 1.25rem; }
+.rp-kpi { background: #fff; border: 1px solid #dbe3e8; border-radius: .75rem; padding: .9rem 1.1rem; }
+.rp-kpi span { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #637680; }
+.rp-kpi b { display: block; margin-top: .15rem; font-size: 1.6rem; line-height: 1.2; color: #263640; }
+.rp-kpi small { display: block; margin-top: .2rem; font-size: .82rem; color: #637680; }
+.rp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.rp-panel { background: #fff; border: 1px solid #dbe3e8; border-radius: .65rem; padding: 1.25rem; margin: 0; min-width: 0; break-inside: avoid; page-break-inside: avoid; }
+.rp-panel h2 { margin: 0 0 .75rem; font-size: 1.02rem; font-weight: 650; color: #263640; }
+.rp-wide { grid-column: 1 / -1; }
+.rp-chart-box { position: relative; width: 100%; height: 260px; margin-top: .25rem; padding-bottom: 1rem; border-bottom: 1px solid #edf1f3; box-sizing: content-box; }
+.rp-chart-box.is-doughnut { max-width: 420px; height: 280px; margin: .25rem auto 0; }
+.rp-table { width: 100%; margin-top: 1rem; border: 1px solid #edf1f3; border-radius: .6rem; font-size: .88rem; }
+.rp-table th { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #637680; }
+.rp-foot { margin: .85rem 0 0; font-size: .82rem; color: #637680; }
+.rp-empty { margin: 0; font-size: .88rem; color: #637680; }
+.brand-report .rp-table { margin-top: 0; }
+.brand-report .rp-chart-box { border-bottom: 0; padding-bottom: 0; }
+@media (max-width: 992px) { .rp-grid { grid-template-columns: minmax(0, 1fr); } }
+@media print { .rp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rp-kpi, .rp-panel { break-inside: avoid; page-break-inside: avoid; } }
+
+/* tv4: bản gọn - 3 biểu đồ nhỏ cùng một hàng, bảng số liệu thu gọn, khoảng cách nhỏ hơn */
+.rp-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6rem; margin-bottom: 1rem; }
+.rp-kpi { padding: .65rem .85rem; }
+.rp-kpi b { font-size: 1.35rem; }
+.rp-kpi small { font-size: .76rem; }
+.rp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.rp-panel { padding: .9rem 1rem; }
+.rp-panel h2 { margin-bottom: .5rem; font-size: .95rem; }
+.rp-chart-box { height: 210px; padding-bottom: 0; border-bottom: 0; }
+.rp-chart-box.is-doughnut { height: 210px; max-width: none; }
+.rp-wide .rp-chart-box { height: 230px; }
+.rp-more { margin-top: .6rem; }
+.rp-more > summary { display: inline-block; cursor: pointer; padding: .15rem .6rem; border: 1px solid #dbe3e8; border-radius: .4rem; font-size: .78rem; color: #4a5b64; background: #fff; list-style: none; }
+.rp-more > summary::-webkit-details-marker { display: none; }
+.rp-more > summary:hover { background: #f1f7f9; }
+.rp-more[open] > summary { margin-bottom: .5rem; }
+.rp-table { margin-top: 0; }
+.rp-table td, .rp-table th { padding: .4rem .7rem; }
+.rp-foot { margin-top: .5rem; font-size: .78rem; }
+.brand-chart { height: 230px !important; }
+@media (max-width: 1200px) { .rp-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .rp-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rp-grid { grid-template-columns: minmax(0, 1fr); } }
+.brand-legend tbody tr.brand-off td { text-decoration: line-through; color: #8a99a1; }
+.brand-legend tbody tr:hover { background: #f1f7f9; }
