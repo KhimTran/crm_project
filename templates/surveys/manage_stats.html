@@ -1,10 +1,11 @@
 {% extends crm_layout %}
 {% load static l10n portal_text %}
-{% block title %}{% t "Thống kê" "Statistics" %} — {{ survey.title }}{% endblock %}
-{% block page_title %}{% t "Thống kê" "Statistics" %} — {{ survey.title }}{% endblock %}
+{% block title %}{% t "Thống kê" "Statistics" %} — {{ survey.title|tr }}{% endblock %}
+{% block header_tools %}{% lang_switch %}{% endblock %}
+{% block page_title %}{% t "Thống kê" "Statistics" %} — {{ survey.title|tr }}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 {% block content %}
-<h1 class="sv-print-title">{% t "Thống kê" "Statistics" %} — {{ survey.title }}</h1>
+<h1 class="sv-print-title">{% t "Thống kê" "Statistics" %} — {{ survey.title|tr }}</h1>
 <div class="sv-toolbar sv-noprint">
   <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_detail' survey.survey_id %}">← {% t "Quay lại" "Back" %}</a>
   <button class="sv-btn" onclick="window.print()">{% t "In báo cáo" "Print Report" %}</button>
@@ -18,7 +19,7 @@
 {% for item in stats.items %}
 {% ifchanged item.section %}{% if item.section %}<h2>{{ item.section }}</h2>{% endif %}{% endifchanged %}
 <div class="sv-card">
-  <h3>{% t "Câu" "Question" %} {{ forloop.counter }}. {{ item.question.question_text }}
+  <h3>{% t "Câu" "Question" %} {{ forloop.counter }}. {{ item.question.question_text|tr }}
     <span class="sv-help">({{ item.respondents }} {% t "người trả lời" "respondent(s)" %})</span></h3>
   {% include "surveys/_stats_content.html" %}
 </div>

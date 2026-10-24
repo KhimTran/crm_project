@@ -1,7 +1,8 @@
 {% extends crm_layout %}
-{% load static %}
-{% block title %}{{ survey.title }}{% endblock %}
-{% block page_title %}Survey Details{% endblock %}
+{% load static portal_text %}
+{% block title %}{{ survey.title|tr }}{% endblock %}
+{% block header_tools %}{% lang_switch %}{% endblock %}
+{% block page_title %}{% t "Chi tiết khảo sát" "Survey Details" %}{% endblock %}
 {% block extra_css %}
 <style>
   .sv-hero { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem 2rem; align-items: flex-start; }
@@ -63,21 +64,21 @@
 {% block content %}
 
 <div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
-  <a class="btn btn-outline-secondary btn-sm customer-back-link" href="{% url 'surveys:manage_list' %}">&larr; Back to Surveys</a>
+  <a class="btn btn-outline-secondary btn-sm customer-back-link" href="{% url 'surveys:manage_list' %}">&larr; {% t "Quay lại khảo sát" "Back to Surveys" %}</a>
   <div class="d-flex gap-2 flex-wrap align-items-center sv-no-print">
-    <button type="button" class="btn btn-outline-secondary" id="survey-print">Print</button>
-    {% if survey.status != 'CLOSED' %}<a class="btn btn-primary" href="{% url 'surveys:manage_send' survey.survey_id %}">Send Survey</a>{% endif %}
+    <button type="button" class="btn btn-outline-secondary" id="survey-print">{% t "In" "Print" %}</button>
+    {% if survey.status != 'CLOSED' %}<a class="btn btn-primary" href="{% url 'surveys:manage_send' survey.survey_id %}">{% t "Gửi khảo sát" "Send Survey" %}</a>{% endif %}
     <form method="post" action="{% url 'surveys:manage_clone' survey.survey_id %}">{% csrf_token %}
-      <button class="btn btn-outline-secondary" type="submit">Duplicate</button></form>
+      <button class="btn btn-outline-secondary" type="submit">{% t "Nhân bản" "Duplicate" %}</button></form>
     {% if survey.status == 'ACTIVE' %}
     <form method="post" action="{% url 'surveys:manage_close' survey.survey_id %}"
-          onsubmit="return confirm('Close this survey? Customers will no longer be able to answer it.')">{% csrf_token %}
-      <button class="btn btn-outline-danger" type="submit">Close Survey</button></form>
+          onsubmit="return confirm('{% t "Đóng khảo sát này? Khách hàng sẽ không thể trả lời nữa." "Close this survey? Customers will no longer be able to answer it." %}')">{% csrf_token %}
+      <button class="btn btn-outline-danger" type="submit">{% t "Đóng khảo sát" "Close Survey" %}</button></form>
     {% endif %}
     {% if is_draft and not sent %}
     <form method="post" action="{% url 'surveys:manage_delete' survey.survey_id %}"
-          onsubmit="return confirm('Delete this survey?')">{% csrf_token %}
-      <button class="btn btn-outline-danger" type="submit">Delete</button></form>
+          onsubmit="return confirm('{% t "Xóa khảo sát này?" "Delete this survey?" %}')">{% csrf_token %}
+      <button class="btn btn-outline-danger" type="submit">{% t "Xóa" "Delete" %}</button></form>
     {% endif %}
   </div>
 </div>
@@ -86,28 +87,28 @@
   <div class="sv-hero">
     <div>
       <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-        {% if survey.status == 'ACTIVE' %}<span class="portal-badge status-active">Published</span>
-        {% elif survey.status == 'CLOSED' %}<span class="portal-badge status-locked">Closed</span>
-        {% else %}<span class="portal-badge role-customer">Draft</span>{% endif %}
-        {% if fixed_questionnaire %}<span class="portal-badge role-admin">8-question questionnaire · v1</span>{% endif %}
+        {% if survey.status == 'ACTIVE' %}<span class="portal-badge status-active">{% t "Đang phát hành" "Published" %}</span>
+        {% elif survey.status == 'CLOSED' %}<span class="portal-badge status-locked">{% t "Đã đóng" "Closed" %}</span>
+        {% else %}<span class="portal-badge role-customer">{% t "Nháp" "Draft" %}</span>{% endif %}
+        {% if fixed_questionnaire %}<span class="portal-badge role-admin">{% t "Bộ 8 câu hỏi · v1" "8-question questionnaire · v1" %}</span>{% endif %}
       </div>
-      <h2>{{ survey.title }}</h2>
-      {% if survey.description %}<p>{{ survey.description|linebreaksbr }}</p>{% endif %}
+      <h2>{{ survey.title|tr }}</h2>
+      {% if survey.description %}<p>{{ survey.description|tr|linebreaksbr }}</p>{% endif %}
     </div>
     <div class="sv-meta">
-      <div><span>Starts</span><b>{{ survey.start_at|date:"d M Y"|default:"—" }}</b></div>
-      <div><span>Ends</span><b>{{ survey.end_at|date:"d M Y"|default:"—" }}</b></div>
-      <div><span>Questions</span><b>{{ stats.items|length }}</b></div>
+      <div><span>{% t "Bắt đầu" "Starts" %}</span><b>{{ survey.start_at|date:"d M Y"|default:"—" }}</b></div>
+      <div><span>{% t "Kết thúc" "Ends" %}</span><b>{{ survey.end_at|date:"d M Y"|default:"—" }}</b></div>
+      <div><span>{% t "Câu hỏi" "Questions" %}</span><b>{{ stats.items|length }}</b></div>
     </div>
   </div>
 </section>
 
 <div class="sv-kpis">
-  <div class="sv-kpi"><span>Sent</span><b>{{ stats.sent }}</b></div>
-  <div class="sv-kpi"><span>Completed</span><b>{{ stats.done }}<small> / {{ stats.sent }}</small></b></div>
-  <div class="sv-kpi"><span>Pending</span><b>{{ stats.pending }}</b></div>
+  <div class="sv-kpi"><span>{% t "Đã gửi" "Sent" %}</span><b>{{ stats.sent }}</b></div>
+  <div class="sv-kpi"><span>{% t "Đã hoàn thành" "Completed" %}</span><b>{{ stats.done }}<small> / {{ stats.sent }}</small></b></div>
+  <div class="sv-kpi"><span>{% t "Chờ trả lời" "Pending" %}</span><b>{{ stats.pending }}</b></div>
   <div class="sv-kpi">
-    <span>Response rate</span>
+    <span>{% t "Tỷ lệ phản hồi" "Response rate" %}</span>
     <b>{% if stats.rate is not None %}{{ stats.rate }}%{% else %}—{% endif %}</b>
     {% if stats.rate is not None %}<div class="sv-progress"><i style="width:{{ stats.rate|floatformat:0 }}%"></i></div>{% endif %}
   </div>
@@ -121,44 +122,44 @@
     <div class="sv-q">
       <span class="sv-q-num">{{ forloop.counter }}</span>
       <div class="sv-q-body">
-        <p class="sv-q-text">{{ item.question_text }}{% if q.is_required %} <span class="text-danger" title="Required">*</span>{% endif %}</p>
+        <p class="sv-q-text">{{ item.question_text }}{% if q.is_required %} <span class="text-danger" title="{% t "Bắt buộc" "Required" %}">*</span>{% endif %}</p>
         <div class="sv-q-tags">
           <span class="portal-badge role-admin">
-            {% if q.question_type == 'SINGLE_CHOICE' %}Single choice
-            {% elif q.question_type == 'MULTI_CHOICE' %}Multiple choice
-            {% elif q.question_type == 'RATING' %}Rating
-            {% elif q.question_type == 'MATRIX' %}Matrix
-            {% elif q.question_type == 'TEXT' %}Free text
+            {% if q.question_type == 'SINGLE_CHOICE' %}{% t "Một lựa chọn" "Single choice" %}
+            {% elif q.question_type == 'MULTI_CHOICE' %}{% t "Nhiều lựa chọn" "Multiple choice" %}
+            {% elif q.question_type == 'RATING' %}{% t "Thang điểm" "Rating" %}
+            {% elif q.question_type == 'MATRIX' %}{% t "Ma trận" "Matrix" %}
+            {% elif q.question_type == 'TEXT' %}{% t "Trả lời tự do" "Free text" %}
             {% else %}{{ q.question_type }}{% endif %}</span>
-          {% if q.is_required %}<span class="portal-badge status-locked">Required</span>{% endif %}
+          {% if q.is_required %}<span class="portal-badge status-locked">{% t "Bắt buộc" "Required" %}</span>{% endif %}
         </div>
 
         {# tv4: answer chart sits right under each question #}
         <div class="sv-chart">
           {% if item.no_data %}
-            <p class="sv-empty">No responses yet.</p>
+            <p class="sv-empty">{% t "Chưa có câu trả lời." "No responses yet." %}</p>
           {% elif q.question_type == 'TEXT' %}
             <ul class="sv-texts">{% for a in item.texts %}
               <li>{{ a.answer_text|linebreaksbr }}<small>{{ a.response.recipient.customer.full_name }}</small></li>{% endfor %}</ul>
           {% else %}
-            {% if item.avg is not None %}<div class="sv-avg">Average score <b>{{ item.avg }}</b> / {{ item.scale_max }}</div>{% endif %}
+            {% if item.avg is not None %}<div class="sv-avg">{% t "Điểm trung bình" "Average score" %} <b>{{ item.avg }}</b> / {{ item.scale_max }}</div>{% endif %}
             <div class="sv-chart-box {% if q.question_type == 'SINGLE_CHOICE' %}is-doughnut{% endif %}">
               <canvas data-qid="{{ q.question_id }}" role="img" aria-label="{{ item.question_text }}"></canvas>
             </div>
-            {% if q.question_type == 'MATRIX' %}<p class="sv-foot">Average score per criterion (1–5 scale).</p>{% endif %}
+            {% if q.question_type == 'MATRIX' %}<p class="sv-foot">{% t "Điểm trung bình theo tiêu chí (thang 1–5)." "Average score per criterion (1–5 scale)." %}</p>{% endif %}
             {% if item.other_texts %}
-              <details class="sv-more mt-2"><summary>“Other” answers ({{ item.other_texts|length }})</summary>
+              <details class="sv-more mt-2"><summary>{% t "Câu trả lời “Khác”" "“Other” answers" %} ({{ item.other_texts|length }})</summary>
                 <ul class="sv-texts mt-2">{% for a in item.other_texts %}<li>{{ a.answer_text|linebreaksbr }}<small>{{ a.response.recipient.customer.full_name }}</small></li>{% endfor %}</ul></details>
             {% endif %}
           {% endif %}
-          {% if not item.no_data %}<p class="sv-foot">Respondents: <b>{{ item.respondents }}</b> · Unanswered: <b>{{ item.unanswered }}</b></p>{% endif %}
+          {% if not item.no_data %}<p class="sv-foot">{% t "Đã trả lời" "Respondents" %}: <b>{{ item.respondents }}</b> · {% t "Bỏ qua" "Unanswered" %}: <b>{{ item.unanswered }}</b></p>{% endif %}
         </div>
       </div>
     </div>
   </section>
   {% endwith %}
 {% empty %}
-  <section class="portal-panel portal-empty sv-wide"><p class="mb-0">This survey has no questions yet.</p></section>
+  <section class="portal-panel portal-empty sv-wide"><p class="mb-0">{% t "Khảo sát này chưa có câu hỏi." "This survey has no questions yet." %}</p></section>
 {% endfor %}
 </div>
 

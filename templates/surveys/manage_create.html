@@ -1,6 +1,7 @@
 {% extends crm_layout %}
 {% load static portal_text %}
 {% block title %}{{ heading }}{% endblock %}
+{% block header_tools %}{% lang_switch %}{% endblock %}
 {% block page_title %}{{ heading }}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 {% block content %}
@@ -11,7 +12,7 @@
 </div>
 <nav class="sv-cb-crumb" aria-label="Breadcrumb">
   <a href="{% url 'surveys:manage_list' %}">{% t "Khảo sát" "Surveys" %}</a><span aria-hidden="true">›</span>
-  {% if survey %}<a href="{% url 'surveys:manage_detail' survey.survey_id %}">{{ survey.title }}</a><span aria-hidden="true">›</span>{% endif %}
+  {% if survey %}<a href="{% url 'surveys:manage_detail' survey.survey_id %}">{{ survey.title|tr }}</a><span aria-hidden="true">›</span>{% endif %}
   <span aria-current="page">{{ heading }}</span>
 </nav>
 <p class="sv-cb-intro">{% t "Thiết lập thông tin khảo sát, thêm câu hỏi và chọn đối tượng nhận khảo sát." "Set up the survey details, add questions and choose who receives it." %}</p>

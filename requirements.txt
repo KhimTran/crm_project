@@ -6,3 +6,4 @@ python-dotenv==1.2.3
 sqlparse==0.6.0
 tzdata==2026.4
 django-ninja==1.7.1
+deep-translator==1.11.4

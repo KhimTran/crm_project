@@ -1,7 +1,8 @@
 {% extends crm_layout %}
 {% load static portal_text %}
-{% block title %}{% t "Gửi khảo sát" "Send Survey" %} — {{ survey.title }}{% endblock %}
-{% block page_title %}{% t "Gửi khảo sát" "Send Survey" %} — {{ survey.title }}{% endblock %}
+{% block title %}{% t "Gửi khảo sát" "Send Survey" %} — {{ survey.title|tr }}{% endblock %}
+{% block header_tools %}{% lang_switch %}{% endblock %}
+{% block page_title %}{% t "Gửi khảo sát" "Send Survey" %} — {{ survey.title|tr }}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">{% endblock %}
 {% block content %}
 {% if errors %}<div class="sv-card"><strong class="sv-error">{% t "Chưa thể gửi:" "Cannot send yet:" %}</strong>
@@ -20,8 +21,7 @@
     <p><label>{{ form.customer_ids.label }}</label>{{ form.customer_ids }}{% if not form.customer_ids.field.choices %}<span class="sv-help">{% t "Chưa có dữ liệu." "No data yet." %}</span>{% endif %}</p>
     <p class="sv-help">{% t "Chỉ liệt kê khách hàng chưa bị xóa và tài khoản không bị khóa." "Only customers that are not deleted and not locked are listed." %}</p>
   </div>
-  {% if preview is not None %}{% if in_admin_portal %}<p class="sv-card"><b>{{ preview }}</b> matching customer(s). Customers who already received this survey will be skipped.</p>
-  {% else %}<p class="sv-card">Có <b>{{ preview }}</b> khách hàng phù hợp. Khách đã nhận trước đó sẽ được bỏ qua.</p>{% endif %}{% endif %}
+  {% if preview is not None %}<p class="sv-card"><b>{{ preview }}</b> {% t "khách hàng phù hợp. Khách đã nhận trước đó sẽ được bỏ qua." "matching customer(s). Customers who already received this survey will be skipped." %}</p>{% endif %}
   <button class="sv-btn sv-ghost" name="action" value="preview">{% t "Xem số người nhận" "Preview Recipients" %}</button>
   <button class="sv-btn" name="action" value="send" {% if errors %}disabled{% endif %}
           onclick="return confirm('{% t "Gửi khảo sát đến các khách hàng đã chọn?" "Send the survey to the selected customers?" %}')">{% t "Gửi ngay" "Send Now" %}</button>

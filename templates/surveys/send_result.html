@@ -1,8 +1,9 @@
 {% extends crm_layout %}
 {% load portal_text %}
 {% block title %}{% t "Gửi khảo sát" "Send Survey" %}{% endblock %}
+{% block header_tools %}{% lang_switch %}{% endblock %}
 {% block page_title %}{% t "Gửi khảo sát" "Send Survey" %}{% endblock %}
 {% block content %}
-<h2>{{ survey.title }}</h2>
+<h2>{{ survey.title|tr }}</h2>
 <p><a href="{% url 'surveys:manage_detail' survey.survey_id %}">{% t "Xem khảo sát" "View survey" %}</a></p>
 {% endblock %}

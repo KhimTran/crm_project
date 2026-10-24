@@ -1,6 +1,7 @@
 {% extends crm_layout %}
 {% load portal_text %}
 {% block title %}{% t "Khảo sát" "Surveys" %}{% endblock %}
+{% block header_tools %}{% lang_switch %}{% endblock %}
 {% block page_title %}{% t "Khảo sát" "Surveys" %}{% endblock %}
 {% block content %}
 
@@ -52,8 +53,8 @@
         {% for item in items %}
         <tr>
           <td>{{ item.survey_id }}</td>
-          <td>{{ item.title }}</td>
-          <td class="portal-description" {% if item.description %}title="{{ item.description }}"{% endif %}>{{ item.description|truncatechars:80|default:'—' }}</td>
+          <td>{{ item.title|tr }}</td>
+          <td class="portal-description" {% if item.description %}title="{{ item.description|tr }}"{% endif %}>{{ item.description|tr|truncatechars:80|default:'—' }}</td>
           <td>
             {% if item.status == 'ACTIVE' %}<span class="portal-badge status-active">{% t "Đã phát hành" "Published" %}</span>
             {% elif item.status == 'CLOSED' %}<span class="portal-badge status-locked">{% t "Đã đóng" "Closed" %}</span>

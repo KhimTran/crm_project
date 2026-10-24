@@ -1,6 +1,7 @@
 {% extends crm_layout %}
 {% load static portal_text %}
 {% block title %}{% t "Phản hồi" "Feedback" %} #{{ feedback.feedback_id }}{% endblock %}
+{% block header_tools %}{% lang_switch %}{% endblock %}
 {% block page_title %}{% t "Phản hồi" "Feedback" %} #{{ feedback.feedback_id }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">
@@ -18,7 +19,7 @@
       <span class="crm-badge fb-{{ feedback.status|lower }}">{% t feedback.status_label %}</span>
       <span class="crm-fb-date">{{ feedback.created_at|date:datetime_fmt }}</span>
     </div>
-    <blockquote class="crm-quote">{{ feedback.content|linebreaksbr }}</blockquote>
+    {% with translated=feedback.content|tr %}<blockquote class="crm-quote">{{ translated|linebreaksbr }}{% if translated != feedback.content %}<small class="crm-quote-original">{% t "Bản gốc" "Original" %}: {{ feedback.content|linebreaksbr }}</small>{% endif %}</blockquote>{% endwith %}
     <dl class="crm-dl">
       <dt>{% t "Khách hàng" "Customer" %}</dt>
       <dd>

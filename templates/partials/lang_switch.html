@@ -1,0 +1,20 @@
+{% comment %}tv4: nút đổi ngôn ngữ EN | VI cho Admin/Manager ở phần Khảo sát và Phản hồi. Mỗi ngôn ngữ một form với ô ẩn "lang":
+admin_portal.js khóa nút submit đầu tiên của form khi gửi nên không dùng name/value trên nút.{% endcomment %}
+<div class="lang-switch" role="group" aria-label="Language">
+  {% for code, label in langs %}
+  <form method="post" action="{% url 'customers:portal_language' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="hidden" name="lang" value="{{ code }}">
+    <button type="submit" class="{% if current == code %}is-active{% endif %}" {% if current == code %}aria-pressed="true"{% endif %}>{{ label }}</button>
+  </form>
+  {% endfor %}
+</div>
+<style>
+  .lang-switch { flex: none; display: inline-flex; border: 1px solid #c4d0d6; border-radius: .4rem; overflow: hidden; }
+  .lang-switch form { margin: 0; }
+  .lang-switch form + form button { border-left: 1px solid #c4d0d6; }
+  .lang-switch button { border: 0; background: #fff; padding: .2rem .6rem; font-size: .78rem; font-weight: 700; letter-spacing: .04em; color: #4a5b64; cursor: pointer; }
+  .lang-switch button:hover { background: #f1f7f9; }
+  .lang-switch button.is-active { background: #176b86; color: #fff; }
+</style>

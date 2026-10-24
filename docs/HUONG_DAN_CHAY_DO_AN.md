@@ -24,6 +24,8 @@ cd D:\DoAn_HTTTDN\crm_project
 Đầu dòng lệnh hiện `(venv)` là thành công.
 - Lỗi "running scripts is disabled": chạy `Set-ExecutionPolicy -Scope Process Bypass` rồi bật lại.
 - Nếu `venv` hỏng: `python -m venv venv`, bật lại, rồi `pip install -r requirements.txt`.
+- Mỗi lần kéo code mới về, chạy lại `pip install -r requirements.txt` để cài thư viện mới (ví dụ `deep-translator` cho chức năng dịch ở mục E).
+- Dùng **cmd** thay PowerShell thì lệnh bật là `venv\Scripts\activate`. Không bật venv mà gõ `python manage.py ...` sẽ báo `No module named 'django'`.
 
 ### 3. Tạo database trống (nếu chưa có `crm_db`)
 ```powershell
@@ -121,3 +123,57 @@ Các trang `/crm/...` dành cho Admin, Quản lý (`MANAGER`) hoặc nhóm `CRM_
 | `CommandError: Run seed_data first` | Chạy `seed_data` trước `seed_surveys`. |
 | `backup.bat` báo "not a valid application" trong PowerShell | Thử chạy bằng `cmd /c scripts\backup.bat`, hoặc dùng chức năng sao lưu trong trang Admin. |
 | `IndentationError: unexpected indent` trong shell | Dòng lệnh bị thụt đầu dòng → gõ lại sát mép trái. |
+| `No module named 'deep_translator'` | Chưa cài thư viện dịch → bật venv rồi `pip install -r requirements.txt`. |
+
+## E. Chức năng dịch song ngữ (Khảo sát và Phản hồi)
+
+### Chức năng làm gì
+- Manager nhập khảo sát bằng **tiếng Việt**. Khách hàng luôn thấy tiếng Việt.
+- Ở trang Khảo sát và Phản hồi của Admin/Manager có nút **EN | VI** góc trên bên phải (cạnh email). Bấm để đổi ngôn ngữ cả giao diện lẫn nội dung: tiêu đề, mô tả, câu hỏi, lựa chọn khảo sát và nội dung phản hồi của khách.
+- Mặc định là **EN**. Lựa chọn được nhớ trong phiên đăng nhập. Các trang khác của Manager (Products, Customers…) vẫn tiếng Anh, không có nút này.
+- Ở chế độ EN, trang chi tiết phản hồi hiện bản dịch, bên dưới có dòng nhỏ "Original: …" là bản gốc tiếng Việt.
+
+### Cách hoạt động
+- Bản dịch nằm trong file `apps/surveys/translations_en.json`, dạng `"câu tiếng Việt": "English"`. Khi xem trang, hệ thống chỉ đọc file này, **không gọi mạng**, nên demo vẫn chạy khi mất internet.
+- Bản dịch được tạo tự động bằng thư viện `deep-translator` (thử Google trước, lỗi thì chuyển sang MyMemory):
+  - khi Manager **lưu / phát hành** khảo sát (trang tạo hoặc sửa khảo sát);
+  - khi khách **gửi phản hồi** (dịch ở nền, khách không phải chờ).
+- Câu nào chưa có bản dịch thì hiện nguyên tiếng Việt, kể cả ở chế độ EN.
+
+### Bật / tắt
+Trong `config/settings.py`:
+```python
+CONTENT_AUTO_TRANSLATE = True   # False = không tự dịch khi lưu (nút EN/VI vẫn dùng bản dịch đã có)
+```
+Khi chạy test, `config/test_settings.py` đã đặt sẵn `False` để test không gọi mạng.
+
+### Dịch bù dữ liệu đã có
+Bật venv rồi chạy (cần internet):
+```powershell
+python manage.py translate_surveys      # tiêu đề, mô tả, câu hỏi, lựa chọn của mọi khảo sát
+python manage.py translate_feedbacks    # nội dung mọi phản hồi của khách
+```
+- Câu đã có bản dịch sẽ được bỏ qua. Thêm `--force` để dịch lại tất cả, nhưng lệnh này **ghi đè cả bản bạn đã sửa tay**.
+- Cuối lệnh có dòng `Done: N translation(s)` cho biết số câu dịch mới.
+- Dòng `GoogleTranslator failed: TooManyRequests` chỉ là cảnh báo: Google đang chặn mạng của bạn, lệnh tự chuyển sang MyMemory. Mỗi câu mất khoảng 1 giây, mỗi lần gọi chờ tối đa 10 giây.
+
+### Sửa bản dịch bằng tay
+Máy dịch có thể dịch sai từ chuyên ngành. Mở `apps/surveys/translations_en.json`, sửa phần tiếng Anh rồi lưu file. Không cần khởi động lại server, chỉ cần tải lại trang. Một số tiếng lóng đã được đổi sẵn trước khi dịch: "căng cước" và "đan vợt" thành "căng dây", "lông thủ" thành "người chơi cầu lông". Muốn thêm thì sửa `GLOSSARY` trong `apps/surveys/translator.py`.
+
+Nhớ **commit** file `translations_en.json` để máy demo có sẵn bản dịch, không phải dịch lại.
+
+### Thử nhanh
+1. Đăng nhập Manager ở `/manager/login/`, vào **Surveys**.
+2. Tạo khảo sát mới bằng tiếng Việt rồi bấm lưu, hoặc mở khảo sát có sẵn, bấm **Edit** rồi lưu lại.
+3. Bấm **EN**: nội dung hiện tiếng Anh. Bấm **VI**: về tiếng Việt.
+4. Làm tương tự ở **Feedback** (chạy `translate_feedbacks` trước nếu phản hồi cũ chưa có bản dịch).
+5. Đăng nhập bằng tài khoản khách: khảo sát và phản hồi vẫn là tiếng Việt.
+
+### Lỗi thường gặp khi dịch
+
+| Hiện tượng | Cách xử lý |
+|---|---|
+| Bấm EN mà nội dung vẫn tiếng Việt | Câu đó chưa có bản dịch → chạy `translate_surveys` / `translate_feedbacks`, hoặc thêm tay vào `translations_en.json`. |
+| `Done: 0 translation(s)` nhưng vẫn có câu chưa dịch | Cả Google và MyMemory đều không dùng được từ mạng hiện tại → thử lại sau, đổi mạng (ví dụ wifi điện thoại), hoặc sửa tay file JSON. |
+| Lưu khảo sát chậm vài giây | Bình thường: hệ thống đang dịch các câu mới. Muốn lưu nhanh khi demo không có mạng thì đặt `CONTENT_AUTO_TRANSLATE = False`. |
+| Bản dịch sai nghĩa | Sửa tay trong `translations_en.json` (xem mục "Sửa bản dịch bằng tay"). |

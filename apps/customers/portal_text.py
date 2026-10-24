@@ -6,12 +6,19 @@ trong translation.override("en"), nhờ đó lỗi mặc định của Django c�
 
 from functools import wraps
 
+from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
+
 from django.utils import translation
 
 from apps.accounts.constants import AccountRole
+from apps.surveys import translator
 from apps.surveys.questionnaire import EN_TEXT
 
 PORTAL_LANGUAGE = "en"
+SESSION_KEY = "portal_lang"  # tv4: ngôn ngữ Manager/Admin chọn cho phần Khảo sát và Phản hồi
+SWITCHABLE = ("en", "vi")
 
 # Chữ tiếng Việt (nhãn choices, form, lỗi, dữ liệu sở thích cố định) → tiếng Anh
 EN = {
@@ -105,7 +112,7 @@ def is_english():
 def tr(text):
     if not is_english() or not isinstance(text, str):
         return text
-    return EN.get(text, text)
+    return EN.get(text) or translator.lookup(text) or text
 
 
 # tv4: chọn câu tiếng Việt hoặc tiếng Anh (dùng cho thông báo có chèn dữ liệu)
@@ -158,3 +165,34 @@ def _translate_errors_after_clean(form):
 # tv4: dịch nhãn các dòng báo cáo [{label, ...}] khi đang ở Admin Portal
 def localize_rows(rows):
     return [{**row, "label": tr(row["label"])} for row in rows]
+
+
+# tv4: ngôn ngữ đang chọn của Admin/Manager (mặc định tiếng Anh)
+def chosen_language(request):
+    lang = request.session.get(SESSION_KEY)
+    return lang if lang in SWITCHABLE else PORTAL_LANGUAGE
+
+
+# tv4: như portal_english nhưng Admin/Manager đổi được EN/VI bằng nút; dùng cho Khảo sát và Phản hồi
+def portal_switchable(view):
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if is_portal_user(request.user):
+            with translation.override(chosen_language(request)):
+                return view(request, *args, **kwargs)
+        return view(request, *args, **kwargs)
+    return wrapped
+
+
+# tv4: POST lang=en|vi&next=/đường/dẫn → lưu lựa chọn vào session rồi quay lại trang cũ (chỉ Admin/Manager, next phải cùng host)
+@require_POST
+def set_portal_language(request):
+    if not is_portal_user(request.user):
+        return HttpResponseForbidden()
+    lang = request.POST.get("lang")
+    if lang in SWITCHABLE:
+        request.session[SESSION_KEY] = lang
+    target = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        target = "/"
+    return HttpResponseRedirect(target)

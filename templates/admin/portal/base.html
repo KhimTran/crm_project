@@ -29,6 +29,7 @@
           <div><p class="portal-eyebrow mb-0">CRM ADMIN PORTAL</p><h1 class="h4 mb-0">{% block page_title %}Administration{% endblock %}</h1></div>
         </div>
         <div class="portal-user">
+          {% block header_tools %}{% endblock %}
           <span class="text-muted small">{{ request.user.email }}</span>
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn-outline-secondary btn-sm" type="submit">Logout</button></form>
         </div>

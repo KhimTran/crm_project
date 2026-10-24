@@ -2,6 +2,7 @@ import json
 import re
 import uuid
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404, HttpResponseBadRequest, HttpResponseForbidden
@@ -18,12 +19,13 @@ from apps.accounts.decorators import role_required
 from apps.accounts.errors import AccountPermissionDenied
 from apps.accounts.permissions import account_admin_required
 from apps.customers.models import Customer
-from apps.customers.portal_text import localize_form, localize_rows, portal_english, say, tr
+from apps.customers.portal_text import localize_form, localize_rows, portal_switchable, say, tr
 from .constants import BUILDER_TYPES, CHOICE_TYPES, RECIPIENT_COMPLETED, SHOP_NAME, QuestionType, SurveyStatus
 from .forms import AudienceForm, BuilderQuestionForm, SurveyBuilderForm
 from .configuration import populate_questionnaire, prepare_questions
 from .questionnaire import TEMPLATE_KEY
 from .models import Survey, SurveyQuestion, SurveyRecipient
+from .translator import translate_survey
 from .services import (COMPLETED_MESSAGE, build_stats, check_ready_to_send, clone_survey, close_expired, close_survey,
                        eligible_customers, filter_customers, is_survey_open, recipient_for_user, send_survey,
                        send_to_audience, start_survey, submit_survey, survey_overview)
@@ -46,7 +48,7 @@ def send(request, survey_id):
 
 @account_admin_required
 @require_GET
-@portal_english
+@portal_switchable
 def send_result(request, survey_id):
     return render(request, "surveys/send_result.html", {"survey": get_object_or_404(Survey, pk=survey_id)})
 
@@ -131,7 +133,7 @@ def _localized_stats(stats):
 # tv4: trang Surveys – đọc danh sách khảo sát (mới nhất trước); nút Xem/Sửa/Xóa dùng view manage_detail/edit/delete có sẵn
 @manager_required
 @require_GET
-@portal_english
+@portal_switchable
 def manage_list(request):
     close_expired()
     items = list(Survey.objects.annotate(sent=Count("surveyrecipient", distinct=True)).order_by("-survey_id"))
@@ -349,6 +351,8 @@ def _save_builder(request, survey, form, audience_form, question_forms, *, fixed
             for question_form in question_forms:  # bộ 8 câu: form gắn với câu đã lưu nên sửa tại chỗ
                 question_form.save_for(saved)
         result = send_to_audience(request.user, saved, _audience_customers(audience_form.cleaned_data)) if publish else None
+    if settings.CONTENT_AUTO_TRANSLATE:
+        translate_survey(saved)  # tv4: dịch sẵn tiếng Anh cho Manager; lỗi mạng chỉ bỏ qua bản dịch, không chặn việc lưu
     return saved, result
 
 
@@ -440,13 +444,13 @@ def _survey_builder(request, survey):
 
 
 @manager_required
-@portal_english
+@portal_switchable
 def manage_create(request):
     return _survey_builder(request, None)
 
 
 @manager_required
-@portal_english
+@portal_switchable
 def manage_edit(request, survey_id):
     return _survey_builder(request, get_object_or_404(Survey, pk=survey_id))
 
@@ -454,7 +458,7 @@ def manage_edit(request, survey_id):
 # tv4: số khách sẽ nhận khảo sát theo đối tượng đang chọn (cho hộp xác nhận Phát hành)
 @manager_required
 @require_GET
-@portal_english
+@portal_switchable
 def manage_audience_count(request):
     form = localize_form(AudienceForm(request.GET))
     if not form.is_valid():
@@ -466,7 +470,7 @@ def manage_audience_count(request):
 
 @manager_required
 @require_POST
-@portal_english
+@portal_switchable
 def manage_delete(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     if survey.status != SurveyStatus.DRAFT or SurveyRecipient.objects.filter(survey=survey).exists():
@@ -498,7 +502,7 @@ def _question_charts(stats):
 
 @manager_required
 @require_GET
-@portal_english
+@portal_switchable
 def manage_detail(request, survey_id):
     close_expired()
     survey = get_object_or_404(Survey, pk=survey_id)
@@ -515,7 +519,7 @@ def manage_detail(request, survey_id):
 
 
 @manager_required
-@portal_english
+@portal_switchable
 def manage_send(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     errors = [_send_error(e) for e in check_ready_to_send(survey)]
@@ -542,7 +546,7 @@ def manage_send(request, survey_id):
 
 @manager_required
 @require_POST
-@portal_english
+@portal_switchable
 def manage_close(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     try:
@@ -557,7 +561,7 @@ def manage_close(request, survey_id):
 # tv4: 4.1.6 nhân bản khảo sát thành bản Nháp mới để sửa nội dung khi bản cũ đã gửi/có câu trả lời
 @manager_required
 @require_POST
-@portal_english
+@portal_switchable
 def manage_clone(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     copy = clone_survey(request.user, survey)
@@ -568,7 +572,7 @@ def manage_clone(request, survey_id):
 
 @manager_required
 @require_GET
-@portal_english
+@portal_switchable
 def manage_stats(request, survey_id):
     close_expired()
     survey = get_object_or_404(Survey, pk=survey_id)

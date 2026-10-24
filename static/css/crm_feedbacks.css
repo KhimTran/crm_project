@@ -12,6 +12,7 @@
 .crm-fb-rating { font-size: 1.35rem; }
 .crm-fb-date { margin-left: auto; font-size: .875rem; color: #536984; }
 .crm-quote { margin: 0 0 1.25rem; padding: 1rem 1.25rem; border-left: 4px solid #1f7a99; border-radius: 0 .5rem .5rem 0; background: #f0f6fa; font-size: 1.05rem; line-height: 1.6; overflow-wrap: anywhere; }
+.crm-quote-original { display: block; margin-top: .6rem; padding-top: .5rem; border-top: 1px dashed #c9d6de; font-size: .85rem; line-height: 1.5; color: #536984; }
 .crm-dl { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 0; margin: 0; }
 .crm-dl dt, .crm-dl dd { padding: .6rem 0; border-top: 1px solid #edf1f5; }
 .crm-dl dt { color: #536984; font-size: .9rem; font-weight: 600; }

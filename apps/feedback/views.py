@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
@@ -5,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from apps.accounts.decorators import role_required
 from apps.customers.constants import CustomerStatus
 from apps.customers.models import Customer
-from apps.customers.portal_text import localize_form, portal_english, say, tr
+from apps.customers.portal_text import localize_form, portal_switchable, say, tr
 
 from .constants import FeedbackStatus
 from .errors import FeedbackNotFound, FeedbackServiceError
@@ -13,13 +14,14 @@ from .forms import FeedbackCreateForm, FeedbackFilterForm, FeedbackHandleForm
 from .models import Feedback
 from .selectors import feedback_queryset, filter_feedbacks
 from .services import create_feedback, handle_feedback
+from apps.surveys.translator import translate_in_background
 
 PAGE_SIZE = 10
 
 
 # tv4: 4.1.4 danh sách phản hồi cho quản lý CRM / CSKH, có bộ lọc và phân trang
 @role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
-@portal_english
+@portal_switchable
 def feedback_list(request):
     form = localize_form(FeedbackFilterForm(request.GET or None))
     feedbacks = feedback_queryset()
@@ -38,7 +40,7 @@ def feedback_list(request):
 
 # tv4: 4.1.4 xem chi tiết phản hồi; POST cập nhật trạng thái + trả lời khách hàng
 @role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
-@portal_english
+@portal_switchable
 def feedback_detail(request, feedback_id):
     feedback = get_object_or_404(feedback_queryset(), pk=feedback_id)
     initial = {"status": (feedback.status if feedback.status != FeedbackStatus.NEW else FeedbackStatus.IN_PROGRESS),
@@ -80,6 +82,8 @@ def my_feedback_create(request):
         except FeedbackServiceError as exc:
             form.add_error("product", str(exc))
         else:
+            if settings.CONTENT_AUTO_TRANSLATE:  # tv4: bản tiếng Anh cho Manager, lỗi mạng chỉ bỏ qua bản dịch
+                translate_in_background([form.cleaned_data["content"]])
             messages.success(request, "Cảm ơn bạn đã gửi phản hồi! Cửa hàng sẽ phản hồi sớm nhất.")
             return redirect("feedbacks:mine")
     return render(request, "feedback/my_feedback_form.html", {"form": form})

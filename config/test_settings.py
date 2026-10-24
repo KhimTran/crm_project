@@ -6,4 +6,5 @@ DATABASES['default']['TEST'] = {
     'CHARSET': 'utf8mb4',
     'COLLATION': 'utf8mb4_unicode_ci',
 }
+CONTENT_AUTO_TRANSLATE = False  # tv4: test không gọi dịch vụ dịch qua mạng và không ghi file bản dịch
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'

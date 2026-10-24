@@ -1,6 +1,7 @@
 {% extends crm_layout %}
 {% load static portal_text %}
 {% block title %}{% t "Phản hồi khách hàng" "Customer Feedback" %}{% endblock %}
+{% block header_tools %}{% lang_switch %}{% endblock %}
 {% block page_title %}{% t "Phản hồi khách hàng" "Customer Feedback" %}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">
@@ -8,8 +9,7 @@
 {% endblock %}
 
 {% block content %}
-{% if in_admin_portal %}<p class="crm-summary"><strong>{{ new_count }}</strong> new feedback item(s) waiting to be handled.</p>
-{% else %}<p class="crm-summary">Có <strong>{{ new_count }}</strong> phản hồi mới chưa xử lý.</p>{% endif %}
+<p class="crm-summary"><strong>{{ new_count }}</strong> {% t "phản hồi mới chưa xử lý." "new feedback item(s) waiting to be handled." %}</p>
 
 <form method="get" class="crm-card crm-filter" role="search" aria-label="{% t 'Lọc phản hồi' 'Filter feedback' %}">
   <div class="crm-field">{{ form.q.label_tag }}{{ form.q }}</div>
@@ -39,7 +39,7 @@
           <td>{{ f.customer.customer_code }} – {{ f.customer.full_name }}</td>
           <td>{{ f.product.product_name }}</td>
           <td><span class="crm-stars" aria-label="{{ f.rating }} {% t 'sao' 'stars' %}">{{ f.rating }}★</span></td>
-          <td>{{ f.content|truncatechars:80 }}</td>
+          <td>{{ f.content|tr|truncatechars:80 }}</td>
           <td><span class="crm-badge fb-{{ f.status|lower }}">{% t f.status_label %}</span></td>
           <td>{{ f.handled_by.email|default:"–" }}</td>
           <td><a class="crm-btn crm-btn-secondary crm-btn-sm" href="{% url 'crm_feedbacks:detail' f.feedback_id %}">{% t "Xem / xử lý" "View / Handle" %}</a></td>

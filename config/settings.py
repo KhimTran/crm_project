@@ -77,6 +77,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'vi'
+CONTENT_AUTO_TRANSLATE = True  # tv4: dịch sẵn tiếng Anh cho Manager khi lưu khảo sát / khách gửi phản hồi (apps/surveys/translator.py)
 TIME_ZONE = 'Asia/Ho_Chi_Minh'
 USE_I18N = True
 USE_TZ = True
