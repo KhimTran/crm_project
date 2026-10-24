@@ -56,8 +56,8 @@
   <section class="rp-panel rp-wide" aria-labelledby="r-monthly">
     <h2 id="r-monthly">{% t "Khách hàng mới theo tháng (12 tháng gần nhất)" "New Customers by Month (last 12 months)" %}</h2>
     <div class="rp-chart-box"><canvas id="chart-monthly" role="img" aria-label="{% t 'Biểu đồ khách hàng mới theo tháng' 'Chart of new customers by month' %}"></canvas></div>
-    <details class="rp-more"><summary>{% t "Xem bảng số liệu" "View data table" %}</summary><table class="crm-table rp-table"><thead><tr><th>{% t "Tháng" "Month" %}</th><th>{% t "KH mới" "New Customers" %}</th></tr></thead>
-      <tbody>{% for r in customer_charts.monthly %}<tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>{% endfor %}</tbody></table></details>
+    <details class="rp-more"><summary>{% t "Xem bảng số liệu" "View data table" %}</summary><table class="crm-table rp-table"><thead><tr><th>{% t "Tháng" "Month" %}</th><th>{% t "Nam" "Male" %}</th><th>{% t "Nữ" "Female" %}</th><th>{% t "Khác" "Other" %}</th><th>{% t "Chưa khai báo" "Not specified" %}</th><th>{% t "Tổng" "Total" %}</th></tr></thead>
+      <tbody>{% for r in customer_charts.monthly %}<tr><td>{{ r.label }}</td><td>{{ r.male }}</td><td>{{ r.female }}</td><td>{{ r.other }}</td><td>{{ r.unknown }}</td><td>{{ r.count }}</td></tr>{% endfor %}</tbody></table></details>
   </section>
 
 

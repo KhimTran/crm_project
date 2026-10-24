@@ -88,3 +88,5 @@
 .brand-chart { height: 230px !important; }
 @media (max-width: 1200px) { .rp-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .rp-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rp-grid { grid-template-columns: minmax(0, 1fr); } }
+.brand-legend tbody tr.brand-off td { text-decoration: line-through; color: #8a99a1; }
+.brand-legend tbody tr:hover { background: #f1f7f9; }

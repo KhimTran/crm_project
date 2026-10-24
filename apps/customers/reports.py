@@ -98,10 +98,14 @@ def new_customers_by_month(months=12, today=None):
     keys.reverse()
     first_day = timezone.make_aware(datetime(keys[0][0], keys[0][1], 1))
     counter = Counter()
-    for created_at in customer_queryset().filter(created_at__gte=first_day).values_list("created_at", flat=True):
+    for created_at, gender in customer_queryset().filter(created_at__gte=first_day).values_list("created_at", "gender"):
         local = timezone.localtime(created_at)
-        counter[(local.year, local.month)] += 1
-    return [{"label": f"{m:02d}/{y}", "count": counter.get((y, m), 0)} for y, m in keys]
+        counter[(local.year, local.month, None)] += 1
+        counter[(local.year, local.month, gender if gender in Gender.values else "UNKNOWN")] += 1
+    # tv4: ngoài tổng "count", mỗi dòng có thêm số KH mới theo giới tính (male/female/other/unknown) để vẽ đường theo giới tính
+    return [{"label": f"{m:02d}/{y}", "count": counter[(y, m, None)],
+             **{g.lower(): counter[(y, m, g)] for g in [*Gender.values, "UNKNOWN"]}}
+            for y, m in keys]
 
 
 # tv4: 4.1.5 phản hồi của khách hàng chưa bị xóa (báo cáo không tính phản hồi của KH đã xóa)

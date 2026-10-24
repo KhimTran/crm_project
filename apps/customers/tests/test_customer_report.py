@@ -74,7 +74,8 @@ class CustomerReportTests(TestCase):
         Customer.objects.filter(pk=self.cuong.pk).update(created_at=timezone.make_aware(datetime(2025, 9, 30, 8, 0)))
         rows = reports.new_customers_by_month(months=12, today=TODAY)
         self.assertEqual([r["label"] for r in rows][:2], ["11/2025", "12/2025"])
-        self.assertEqual(rows[-1], {"label": "10/2026", "count": 1})
+        self.assertEqual((rows[-1]["label"], rows[-1]["count"]), ("10/2026", 1))
+        self.assertEqual(sum(rows[-1][g] for g in ("male", "female", "other", "unknown")), 1)
         self.assertEqual(counts(rows)["07/2026"], 1)
         self.assertEqual(counts(rows)["08/2026"], 0)
         self.assertEqual(sum(r["count"] for r in rows), 2)
@@ -112,7 +113,7 @@ class CustomerReportTests(TestCase):
         self.assertNotContains(response, 'id="report-data"')
         self.assertContains(response, "chart.umd.min.js")
         self.assertContains(response, "In báo cáo")
-        # Kết quả khảo sát đã chuyển sang trang riêng surveys:results.
+        # Kết quả khảo sát thuộc TV5 (surveys:manage_stats), không kiểm tra ở test báo cáo khách hàng.
         self.assertContains(response, 'id="customer-report-data"')
         self.assertContains(response, "Khách hàng theo nhóm tuổi")
         # Đã gỡ khỏi trang: sở thích Nhóm sản phẩm, điểm hài lòng theo sản phẩm, phản hồi theo tháng.
@@ -122,8 +123,6 @@ class CustomerReportTests(TestCase):
         self.assertNotContains(response, "Nhóm sản phẩm")
         self.assertNotContains(response, "Kết quả khảo sát")
         self.assertNotContains(response, "Tổng số khảo sát")
-        survey_page = self.client.get(reverse("surveys:results"))
-        self.assertContains(survey_page, 'id="report-survey"')
 
     def test_customer_cannot_open_report(self):
         Account.objects.create_user("shopper@example.com", "Khach@12345")

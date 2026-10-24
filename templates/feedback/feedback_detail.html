@@ -21,8 +21,16 @@
     <blockquote class="crm-quote">{{ feedback.content|linebreaksbr }}</blockquote>
     <dl class="crm-dl">
       <dt>{% t "Khách hàng" "Customer" %}</dt>
-      <dd>{% if feedback.customer.status == "DELETED" %}{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }} <span class="crm-badge locked">{% t "Đã xóa" "DELETED" %}</span>
-        {% else %}<a href="{% url 'customers:detail' feedback.customer.customer_id %}">{{ feedback.customer.customer_code }} – {{ feedback.customer.full_name }}</a>{% endif %}</dd>
+      <dd>
+        <div class="crm-fb-customer">
+          <span class="crm-fb-avatar" aria-hidden="true">{{ feedback.customer.full_name|slice:":1"|upper }}</span>
+          <div class="crm-fb-customer-info">
+            <strong>{{ feedback.customer.full_name }}</strong>
+            <small>{{ feedback.customer.customer_code }}{% if feedback.customer.status == "DELETED" %} <span class="crm-badge locked">{% t "Đã xóa" "DELETED" %}</span>{% endif %}</small>
+          </div>
+          {% if feedback.customer.status != "DELETED" %}<a class="crm-btn crm-btn-secondary crm-fb-profile" href="{% url 'customers:detail' feedback.customer.customer_id %}">{% t "Xem hồ sơ" "View profile" %} <span aria-hidden="true">&rarr;</span></a>{% endif %}
+        </div>
+      </dd>
       <dt>{% t "Email / SĐT" "Email / Phone" %}</dt><dd>{{ feedback.customer.account.email }} · {{ feedback.customer.phone|default:"–" }}</dd>
       <dt>{% t "Sản phẩm" "Product" %}</dt><dd>{{ feedback.product.product_name }}</dd>
       <dt>{% t "Số sao" "Rating" %}</dt><dd><span class="crm-stars" aria-label="{{ feedback.rating }} {% t 'sao' 'stars' %}">{{ feedback.rating }}★</span></dd>

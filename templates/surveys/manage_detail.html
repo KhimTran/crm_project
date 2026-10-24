@@ -5,18 +5,19 @@
 {% block extra_css %}
 <style>
   .sv-hero { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem 2rem; align-items: flex-start; }
-  .sv-hero h2 { margin: 0 0 .35rem; font-size: 1.35rem; font-weight: 700; color: var(--portal-text); }
-  .sv-hero p { margin: 0; max-width: 62ch; color: #4a5b64; }
-  .sv-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .sv-hero h2 { margin: 0 0 .2rem; font-size: 1.15rem; font-weight: 700; color: var(--portal-text); }
+  .sv-hero p { margin: 0; max-width: 62ch; font-size: .88rem; color: #4a5b64; }
+  .sv-hero-panel { padding: .8rem 1.1rem; margin-bottom: .75rem; }
+  .sv-meta { display: flex; gap: 1.1rem; flex-wrap: wrap; }
   .sv-meta div span { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #637680; }
-  .sv-meta div b { font-size: .95rem; color: var(--portal-text); }
+  .sv-meta div b { font-size: .88rem; color: var(--portal-text); }
 
-  .sv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; margin-bottom: 1.25rem; }
-  .sv-kpi { background: #fff; border: 1px solid var(--portal-border); border-radius: .75rem; padding: .9rem 1.1rem; }
+  .sv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .6rem; margin-bottom: .9rem; }
+  .sv-kpi { background: #fff; border: 1px solid var(--portal-border); border-radius: .6rem; padding: .5rem .85rem; }
   .sv-kpi span { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #637680; }
-  .sv-kpi b { display: block; margin-top: .15rem; font-size: 1.6rem; line-height: 1.2; color: var(--portal-text); }
-  .sv-kpi small { font-size: .9rem; font-weight: 500; color: #637680; }
-  .sv-progress { height: .4rem; margin-top: .5rem; border-radius: 99px; background: #e7eef1; overflow: hidden; }
+  .sv-kpi b { display: block; font-size: 1.2rem; line-height: 1.2; color: var(--portal-text); }
+  .sv-kpi small { font-size: .8rem; font-weight: 500; color: #637680; }
+  .sv-progress { height: .4rem; margin-top: .25rem; border-radius: 99px; background: #e7eef1; overflow: hidden; }
   .sv-progress i { display: block; height: 100%; background: #176b86; border-radius: 99px; }
 
   .sv-more > summary { display: inline-block; cursor: pointer; padding: .25rem .7rem; border: 1px solid var(--portal-border); border-radius: .4rem; font-size: .82rem; color: var(--portal-text); background: #fff; list-style: none; }
@@ -30,30 +31,31 @@
     .sv-more:not([open]) > * { display: none; }
     .sv-more { display: none; }
   }
-  .sv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
-  .sv-grid > .portal-panel { margin: 0; }
+  .sv-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; align-items: start; }
+  .sv-grid > .portal-panel { margin: 0; padding: .85rem 1rem; }
   .sv-grid > .sv-wide, .sv-grid > .sv-section { grid-column: 1 / -1; }
   .sv-grid .sv-q { flex-direction: column; gap: .6rem; }
   .sv-grid .sv-wide .sv-q { flex-direction: row; gap: 1rem; }
-  .sv-grid .sv-chart-box.is-doughnut { height: 240px; }
-  @media (max-width: 992px) { .sv-grid { grid-template-columns: minmax(0, 1fr); } }
-  .sv-section { display: flex; align-items: center; gap: .75rem; margin: 1.6rem 0 .7rem; font-size: .8rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--portal-accent); }
+  .sv-grid .sv-chart-box.is-doughnut { height: 190px; }
+  @media (max-width: 1200px) { .sv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 760px) { .sv-grid { grid-template-columns: minmax(0, 1fr); } }
+  .sv-section { display: flex; align-items: center; gap: .75rem; margin: .9rem 0 .2rem; font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--portal-accent); }
   .sv-section::after { content: ""; flex: 1; height: 1px; background: var(--portal-border); }
 
-  .sv-q { display: flex; gap: 1rem; align-items: flex-start; }
-  .sv-q-num { flex: none; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: #e7f1f5; color: #145974; font-weight: 700; display: grid; place-items: center; }
+  .sv-q { display: flex; gap: .7rem; align-items: flex-start; }
+  .sv-q-num { flex: none; width: 1.6rem; height: 1.6rem; font-size: .8rem; border-radius: 50%; background: #e7f1f5; color: #145974; font-weight: 700; display: grid; place-items: center; }
   .sv-q-body { flex: 1; min-width: 0; }
-  .sv-q-text { margin: 0 0 .5rem; font-size: 1.02rem; font-weight: 650; color: var(--portal-text); }
+  .sv-q-text { margin: 0 0 .35rem; font-size: .92rem; line-height: 1.35; font-weight: 650; color: var(--portal-text); }
   .sv-q-tags { display: flex; gap: .4rem; flex-wrap: wrap; }
-  .sv-chart { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #edf1f3; }
+  .sv-chart { margin-top: .6rem; padding-top: .6rem; border-top: 1px solid #edf1f3; }
   .sv-chart-box { position: relative; width: 100%; }
-  .sv-chart-box.is-doughnut { max-width: 420px; height: 280px; margin: 0 auto; }
-  .sv-avg { display: inline-flex; align-items: baseline; gap: .35rem; margin-bottom: .75rem; padding: .35rem .8rem; border-radius: 99px; background: #f1f7f9; font-size: .88rem; color: #4a5b64; }
+  .sv-chart-box.is-doughnut { max-width: 320px; height: 190px; margin: 0 auto; }
+  .sv-avg { display: inline-flex; align-items: baseline; gap: .35rem; margin-bottom: .4rem; padding: .2rem .65rem; border-radius: 99px; background: #f1f7f9; font-size: .8rem; color: #4a5b64; }
   .sv-avg b { font-size: 1.1rem; color: #145974; }
-  .sv-foot { margin: .85rem 0 0; font-size: .82rem; color: #637680; }
+  .sv-foot { margin: .5rem 0 0; font-size: .76rem; color: #637680; }
   .sv-empty { margin: 0; font-size: .88rem; color: #637680; }
-  .sv-texts { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; border: 1px solid #edf1f3; border-radius: .6rem; }
-  .sv-texts li { padding: .65rem .9rem; border-bottom: 1px solid #edf1f3; font-size: .88rem; }
+  .sv-texts { list-style: none; margin: 0; padding: 0; max-height: 180px; overflow-y: auto; border: 1px solid #edf1f3; border-radius: .6rem; }
+  .sv-texts li { padding: .4rem .7rem; border-bottom: 1px solid #edf1f3; font-size: .82rem; }
   .sv-texts li:last-child { border-bottom: 0; }
   .sv-texts small { display: block; margin-top: .15rem; color: #637680; }
 </style>
@@ -80,10 +82,10 @@
   </div>
 </div>
 
-<section class="portal-panel">
+<section class="portal-panel sv-hero-panel">
   <div class="sv-hero">
     <div>
-      <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+      <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
         {% if survey.status == 'ACTIVE' %}<span class="portal-badge status-active">Published</span>
         {% elif survey.status == 'CLOSED' %}<span class="portal-badge status-locked">Closed</span>
         {% else %}<span class="portal-badge role-customer">Draft</span>{% endif %}
@@ -177,15 +179,15 @@
     if (!c) return;
     var horizontal = c.kind === 'bar-h', doughnut = c.kind === 'doughnut';
     var box = canvas.parentElement;
-    if (horizontal) box.style.height = Math.max(160, c.labels.length * 38 + 50) + 'px';
-    else if (!doughnut) box.style.height = '260px';
+    if (horizontal) box.style.height = Math.max(110, c.labels.length * 28 + 36) + 'px';
+    else if (!doughnut) box.style.height = '190px';
     new Chart(canvas, {
       type: doughnut ? 'doughnut' : 'bar',
       data: { labels: c.labels, datasets: [{ data: c.values, borderWidth: 0, borderRadius: doughnut ? 0 : 4,
         backgroundColor: doughnut ? c.labels.map(function (_, i) { return palette[i % palette.length]; }) : '#176b86' }] },
       options: {
         responsive: true, maintainAspectRatio: false, indexAxis: horizontal ? 'y' : 'x',
-        plugins: { legend: { display: doughnut, position: 'bottom' },
+        plugins: { legend: { display: doughnut, position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, font: { size: 11 } } },
           tooltip: { callbacks: { label: function (ctx) {
             var pct = c.pcts[ctx.dataIndex];
             return ' ' + ctx.formattedValue + (pct !== null && pct !== undefined ? ' (' + pct + '%)' : '');
