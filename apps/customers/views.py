@@ -258,7 +258,7 @@ def customer_delete(request, customer_id):
 @role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
 @portal_english
 def customer_report(request):
-    # Chỉ báo cáo khách hàng 4.1.5; kết quả khảo sát 4.1.7 nằm ở trang riêng surveys:results.
+    # Chỉ báo cáo khách hàng 4.1.5; kết quả khảo sát 4.1.7 thuộc TV5 (surveys:manage_stats).
     customer_charts = {
         "age": localize_rows(reports.age_group_report()),
         "gender": localize_rows(reports.gender_report()),
@@ -266,6 +266,9 @@ def customer_report(request):
         "monthly": reports.new_customers_by_month(),
         "labels": {"customers": say("Số khách hàng", "Customers"),
                    "new_customers": say("Khách hàng mới", "New customers"),
+                   "total": say("Tổng", "Total"),
+                   "gender": {"male": say("Nam", "Male"), "female": say("Nữ", "Female"),
+                              "other": say("Khác", "Other"), "unknown": say("Chưa khai báo", "Not specified")},
                    "avg_rating": say("Điểm hài lòng TB", "Avg. satisfaction")},
     }
     customer_extra = {

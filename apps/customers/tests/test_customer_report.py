@@ -73,7 +73,8 @@ class CustomerReportTests(TestCase):
         Customer.objects.filter(pk=self.cuong.pk).update(created_at=timezone.make_aware(datetime(2025, 9, 30, 8, 0)))
         rows = reports.new_customers_by_month(months=12, today=TODAY)
         self.assertEqual([r["label"] for r in rows][:2], ["11/2025", "12/2025"])
-        self.assertEqual(rows[-1], {"label": "10/2026", "count": 1})
+        self.assertEqual((rows[-1]["label"], rows[-1]["count"]), ("10/2026", 1))
+        self.assertEqual(sum(rows[-1][g] for g in ("male", "female", "other", "unknown")), 1)
         self.assertEqual(counts(rows)["07/2026"], 1)
         self.assertEqual(counts(rows)["08/2026"], 0)
         self.assertEqual(sum(r["count"] for r in rows), 2)
@@ -102,8 +103,8 @@ class CustomerReportTests(TestCase):
         self.assertTrue("Customer Report" in content or "Báo cáo khách hàng" in content)
         self.assertNotContains(response, 'id="report-data"')
         self.assertContains(response, "chart.umd.min.js")
-        self.assertTrue("Print Report" in content or "In báo cáo" in content)
-        # Kết quả khảo sát đã chuyển sang trang riêng surveys:results.
+        self.assertContains(response, "In báo cáo")
+        # Kết quả khảo sát thuộc TV5 (surveys:manage_stats), không kiểm tra ở test báo cáo khách hàng.
         self.assertContains(response, 'id="customer-report-data"')
         self.assertTrue("Customers by Age Group" in content or "Khách hàng theo nhóm tuổi" in content)
         # Đã gỡ khỏi trang: sở thích Nhóm sản phẩm, điểm hài lòng theo sản phẩm, phản hồi theo tháng.

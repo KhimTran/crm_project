@@ -43,7 +43,7 @@
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) {
+          plugins: { legend: { display: true, position: "bottom", labels: { usePointStyle: true } }, tooltip: { callbacks: { label: function (c) {
             var r = rows[c.dataIndex];
             return r.label + ": " + r.count + " " + ((data.labels || {}).customers || "customers").toLowerCase() +
                    (r.pct === null ? "" : " (" + r.pct + "%)");
@@ -52,6 +52,16 @@
       });
       document.querySelectorAll(".brand-swatch").forEach(function (node) {
         node.style.backgroundColor = BRAND_COLORS[+node.getAttribute("data-brand-index")] || "#999";
+      });
+      // tv4: bấm dòng trong bảng cũng ẩn/hiện lát tương ứng và gạch ngang tên như legend của biểu đồ
+      var brandChart = Chart.getChart(canvas);
+      document.querySelectorAll(".brand-legend tbody tr").forEach(function (tr, i) {
+        tr.style.cursor = "pointer";
+        tr.addEventListener("click", function () {
+          brandChart.toggleDataVisibility(i);
+          brandChart.update();
+          tr.classList.toggle("brand-off", !brandChart.getDataVisibility(i));
+        });
       });
       var loading = document.getElementById("brand-loading");
       if (loading) loading.hidden = true;
@@ -76,6 +86,42 @@
 
   drawFavoriteBrands();
 
+  // tv4: màu theo giới tính, dùng chung cho biểu đồ đường theo tháng và biểu đồ tròn giới tính
+  var GENDER_COLORS = { male: "#4a7de0", female: "#f2993a", other: "#5bbf9a", unknown: "#9aa7ae" };
+
+  // tv4: biểu đồ đường khách hàng mới theo tháng, mỗi giới tính một đường màu riêng (+ đường tổng nét đứt)
+  function drawMonthlyByGender(rows, labels) {
+    var canvas = document.getElementById("chart-monthly");
+    if (!canvas || !rows || !rows.length) return;
+    var names = labels.gender || {};
+    var datasets = ["male", "female", "other", "unknown"].filter(function (g) {
+      return g === "male" || g === "female" || rows.some(function (r) { return r[g]; });
+    }).map(function (g) {
+      var color = GENDER_COLORS[g];
+      return { label: names[g] || g, data: rows.map(function (r) { return r[g]; }),
+               borderColor: color, borderWidth: 2, tension: 0.35, pointRadius: 3, pointHoverRadius: 5,
+               pointBackgroundColor: "#fff", pointBorderColor: color, fill: "origin",
+               // tv4: vùng dưới đường tô gradient nhạt dần xuống đáy như biểu đồ vùng
+               backgroundColor: function (ctx) {
+                 var area = ctx.chart.chartArea;
+                 if (!area) return color + "40";
+                 var grad = ctx.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+                 grad.addColorStop(0, color + "88"); grad.addColorStop(1, color + "08");
+                 return grad;
+               } };
+    });
+    new Chart(canvas, {
+      type: "line",
+      data: { labels: rows.map(function (r) { return r.label; }), datasets: datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: true, position: "bottom", labels: { usePointStyle: true } } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } }
+      }
+    });
+  }
+
   // ───────────── 4.1.5 Báo cáo khách hàng ─────────────
   var customers = readData("customer-report-data");
   if (customers) {
@@ -94,7 +140,7 @@
           datasets: [{
             label: opts.label || CUSTOMER_LABELS.customers || "Số khách hàng",
             data: rows.map(function (r) { return opts.value ? opts.value(r) : r.count; }),
-            backgroundColor: isRound ? PALETTE : (opts.color || PALETTE[0]),
+            backgroundColor: isRound ? (opts.colors || PALETTE) : (opts.color || PALETTE[0]),
             borderWidth: 0,
             borderRadius: isRound ? 0 : 4,
             tension: 0.25,
@@ -115,9 +161,9 @@
     };
 
     draw("chart-age", "bar", customers.age);
-    draw("chart-gender", "doughnut", customers.gender);
+    draw("chart-gender", "doughnut", customers.gender, { colors: ["male", "female", "other", "unknown"].map(function (g) { return GENDER_COLORS[g]; }) });
     draw("chart-level", "doughnut", customers.level);
-    draw("chart-monthly", "line", customers.monthly, { label: CUSTOMER_LABELS.new_customers || "Khách hàng mới", color: PALETTE[2] });
+    drawMonthlyByGender(customers.monthly, CUSTOMER_LABELS);
     (customers.preferences || []).forEach(function (group, i) {
       draw("chart-pref-" + i, "bar", group.rows, { horizontal: true, color: PALETTE[(i + 3) % PALETTE.length] });
     });
