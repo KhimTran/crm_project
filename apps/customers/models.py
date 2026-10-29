@@ -128,6 +128,12 @@ class CustomerPreference(models.Model):
     class Meta:
         db_table = "customer_preferences"
 
+    def save(self, *args, **kwargs):
+        from apps.catalog.vocabulary import BRAND_PREFERENCE_TYPES, canonical_brand
+        if self.preference_type in BRAND_PREFERENCE_TYPES:
+            self.preference_value = canonical_brand(self.preference_value)
+        return super().save(*args, **kwargs)
+
     @property
     def account(self):
         return self.customer

@@ -1,3 +1,5 @@
+from django.db.models import Q
+from apps.catalog.vocabulary import search_aliases
 from apps.catalog.models import Product, Status
 
 
@@ -8,7 +10,10 @@ def visible_products():
 def filtered_products(filters):
     products = visible_products()
     if filters.get("q"):
-        products = products.filter(product_name__icontains=filters["q"])
+        search = Q()
+        for term in search_aliases(filters["q"]):
+            search |= Q(product_name__icontains=term) | Q(brand__brand_name__icontains=term)
+        products = products.filter(search)
     for field in ("category", "brand"):
         if filters.get(field):
             products = products.filter(**{field: filters[field]})

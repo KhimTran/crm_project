@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 
+from apps.catalog.vocabulary import BRAND_PREFERENCE_TYPES, canonical_brand
 from apps.accounts.constants import AccountRole
 from apps.accounts.decorators import role_required
 from apps.feedback.models import Feedback
@@ -131,7 +132,7 @@ def customer_detail(request, customer_id):
     for pref in customer.customerpreference_set.order_by("preference_type", "preference_value"):
         preferences.setdefault(tr(PreferenceType(pref.preference_type).label)
                                if pref.preference_type in PreferenceType.values else pref.preference_type,
-                               []).append(tr(pref.preference_value))
+                               []).append(tr(canonical_brand(pref.preference_value) if pref.preference_type in BRAND_PREFERENCE_TYPES else pref.preference_value))
     feedbacks = (Feedback.objects.filter(customer=customer).select_related("product", "handled_by")
                  .order_by("-created_at", "-feedback_id"))
     return render(request, "customers/customer_detail.html", {

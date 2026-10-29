@@ -2,9 +2,10 @@ from collections import Counter
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Exists, OuterRef, Q
 from django.utils import timezone
 
+from apps.catalog.vocabulary import BRAND_PREFERENCE_TYPES, brand_aliases, canonical_brand
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.errors import AccountPermissionDenied
 from apps.accounts.models import Account
@@ -367,8 +368,9 @@ def playing_level_choices():
 def preference_choices():
     # tv4: tên hãng tự nhập khi chọn Other là văn bản tự do, không đưa vào danh sách lọc
     values = (CustomerPreference.objects.exclude(preference_type="FAVORITE_BRAND_OTHER").order_by("preference_value")
-              .values_list("preference_value", flat=True).distinct()[:60])
-    return [(v, v) for v in values]
+              .values_list("preference_type", "preference_value").distinct())
+    names = {canonical_brand(value) if kind in BRAND_PREFERENCE_TYPES else value for kind, value in values}
+    return [(v, v) for v in sorted(names)[:60]]
 
 
 def filter_customers(audience="all", age_groups=(), playing_levels=(), preferences=()):
@@ -386,7 +388,11 @@ def filter_customers(audience="all", age_groups=(), playing_levels=(), preferenc
     if playing_levels:
         qs = qs.filter(playing_level__in=playing_levels)
     if preferences:
-        qs = qs.filter(customerpreference__preference_value__in=preferences)
+        condition = Q(preference_value__in=preferences)
+        for value in preferences:
+            condition |= Q(preference_type__in=BRAND_PREFERENCE_TYPES,
+                           preference_value__in=brand_aliases(value))
+        qs = qs.filter(Exists(CustomerPreference.objects.filter(customer_id=OuterRef("pk")).filter(condition)))
     return qs.distinct()
 
 

@@ -103,7 +103,7 @@ class CustomerReportTests(TestCase):
         self.assertTrue("Customer Report" in content or "Báo cáo khách hàng" in content)
         self.assertNotContains(response, 'id="report-data"')
         self.assertContains(response, "chart.umd.min.js")
-        self.assertContains(response, "In báo cáo")
+        self.assertContains(response, "Print Report")
         # Kết quả khảo sát thuộc TV5 (surveys:manage_stats), không kiểm tra ở test báo cáo khách hàng.
         self.assertContains(response, 'id="customer-report-data"')
         self.assertTrue("Customers by Age Group" in content or "Khách hàng theo nhóm tuổi" in content)
@@ -175,4 +175,4 @@ class CustomerReportBoundaryTests(TestCase):
         response = SurveyResponse.objects.create(recipient=recipient, status="SUBMITTED", submitted_at=timezone.now())
         SurveyAnswer.objects.create(response=response, question=question, option=option)
         groups = {g["type"]: counts(g["rows"]) for g in reports.preference_report()}
-        self.assertEqual(groups, {"BRAND": {"Lining": 1}})
+        self.assertEqual(groups, {"BRAND": {"Li-Ning": 1}})

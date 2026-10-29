@@ -73,9 +73,9 @@ class ShopDisplayFilterTests(SimpleTestCase):
     def test_vnd_price_preserves_decimal_precision_independent_of_language(self):
         values = {
             Decimal("0.00"): "0 ₫",
-            Decimal("1250000.00"): "1.250.000 ₫",
-            Decimal("1250000.50"): "1.250.000,50 ₫",
-            Decimal("9999999999.99"): "9.999.999.999,99 ₫",
+            Decimal("1250000.00"): "1,250,000 ₫",
+            Decimal("1250000.50"): "1,250,000.50 ₫",
+            Decimal("9999999999.99"): "9,999,999,999.99 ₫",
         }
         for language in ("vi", "en-us"):
             with override_settings(LANGUAGE_CODE=language):
@@ -140,7 +140,7 @@ class ShopNavigationTests(TestCase):
         for path in ("/", "/products/", reverse("shop:product_detail", args=[self.product.pk])):
             with self.subTest(path=path):
                 response = self.client.get(path)
-                self.assertContains(response, "1.250.000,50 ₫")
+                self.assertContains(response, "1,250,000.50 ₫")
                 self.assertContains(response, "/static/images/product-image-unavailable.svg")
                 self.assertContains(response, "Chưa có ảnh")
 

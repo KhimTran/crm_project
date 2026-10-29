@@ -19,6 +19,12 @@ def brand_counts():
 
 # tv4: test đăng ký / cập nhật hồ sơ lưu thương hiệu yêu thích và báo cáo Pie Chart
 class FavoriteBrandTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from apps.catalog.models import Brand
+        for name in ("Yonex", "Li-Ning", "Victor", "Mizuno"):
+            Brand.objects.create(brand_name=name)
+
     def post_register(self, **extra):
         return self.client.post(reverse("customer_auth:register"), {**REGISTER, **extra})
 
@@ -61,7 +67,7 @@ class FavoriteBrandTests(TestCase):
         self.assertEqual(get_favorite_brand(customer), (None, ""))
 
     def test_report_counts_each_customer_once_current_value_only(self):
-        manager = Account.objects.create_user("manager@brand.test", "Quanly@12345")
+        manager = Account.objects.create_user("manager@brand.test", "Quanly@12345", role="MANAGER")
         manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
         a, b, c, gone = (create_customer(password=PASSWORD, email=f"{n}@brand.test", full_name=n, phone=f"09000000{i}")
                          for i, n in enumerate(("a", "b", "c", "d"), start=10))
@@ -74,16 +80,17 @@ class FavoriteBrandTests(TestCase):
         report = reports.favorite_brand_report()
         self.assertEqual(brand_counts(), {"Yonex": 0, "Li-Ning": 0, "Victor": 1, "Mizuno": 0, "Other": 1})
         self.assertEqual((report["answered"], report["unanswered"], report["total_customers"]), (2, 1, 3))
-        self.assertEqual([r["pct"] for r in report["rows"]], [0.0, 0.0, 50.0, 0.0, 50.0])
+        self.assertEqual({r["label"]: r["pct"] for r in report["rows"]},
+                         {"Yonex": 0.0, "Li-Ning": 0.0, "Victor": 50.0, "Mizuno": 0.0, "Other": 50.0})
         self.client.force_login(manager)
         page = self.client.get(reverse("customer_reports:customers"))
-        self.assertContains(page, "Thương hiệu cầu lông yêu thích")
+        self.assertContains(page, "Favorite Badminton Brand")
         self.assertContains(page, 'id="chart-brand"')
 
     def test_report_empty_state(self):
-        manager = Account.objects.create_user("manager2@brand.test", "Quanly@12345")
+        manager = Account.objects.create_user("manager2@brand.test", "Quanly@12345", role="MANAGER")
         manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
         self.client.force_login(manager)
         page = self.client.get(reverse("customer_reports:customers"))
-        self.assertContains(page, "Chưa có khách hàng nào chọn thương hiệu yêu thích")
+        self.assertContains(page, "No customer has chosen a favorite brand yet.")
         self.assertNotContains(page, 'id="chart-brand"')

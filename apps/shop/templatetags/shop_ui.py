@@ -1,6 +1,4 @@
 """Presentation helpers for the customer storefront only."""
-from decimal import Decimal, InvalidOperation
-
 from django import template
 
 from apps.catalog.models import Category, Status
@@ -25,13 +23,6 @@ def shop_navigation(context):
 
 @register.filter
 def vnd_price(value):
-    """Format Decimal prices without locale dependence or loss of cents."""
-    try:
-        amount = Decimal(value)
-        if not amount.is_finite():
-            return ""
-        whole, fraction = format(amount, ".2f").split(".")
-        grouped = format(int(whole), ",").replace(",", ".")
-        return f"{grouped}{',' + fraction if fraction != '00' else ''} ₫"
-    except (InvalidOperation, TypeError, ValueError):
-        return ""
+    from apps.catalog.templatetags.money import money
+    formatted = money(value)
+    return f"{formatted} ₫" if formatted else ""

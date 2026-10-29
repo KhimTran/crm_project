@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from apps.catalog.vocabulary import canonical_brand
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -42,7 +43,7 @@ def create_customer(*, email, password, full_name, phone, date_of_birth=None, ge
     preferences = [CustomerPreference(customer=account, preference_type=PreferenceType.PLAY_STYLE, preference_value=v)
                    for v in play_styles]
     preferences += [CustomerPreference(customer=account, preference_type=PreferenceType.BRAND, preference_value=v)
-                    for v in brands]
+                    for v in sorted({canonical_brand(value) for value in brands})]
     if preferences:
         CustomerPreference.objects.bulk_create(preferences)
     return customer

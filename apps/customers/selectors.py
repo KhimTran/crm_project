@@ -3,6 +3,8 @@
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
+from apps.catalog.vocabulary import brand_aliases
+
 from .constants import AGE_GROUPS, PreferenceType
 from .models import Customer, CustomerPreference
 
@@ -53,7 +55,7 @@ def _age_group_q(age_group, today):
 # Điều kiện "khách hàng có sở thích type=value" (Exists để không nhân bản dòng)
 def _has_preference(preference_type, value):
     return Exists(CustomerPreference.objects.filter(customer=OuterRef("pk"), preference_type=preference_type,
-                                                    preference_value=value))
+                                                    preference_value__in=brand_aliases(value) if preference_type == PreferenceType.BRAND else (value,)))
 
 
 # Bộ lọc khách hàng dùng chung (TV5 dùng lại để chọn người nhận khảo sát)

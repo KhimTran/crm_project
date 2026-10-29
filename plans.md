@@ -1397,3 +1397,42 @@ was used without printing credentials.
 - [x] Added HTTP view tests for GET blocking (405), download backup authorization and path traversal protection, as well as script existence checks in `apps/admin_portal/test_database_tools.py` (16/16 tests pass).
 - [x] Ran Django checks (`manage.py check` 0 issues, `makemigrations --check --dry-run` 0 changes).
 - [x] Executed full project test suite (`manage.py test`: 419 passed, 1 skipped, 0 failures).
+
+
+### Catalog vocabulary and money consistency — 2026-10-29
+
+- [x] Owner attachment authorizes TV1 changes across Catalog/Customers/Shop and
+  Survey preference filters, and direct edits to the existing crm_db.sql.
+  Initial working tree clean on develop. Local branch codex/catalog-money-consistency;
+  initial delivery had no commit/push/merge. The owner subsequently authorized
+  committing and pushing this feature branch. Admin layout and authorization untouched.
+- [x] Explicit Lining/Li-Ning aliases, shared runtime catalog choices, old/inactive
+  saved-value retention, canonical preference writes, alias-aware search/filter/
+  distinct-customer reports and idempotent preview/apply repair. Six existing
+  category values retained. Kumpoo/VNB remain unmatched preserved legacy data.
+  No schema/FK/migration change. Repair merges only canonical preference keys,
+  preserving the smallest BRAND ID and latest FAVORITE_BRAND ID and reporting counts.
+- [x] Shared Decimal money field/widget/filter and caret-preserving JS for money
+  inputs only. Product/filter bounds and DECIMAL(12,2) preserved. Fixed related
+  registration preference split and Survey audience reverse-query failure.
+- [x] Original SQL updated in place: brand ID4 and eight product prefixes only;
+  0 preference merges. Import verified on newly created private DB, all rows/counts/
+  prices/relationships match expected, 22 tables and 25 FKs without orphans.
+  No replacement SQL/SQL backup generated. No development/demo DB mutation.
+- [x] Django check, migration drift/plan, JS syntax and diff checks pass. Browser
+  input/paste/invalid groups/caret/cents and Manager save/reopen verified on private
+  import DB. Shared test_crm_db rejected as stale (extra supplier_id); preserved.
+- [x] Full regression completed: 435 tests / 607.795s, 434 pass; one stale seed
+  test used customer__account__email on the current direct Account FK. Corrected
+  the test query without weakening assertions. A broader rerun lost its execution
+  session and is not counted as passing.
+- [x] Final focused rerun with unbuffered logs: 84/84 pass in 48.401s, including
+  the corrected seed test, SurveyBuilder audience aliases, preserved statuses and
+  latest-favorite merge regression. This is not a claim that the entire 435-test
+  suite was rerun successfully after correcting the stale test.
+  The latest-favorite merge/idempotency scenario also passed a separate rolled-back
+  MySQL transaction on the disposable import DB. QA account/session removed,
+  product restored, server stopped and all imported rows reverified.
+- Details, file manifest and existing-DB preview/apply instructions:
+  docs/catalog_money_consistency.md. Verified operational backup is required before
+  applying repair to an existing shared DB; no live repair was executed.
