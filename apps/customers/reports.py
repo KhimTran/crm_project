@@ -4,18 +4,19 @@ Mỗi hàm trả về list dict {"label": ..., "count": ...} để template vẽ
 Nhóm theo tháng làm bằng Python (localtime) thay cho TruncMonth vì MySQL cần nạp bảng timezone mới đổi múi giờ được.
 """
 
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 
 from django.db.models import Avg, Count
 from django.utils import timezone
 
+from apps.catalog.vocabulary import BRAND_PREFERENCE_TYPES, brand_choices, canonical_brand
 from apps.accounts.constants import AccountStatus
 from apps.feedback.constants import FeedbackStatus
 from apps.feedback.models import Feedback
 
 from .constants import (
-    AGE_GROUPS, FAVORITE_BRAND_TYPE, FAVORITE_BRANDS, CustomerStatus, Gender, PlayingLevel, PreferenceType,
+    AGE_GROUPS, FAVORITE_BRAND_TYPE, CustomerStatus, Gender, PlayingLevel, PreferenceType,
 )
 from .models import Customer, CustomerPreference
 from .selectors import age_group_of, customer_queryset
@@ -59,31 +60,34 @@ def playing_level_report():
 def preference_report():
     """Sở thích lấy từ bảng customer_preferences của hồ sơ khách (không lấy từ câu trả lời khảo sát);
     count = số khách chưa xóa khai báo giá trị đó, nhóm theo loại sở thích."""
-    rows =(CustomerPreference.objects.filter(customer__in=customer_queryset().values("pk"))
-            .values("preference_type", "preference_value")
-            .annotate(count=Count("customer", distinct=True))
-            .order_by("preference_type", "-count", "preference_value"))
-    report = {}
-    for row in rows:
-        report.setdefault(row["preference_type"], []).append({"label": row["preference_value"], "count": row["count"]})
-    return [{"type": ptype, "label": label, "rows": report[ptype]}
-            for ptype, label in PreferenceType.choices if ptype in report]
+    groups = defaultdict(set)
+    for ptype, value, customer_id in CustomerPreference.objects.filter(
+            customer__in=customer_queryset().values("pk")).values_list(
+                "preference_type", "preference_value", "customer_id"):
+        label = canonical_brand(value) if ptype in BRAND_PREFERENCE_TYPES else value
+        groups[(ptype, label)].add(customer_id)
+    return [{"type": ptype, "label": label, "rows": sorted(
+        [{"label": value, "count": len(customers)} for (kind, value), customers in groups.items() if kind == ptype],
+        key=lambda row: (-row["count"], row["label"]))}
+        for ptype, label in PreferenceType.choices if any(kind == ptype for kind, _ in groups)]
 
 
 # tv4: thống kê thương hiệu cầu lông yêu thích của khách chưa xóa (mỗi khách tính đúng 1 lần theo giá trị hiện tại)
 def favorite_brand_report():
-    """Mẫu số của % = số khách có thương hiệu hợp lệ (`answered`); khách chưa khai báo / giá trị null, rỗng,
-    không thuộc 5 nhóm được đếm riêng ở `unanswered` và không vào biểu đồ. Nếu dữ liệu lỗi có nhiều dòng
-    cho một khách thì lấy dòng mới nhất."""
+    """Count each customer's latest saved brand once, including retired catalog names.
+
+    Unmatched names remain visible; an empty latest value is unanswered.
+    """
     current = {}
     for customer_id, value in (CustomerPreference.objects.filter(
             preference_type=FAVORITE_BRAND_TYPE, customer__in=customer_queryset().values("pk"))
             .order_by("preference_id").values_list("customer_id", "preference_value")):
-        current[customer_id] = value
-    counter = Counter(v for v in current.values() if v in FAVORITE_BRANDS)
+        current[customer_id] = canonical_brand(value)
+    choices = brand_choices(saved=current.values(), include_other=True)
+    counter = Counter(v for v in current.values() if v)
     answered = sum(counter.values())
     total = customer_queryset().count()
-    rows = [{"label": brand, "count": counter[brand], "pct": _pct(counter[brand], answered)} for brand in FAVORITE_BRANDS]
+    rows = [{"label": brand, "count": counter[brand], "pct": _pct(counter[brand], answered)} for brand, _ in choices]
     return {"rows": rows, "answered": answered, "unanswered": total - answered, "total_customers": total}
 
 

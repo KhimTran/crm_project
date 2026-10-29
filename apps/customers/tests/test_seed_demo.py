@@ -67,7 +67,7 @@ class SeedDemoDataTests(TestCase):
         call_command("seed_catalog", verbosity=0)
         self.seed_twice()
         feedbacks = Feedback.objects.select_related("product__brand", "product__category").filter(
-            customer__account__email__in=[demo_email(i) for i in range(1, 41)])
+            customer__email__in=[demo_email(i) for i in range(1, 41)])
         self.assertGreaterEqual(feedbacks.count(), 30)
         self.assertFalse(feedbacks.filter(product__brand__brand_name=DEMO_BRAND_NAME).exists())
         self.assertEqual(set(feedbacks.values_list("product__category__category_name", flat=True)),

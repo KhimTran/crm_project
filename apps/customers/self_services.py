@@ -34,7 +34,7 @@ def _split_favorite_brand(profile):
 @transaction.atomic
 def register_customer(*, email, password, profile_data):
     """Always create an ACTIVE CUSTOMER, or roll back."""
-    profile = _profile_data(profile_data)
+    profile, brand, other_name = _split_favorite_brand(_profile_data(profile_data))
     email = AccountManager.normalize_account_email(email)
     if Account.objects.filter(email=email).exists():
         raise ValidationError({"email": "Email đã được sử dụng."})
@@ -48,6 +48,7 @@ def register_customer(*, email, password, profile_data):
         if Account.objects.filter(email=email).exists():
             raise ValidationError({"email": "Email đã được sử dụng."}) from exc
         raise
+    set_favorite_brand(account, brand, other_name)
     transaction.on_commit(lambda: logger.info("customer_registered target=%s", account.pk))
     return account
 

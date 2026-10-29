@@ -1,4 +1,5 @@
 {% extends 'manager/base.html' %}
+{% load money %}
 {% block title %}Products · CRM Manager Portal{% endblock %}
 {% block page_title %}Products{% endblock %}
 {% block content %}
@@ -70,7 +71,7 @@
           <td>{{ item.category.category_name }}</td>
           <td>{{ item.brand.brand_name }}</td>
           <td class="portal-description">{{ item.description|default:'—' }}</td>
-          <td>{{ item.price }}</td>
+          <td>{{ item.price|money }}</td>
           <td>{{ item.status }}</td>
           <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
           <td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>

@@ -14,7 +14,9 @@ from django.utils import timezone
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.models import Account
 
-from .constants import BRAND_CHOICES, PLAY_STYLE_CHOICES, CustomerStatus, Gender, PlayingLevel, PreferenceType
+from apps.catalog.vocabulary import brand_choices
+
+from .constants import PLAY_STYLE_CHOICES, CustomerStatus, Gender, PlayingLevel, PreferenceType
 from .models import Customer, CustomerPreference
 from .selectors import years_ago
 
@@ -40,7 +42,7 @@ def demo_email(index):
 
 
 # tv4: sinh hồ sơ khách hàng demo thứ i một cách cố định (cùng seed -> cùng dữ liệu)
-def _demo_profile(index, rng, today):
+def _demo_profile(index, rng, today, brands):
     gender = Gender.OTHER if index % 11 == 0 else (Gender.MALE if index % 2 else Gender.FEMALE)
     middle, first = (FEMALE_NAMES if gender == Gender.FEMALE else MALE_NAMES)[index % 10]
     date_of_birth = None
@@ -55,7 +57,7 @@ def _demo_profile(index, rng, today):
         "address": CITIES[index % len(CITIES)],
         "playing_level": None if index % 17 == 0 else LEVELS[index % len(LEVELS)],
         "play_styles": rng.sample([v for v, _ in PLAY_STYLE_CHOICES], rng.randint(1, 2)),
-        "brands": rng.sample([v for v, _ in BRAND_CHOICES], rng.randint(1, 3)),
+        "brands": rng.sample(brands, rng.randint(1, min(3, len(brands)))) if brands else [],
         "days_ago": rng.randint(0, 365),  # ngày tạo rải trong 12 tháng gần nhất
     }
 
@@ -66,10 +68,11 @@ def seed_customers(count=DEMO_CUSTOMER_COUNT, password=DEMO_CUSTOMER_PASSWORD):
     rng = random.Random(2026)
     today = timezone.localdate()
     now = timezone.now()
+    brands = [value for value, _ in brand_choices()]
     password_hash = None
     created = 0
     for index in range(1, count + 1):
-        profile = _demo_profile(index, rng, today)  # luôn sinh để giữ thứ tự random ổn định
+        profile = _demo_profile(index, rng, today, brands)  # luôn sinh để giữ thứ tự random ổn định
         email = demo_email(index)
         account = Account.objects.filter(email=email).first()
         if account is None:

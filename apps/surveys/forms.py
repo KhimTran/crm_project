@@ -5,6 +5,8 @@ from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 
+from apps.catalog.forms import BrandPreferenceMultipleChoiceField
+
 from .constants import AGE_GROUPS, CHOICE_TYPES, QuestionType, SurveyObjective
 from .questionnaire import TEMPLATE_KEY, question_definitions
 from .models import Survey, SurveyOption, SurveyQuestion
@@ -215,7 +217,7 @@ class AudienceForm(forms.Form):
         choices=[(key, label) for key, label, _lo, _hi in AGE_GROUPS])
     playing_levels = forms.MultipleChoiceField(
         label="Trình độ chơi", required=False, widget=forms.CheckboxSelectMultiple, choices=[])
-    preferences = forms.MultipleChoiceField(
+    preferences = BrandPreferenceMultipleChoiceField(
         label="Sở thích", required=False, widget=forms.CheckboxSelectMultiple, choices=[])
 
     def __init__(self, *args, **kwargs):

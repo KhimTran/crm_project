@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.catalog.models import Brand, Category, Product, Status
+from apps.catalog.normalization import normalize_catalog
 
 CATEGORIES = (
     ("Badminton rackets", "Vợt cầu lông các dòng thiên công, thủ và toàn diện"),
@@ -14,7 +15,7 @@ CATEGORIES = (
 
 BRANDS = (
     ("Yonex", "Thương hiệu cầu lông Nhật Bản"),
-    ("Lining", "Thương hiệu thể thao Trung Quốc"),
+    ("Li-Ning", "Thương hiệu thể thao Trung Quốc"),
     ("Victor", "Thương hiệu cầu lông Đài Loan"),
     ("Mizuno", "Thương hiệu thể thao Nhật Bản"),
     ("Apacs", "Thương hiệu cầu lông Malaysia"),
@@ -32,14 +33,14 @@ PRODUCTS = (
     ("Shuttlecocks", "Yonex", "Yonex Aerosensa 50", "Cầu lông vũ thi đấu, hộp 12 quả", "950000"),
     ("Badminton apparel", "Yonex", "Yonex Áo thi đấu nam", "Áo thun thoáng khí cho thi đấu", "650000"),
     # --- Lining ---
-    ("Badminton rackets", "Lining", "Lining Axforce 80", "Vợt thiên công, khung cứng", "3300000"),
-    ("Badminton rackets", "Lining", "Lining Windstorm 72", "Vợt nhẹ, linh hoạt, phù hợp người mới chơi", "1900000"),
-    ("Badminton rackets", "Lining", "Lining Aeronaut 9000", "Vợt thiên công, đầu nặng", "3000000"),
-    ("Badminton rackets", "Lining", "Lining Turbocharging 75", "Vợt thiên tốc độ, nhẹ", "2400000"),
-    ("Badminton rackets", "Lining", "Lining Bladex 900", "Vợt cân bằng, bền", "2800000"),
-    ("Badminton shoes", "Lining", "Lining Saga II", "Giày nhẹ, hỗ trợ di chuyển nhanh", "1800000"),
-    ("Shuttlecocks", "Lining", "Lining A+60", "Cầu lông vũ tập luyện, hộp 12 quả", "700000"),
-    ("Badminton apparel", "Lining", "Lining Áo thi đấu nam", "Áo thun thoáng khí, co giãn", "450000"),
+    ("Badminton rackets", "Li-Ning", "Li-Ning Axforce 80", "Vợt thiên công, khung cứng", "3300000"),
+    ("Badminton rackets", "Li-Ning", "Li-Ning Windstorm 72", "Vợt nhẹ, linh hoạt, phù hợp người mới chơi", "1900000"),
+    ("Badminton rackets", "Li-Ning", "Li-Ning Aeronaut 9000", "Vợt thiên công, đầu nặng", "3000000"),
+    ("Badminton rackets", "Li-Ning", "Li-Ning Turbocharging 75", "Vợt thiên tốc độ, nhẹ", "2400000"),
+    ("Badminton rackets", "Li-Ning", "Li-Ning Bladex 900", "Vợt cân bằng, bền", "2800000"),
+    ("Badminton shoes", "Li-Ning", "Li-Ning Saga II", "Giày nhẹ, hỗ trợ di chuyển nhanh", "1800000"),
+    ("Shuttlecocks", "Li-Ning", "Li-Ning A+60", "Cầu lông vũ tập luyện, hộp 12 quả", "700000"),
+    ("Badminton apparel", "Li-Ning", "Li-Ning Áo thi đấu nam", "Áo thun thoáng khí, co giãn", "450000"),
     # --- Victor ---
     ("Badminton rackets", "Victor", "Victor Auraspeed 90S", "Vợt tốc độ, đầu nhẹ", "3300000"),
     ("Badminton rackets", "Victor", "Victor Thruster Ryuga II", "Vợt thiên công, đầu nặng", "3600000"),
@@ -80,14 +81,14 @@ IMAGES = {
     'Apacs Nano Fusion Speed 722': 'https://i.imgur.com/DtsE3lD.jpeg',
     'Apacs Virtuoso Pro': 'https://i.imgur.com/02l3P1e.jpeg',
     'Apacs Z-Ziggler': 'https://i.imgur.com/6yXd346.jpeg',
-    'Lining A+60': 'https://i.imgur.com/Wu1mNuH.jpeg',
-    'Lining Aeronaut 9000': 'https://i.imgur.com/93F6k1G.jpeg',
-    'Lining Áo thi đấu nam': 'https://i.imgur.com/NFacQwV.jpeg',
-    'Lining Axforce 80': 'https://i.imgur.com/e0z4dBv.jpeg',
-    'Lining Bladex 900': 'https://i.imgur.com/CPs0pT4.jpeg',
-    'Lining Saga II': 'https://i.imgur.com/d5oihyp.jpeg',
-    'Lining Turbocharging 75': 'https://i.imgur.com/NqFuEKf.jpeg',
-    'Lining Windstorm 72': 'https://i.imgur.com/NjODJwE.jpeg',
+    'Li-Ning A+60': 'https://i.imgur.com/Wu1mNuH.jpeg',
+    'Li-Ning Aeronaut 9000': 'https://i.imgur.com/93F6k1G.jpeg',
+    'Li-Ning Áo thi đấu nam': 'https://i.imgur.com/NFacQwV.jpeg',
+    'Li-Ning Axforce 80': 'https://i.imgur.com/e0z4dBv.jpeg',
+    'Li-Ning Bladex 900': 'https://i.imgur.com/CPs0pT4.jpeg',
+    'Li-Ning Saga II': 'https://i.imgur.com/d5oihyp.jpeg',
+    'Li-Ning Turbocharging 75': 'https://i.imgur.com/NqFuEKf.jpeg',
+    'Li-Ning Windstorm 72': 'https://i.imgur.com/NjODJwE.jpeg',
     'Mizuno Acrospeed 5.0': 'https://i.imgur.com/4c4orId.jpeg',
     'Mizuno Altius 01 Speed': 'https://i.imgur.com/GsttcMO.jpeg',
     'Mizuno Altius 03 Feel': 'https://i.imgur.com/vaAtEUX.jpeg',
@@ -118,6 +119,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        normalize_catalog(apply=True)
         categories = {}
         for name, description in CATEGORIES:
             categories[name], _ = Category.objects.update_or_create(

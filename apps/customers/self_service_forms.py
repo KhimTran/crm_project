@@ -4,7 +4,8 @@ from django import forms
 from django.utils import timezone
 
 from apps.catalog.models import Category, Status
-from .constants import FAVORITE_BRAND_OTHER, FAVORITE_BRAND_OTHER_MAX_LENGTH, FAVORITE_BRANDS
+from apps.catalog.vocabulary import brand_choices, canonical_brand
+from .constants import FAVORITE_BRAND_OTHER, FAVORITE_BRAND_OTHER_MAX_LENGTH
 from .favorite_brand import get_favorite_brand
 from .models import Customer
 from .self_service_choices import CATEGORY_PREFERENCE_TYPE, GENDER_CHOICES, PLAYING_LEVEL_CHOICES
@@ -16,7 +17,7 @@ class CustomerProfileForm(forms.ModelForm):
     # tv4: thương hiệu cầu lông yêu thích (không bắt buộc); "Other" mở thêm ô nhập tên hãng
     favorite_brand = forms.ChoiceField(
         label="Favorite Badminton Brand", required=False,
-        choices=[("", "Select your favorite brand"), *[(brand, brand) for brand in FAVORITE_BRANDS]],
+        choices=(),
         help_text="Optional. Choose the one brand you like most.",
     )
     favorite_brand_other = forms.CharField(
@@ -27,10 +28,18 @@ class CustomerProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        brand = None
         if self.instance is not None and self.instance.pk:
             brand, other_name = get_favorite_brand(self.instance)
             self.initial.setdefault("favorite_brand", brand or "")
             self.initial.setdefault("favorite_brand_other", other_name)
+        self.fields["favorite_brand"].choices = [
+            ("", "Select your favorite brand"), *brand_choices(saved=(brand,), include_other=True),
+        ]
+        # Accept only the two explicit aliases, before ChoiceField validation.
+        if self.is_bound and self.data.get("favorite_brand"):
+            self.data = self.data.copy()
+            self.data["favorite_brand"] = canonical_brand(self.data["favorite_brand"])
         for field, choices in (("gender", GENDER_CHOICES), ("playing_level", PLAYING_LEVEL_CHOICES)):
             options = [("", "Chưa chọn"), *choices]
             saved = getattr(self.instance, field, None)

@@ -9,7 +9,7 @@ from django.db.models import ProtectedError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.formats import localize
+from apps.catalog.money import format_money
 
 from .models import Brand, Category, Product
 
@@ -89,7 +89,7 @@ class ProductListUiTests(TestCase):
         response = self.client.get(reverse("catalog_admin:product_list"))
         for heading in ("Product ID", "Product Name", "Category", "Brand", "Description", "Price", "Status", "Created At", "Updated At", "Actions"):
             self.assertContains(response, heading)
-        for value in (f"<td>{self.product.pk}</td>", "Astrox 100", "Rackets", "Yonex", "Full racket description with specifications.", localize(self.product.price), "ACTIVE"):
+        for value in (f"<td>{self.product.pk}</td>", "Astrox 100", "Rackets", "Yonex", "Full racket description with specifications.", format_money(self.product.price), "ACTIVE"):
             self.assertContains(response, value)
         for value in (self.product.created_at, self.product.updated_at):
             self.assertContains(response, timezone.localtime(value).strftime("%Y-%m-%d %H:%M"))

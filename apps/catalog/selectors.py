@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 from .models import Brand, Category, Product
+from .vocabulary import search_aliases
 
 PRODUCT_SORTS = {
     "id": "product_id",
@@ -26,11 +27,10 @@ def list_product_page(*, page=1, q="", status="", category_id="",
     query = Product.objects.select_related("category", "brand")
     search = q.strip()
     if search:
-        query = query.filter(
-            Q(product_name__icontains=search)
-            | Q(brand__brand_name__icontains=search)
-            | Q(category__category_name__icontains=search)
-        )
+        condition = Q(category__category_name__icontains=search)
+        for term in search_aliases(search):
+            condition |= Q(product_name__icontains=term) | Q(brand__brand_name__icontains=term)
+        query = query.filter(condition)
     if status:
         query = query.filter(status=status)
     if category_id:
@@ -46,9 +46,10 @@ def _list_simple_page(model, name_field, *, page, q, status, sort, direction, pa
     query = model.objects.all()
     search = q.strip()
     if search:
-        query = query.filter(
-            Q(**{f"{name_field}__icontains": search}) | Q(description__icontains=search)
-        )
+        condition = Q(description__icontains=search)
+        for term in search_aliases(search) if model is Brand else (search,):
+            condition |= Q(**{f"{name_field}__icontains": term})
+        query = query.filter(condition)
     if status:
         query = query.filter(status=status)
     query = _order(query, sorts, sort, direction, "name", "pk")
