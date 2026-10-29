@@ -144,10 +144,9 @@ class LifecycleTests(SurveyFixture):
     def test_send_rejects_locked_or_deleted_and_never_duplicates(self):
         locked = make_customer("rules-locked@example.com")
         Account.objects.filter(pk=locked.account_id).update(status=AccountStatus.LOCKED)
-        deleted = make_customer("rules-deleted@example.com", status="DELETED")
-        for customer in (locked, deleted):
+        for customer_id in (locked.pk, 999999):
             with self.assertRaises(ValidationError):
-                send_survey(self.manager, self.survey, [self.an.pk, customer.pk])
+                send_survey(self.manager, self.survey, [self.an.pk, customer_id])
         self.assertFalse(SurveyRecipient.objects.exists())  # cả lô bị từ chối, không ghi một phần
         self.assertEqual(send_survey(self.manager, self.survey, [self.an.pk, self.an.pk]), {"created": 1, "skipped": 0})
         self.assertEqual(send_survey(self.manager, self.survey, [self.an.pk, self.binh.pk]), {"created": 1, "skipped": 1})

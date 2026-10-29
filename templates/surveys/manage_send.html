@@ -24,7 +24,7 @@
   {% else %}<p class="sv-card">Có <b>{{ preview }}</b> khách hàng phù hợp. Khách đã nhận trước đó sẽ được bỏ qua.</p>{% endif %}{% endif %}
   <button class="sv-btn sv-ghost" name="action" value="preview">{% t "Xem số người nhận" "Preview Recipients" %}</button>
   <button class="sv-btn" name="action" value="send" {% if errors %}disabled{% endif %}
-          onclick="return confirm('{% t "Gửi khảo sát đến các khách hàng đã chọn?" "Send the survey to the selected customers?" %}')">{% t "Gửi ngay" "Send Now" %}</button>
+          onclick="return confirm('Send the survey to the selected customers?');">{% t "Gửi ngay" "Send Now" %}</button>
   <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_detail' survey.survey_id %}">{% t "Quay lại" "Back" %}</a>
 </form>
 {% endblock %}

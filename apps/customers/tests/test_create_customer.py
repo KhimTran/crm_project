@@ -56,8 +56,10 @@ class CreateCustomerServiceTests(TestCase):
 
     def test_deleted_customer_phone_can_be_reused(self):
         customer = create_customer(password=PASSWORD, email="a@example.com", full_name="A", phone="0901111111")
-        Customer.objects.filter(pk=customer.pk).update(status=CustomerStatus.DELETED)
-        create_customer(password=PASSWORD, email="b@example.com", full_name="B", phone="0901111111")
+        from apps.customers.services import delete_customer
+        delete_customer(customer.pk)
+        new_customer = create_customer(password=PASSWORD, email="b@example.com", full_name="B", phone="0901111111")
+        self.assertEqual(new_customer.phone, "0901111111")
 
 
 # tv4: test 4.1.1 trang thêm khách hàng và phân quyền
@@ -81,7 +83,7 @@ class CustomerCreateViewTests(TestCase):
             self.client.force_login(account)
             response = self.client.post(self.url, VALID)
             self.assertNotEqual(response.status_code, 200)
-            self.assertFalse(Customer.objects.exists())
+            self.assertFalse(Customer.objects.filter(email=VALID["email"]).exists())
 
     def test_manager_sees_form(self):
         self.client.force_login(self.manager)
@@ -107,23 +109,24 @@ class CustomerCreateViewTests(TestCase):
         bad = {**VALID, "phone": "123", "email": "khong-hop-le", "date_of_birth": "2999-01-01"}
         response = self.client.post(self.url, bad)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Số điện thoại không hợp lệ")
-        self.assertContains(response, "Ngày sinh không hợp lệ")
-        self.assertFalse(Customer.objects.exists())
+        self.assertContains(response, "Invalid phone number")
+        self.assertContains(response, "Invalid date of birth")
+        self.assertFalse(Customer.objects.filter(email=bad["email"]).exists())
 
     def test_duplicate_email_and_phone_show_form_errors(self):
         self.client.force_login(self.manager)
         self.client.post(self.url, VALID)
         response = self.client.post(self.url, VALID)
-        self.assertContains(response, "Email đã được sử dụng")
-        self.assertContains(response, "Số điện thoại đã được sử dụng")
-        self.assertEqual(Customer.objects.count(), 1)
+        self.assertContains(response, "Email is already in use")
+        self.assertContains(response, "Phone number is already in use")
+        self.assertEqual(Customer.objects.filter(email=VALID["email"]).count(), 1)
 
     def test_list_searches_and_hides_deleted(self):
         self.client.force_login(self.manager)
         keep = create_customer(password=PASSWORD, email="keep@example.com", full_name="Trần Thị Bình", phone="0903333333")
         gone = create_customer(password=PASSWORD, email="gone@example.com", full_name="Lê Văn Cường", phone="0904444444")
-        Customer.objects.filter(pk=gone.pk).update(status=CustomerStatus.DELETED)
+        from apps.customers.services import delete_customer
+        delete_customer(gone.pk)
         response = self.client.get(reverse("customers:list"), {"q": "Bình"})
         self.assertContains(response, "Trần Thị Bình")
         self.assertNotContains(response, "Lê Văn Cường")

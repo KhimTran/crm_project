@@ -2,17 +2,169 @@
 {% block title %}Account {{ account.account_id }} · CRM Admin Portal{% endblock %}
 {% block page_title %}Account {{ account.account_id }}{% endblock %}
 {% block content %}
-<div class="portal-section-intro"><a href="{% url 'accounts_admin:list' %}">Back to Accounts</a></div>
-<section class="portal-panel">
-  <h2 class="h6">Account information</h2>
-  <dl class="row mb-0">
-    <dt class="col-sm-3">Email</dt><dd class="col-sm-9">{{ account.email }}</dd>
-    <dt class="col-sm-3">Role</dt><dd class="col-sm-9">{{ account.role }}</dd>
-    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">{{ account.status }}</dd>
-    <dt class="col-sm-3">Last login</dt><dd class="col-sm-9">{{ account.last_login_at|date:"Y-m-d H:i"|default:"Never" }}</dd>
-    <dt class="col-sm-3">Created</dt><dd class="col-sm-9">{{ account.created_at|date:"Y-m-d H:i" }}</dd>
-    <dt class="col-sm-3">Updated</dt><dd class="col-sm-9">{{ account.updated_at|date:"Y-m-d H:i" }}</dd>
-  </dl>
-</section>
-<p class="text-muted">Account actions are available from the Account Management list.</p>
+<div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts_admin:list' %}">← Back to Accounts</a>
+  <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+    Edit Profile
+  </button>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <section class="portal-panel h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h6 mb-0">Account Information</h2>
+        <span class="portal-badge role-{{ account.role|lower }}">{{ account.role }}</span>
+      </div>
+      <dl class="row mb-0">
+        <dt class="col-sm-4 text-muted">Account ID</dt>
+        <dd class="col-sm-8 fw-semibold">{{ account.account_id }}</dd>
+
+        <dt class="col-sm-4 text-muted">Email</dt>
+        <dd class="col-sm-8">{{ account.email }}</dd>
+
+        <dt class="col-sm-4 text-muted">Role</dt>
+        <dd class="col-sm-8"><span class="portal-badge role-{{ account.role|lower }}">{{ account.role }}</span></dd>
+
+        <dt class="col-sm-4 text-muted">Status</dt>
+        <dd class="col-sm-8"><span class="portal-badge status-{{ account.status|lower }}">{{ account.status }}</span></dd>
+
+        <dt class="col-sm-4 text-muted">Last login</dt>
+        <dd class="col-sm-8">{{ account.last_login_at|date:"Y-m-d H:i"|default:"Never" }}</dd>
+
+        <dt class="col-sm-4 text-muted">Created</dt>
+        <dd class="col-sm-8">{{ account.created_at|date:"Y-m-d H:i" }}</dd>
+
+        <dt class="col-sm-4 text-muted">Updated</dt>
+        <dd class="col-sm-8">{{ account.updated_at|date:"Y-m-d H:i" }}</dd>
+      </dl>
+    </section>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <section class="portal-panel h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h6 mb-0">Profile Information ({% if account.role == 'ADMIN' %}Admin Profile{% elif account.role == 'MANAGER' %}Staff Profile{% else %}Customer Profile{% endif %})</h2>
+        {% if account.profile and account.profile.code %}
+          <span class="badge text-bg-light border fs-6">{{ account.profile.code }}</span>
+        {% endif %}
+      </div>
+
+      {% if account.profile %}
+      <dl class="row mb-0">
+        <dt class="col-sm-4 text-muted">Code</dt>
+        <dd class="col-sm-8"><span class="fw-semibold text-primary">{{ account.profile.code|default:"—" }}</span></dd>
+
+        <dt class="col-sm-4 text-muted">Full Name</dt>
+        <dd class="col-sm-8 fw-medium">{{ account.profile.full_name|default:"—" }}</dd>
+
+        <dt class="col-sm-4 text-muted">Phone</dt>
+        <dd class="col-sm-8">{{ account.profile.phone|default:"—" }}</dd>
+
+        <dt class="col-sm-4 text-muted">Date of Birth</dt>
+        <dd class="col-sm-8">{{ account.profile.date_of_birth|date:"Y-m-d"|default:"—" }}</dd>
+
+        <dt class="col-sm-4 text-muted">Gender</dt>
+        <dd class="col-sm-8">
+          {% if account.profile.gender == 'MALE' %}Nam
+          {% elif account.profile.gender == 'FEMALE' %}Nữ
+          {% elif account.profile.gender == 'OTHER' %}Khác
+          {% else %}{{ account.profile.gender|default:"—" }}{% endif %}
+        </dd>
+
+        <dt class="col-sm-4 text-muted">Address</dt>
+        <dd class="col-sm-8">{{ account.profile.address|default:"—" }}</dd>
+
+        {% if account.role == 'CUSTOMER' %}
+        <dt class="col-sm-4 text-muted">Playing Level</dt>
+        <dd class="col-sm-8">{{ account.profile.playing_level|default:"—" }}</dd>
+        {% endif %}
+
+        <dt class="col-sm-4 text-muted">Profile Status</dt>
+        <dd class="col-sm-8">
+          <span class="badge {% if account.profile.status == 'ACTIVE' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+            {{ account.profile.status|default:"ACTIVE" }}
+          </span>
+        </dd>
+      </dl>
+      {% else %}
+      <div class="text-center py-4 text-muted">
+        <p class="mb-3">No profile attached yet.</p>
+        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+          Create Profile
+        </button>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'accounts_admin:profile_update' account.account_id %}" novalidate>
+        {% csrf_token %}
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="editProfileModalTitle">
+            Edit Profile ({% if account.role == 'ADMIN' %}Admin{% elif account.role == 'MANAGER' %}Staff{% else %}Customer{% endif %})
+          </h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label" for="id_full_name">Full Name <span class="text-danger">*</span></label>
+              {{ profile_form.full_name }}
+              {{ profile_form.full_name.errors }}
+            </div>
+            <div class="col-6">
+              <label class="form-label" for="id_email">Email <span class="text-danger">*</span></label>
+              {{ profile_form.email }}
+              {{ profile_form.email.errors }}
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label" for="id_phone">Phone</label>
+              {{ profile_form.phone }}
+              {{ profile_form.phone.errors }}
+            </div>
+            <div class="col-6">
+              <label class="form-label" for="id_gender">Gender</label>
+              {{ profile_form.gender }}
+              {{ profile_form.gender.errors }}
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label" for="id_date_of_birth">Date of Birth</label>
+              {{ profile_form.date_of_birth }}
+              {{ profile_form.date_of_birth.errors }}
+            </div>
+            {% if account.role == 'CUSTOMER' %}
+            <div class="col-6">
+              <label class="form-label" for="id_playing_level">Playing Level</label>
+              {{ profile_form.playing_level }}
+              {{ profile_form.playing_level.errors }}
+            </div>
+            {% else %}
+            <div class="col-6"></div>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="id_address">Address</label>
+            {{ profile_form.address }}
+            {{ profile_form.address.errors }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

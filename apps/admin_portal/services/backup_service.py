@@ -78,8 +78,17 @@ def verify_database_backup(path: Path):
 def create_database_backup(*, actor_id=None, purpose="manual") -> Path:
     config = get_database_config()
 
-    bin_dir = os.getenv("MYSQL_BIN")
-    executable = (Path(bin_dir) / "mysqldump.exe") if bin_dir else shutil.which("mysqldump")
+    bin_dir = os.getenv("MYSQL_BIN") or getattr(settings, "MYSQL_BIN", None)
+    executable = None
+    if bin_dir:
+        clean_bin = Path(str(bin_dir).strip("'\""))
+        candidate = clean_bin / "mysqldump.exe"
+        if candidate.is_file():
+            executable = candidate
+        elif (clean_bin / "mysqldump").is_file():
+            executable = clean_bin / "mysqldump"
+    if not executable:
+        executable = shutil.which("mysqldump")
     if not executable or not Path(executable).is_file():
         raise RuntimeError("mysqldump executable is unavailable on the system.")
 

@@ -12,6 +12,7 @@
   <a class="{% if in_admin_portal %}btn btn-outline-secondary btn-sm customer-back-link{% else %}crm-btn crm-btn-secondary crm-btn-sm{% endif %}" href="{% url 'customers:list' %}">{% if in_admin_portal %}&larr;{% else %}&laquo;{% endif %} {% t "Quay lại danh sách khách hàng" "Back to customers" %}</a>
   {% if can_manage %}
     <div class="crm-row-actions">
+      <a class="crm-btn crm-btn-primary" href="{% url 'customers:edit' customer.customer_id %}">{% t "Sửa" "Edit" %}</a>
       {% if customer.account.status == "ACTIVE" %}
         <form method="post" action="{% url 'customers:lock' customer.customer_id %}">
           {% csrf_token %}

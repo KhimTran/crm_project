@@ -65,7 +65,7 @@
               <a class="btn btn-sm btn-outline-secondary" href="{% url 'surveys:manage_detail' item.survey_id %}">{% t "Xem" "View" %}</a>
               {% if item.editable %}
               <a class="btn btn-sm btn-outline-secondary" href="{% url 'surveys:manage_edit' item.survey_id %}">{% t "Sửa" "Edit" %}</a>
-              <form method="post" action="{% url 'surveys:manage_delete' item.survey_id %}" onsubmit="return confirm('{% t "Xóa khảo sát này?" "Delete this survey?" %}');">
+              <form method="post" action="{% url 'surveys:manage_delete' item.survey_id %}" onsubmit="return confirm('Delete this survey?');">
                 {% csrf_token %}
                 <button class="btn btn-sm btn-outline-danger" type="submit">{% t "Xóa" "Delete" %}</button>
               </form>

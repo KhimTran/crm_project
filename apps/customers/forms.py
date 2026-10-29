@@ -15,19 +15,18 @@ from .models import Customer
 PHONE_PATTERN = re.compile(r"^(0|\+84)\d{9}$")
 
 
-# tv4: 4.1.1 form thêm khách hàng, kiểm tra SĐT / ngày sinh
 class CustomerCreateForm(forms.Form):
-    full_name = forms.CharField(label="Họ tên", max_length=150, strip=True)
+    full_name = forms.CharField(label="Full Name", max_length=150, strip=True)
     email = forms.EmailField(label="Email", max_length=255)
-    password = forms.CharField(label="Mật khẩu", strip=False,
+    password = forms.CharField(label="Password", strip=False,
                                widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "crm-input"}))
-    phone = forms.CharField(label="Số điện thoại", max_length=20, strip=True)
-    date_of_birth = forms.DateField(label="Ngày sinh", required=False,
+    phone = forms.CharField(label="Phone", max_length=20, strip=True)
+    date_of_birth = forms.DateField(label="Date of Birth", required=False,
                                     widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"))
-    gender = forms.ChoiceField(label="Giới tính", required=False, choices=[("", "-- Chọn --"), *Gender.choices])
-    address = forms.CharField(label="Địa chỉ", required=False, max_length=255, strip=True)
-    playing_level = forms.ChoiceField(label="Trình độ chơi", required=False,
-                                      choices=[("", "-- Chọn --"), *PlayingLevel.choices])
+    gender = forms.ChoiceField(label="Gender", required=False, choices=[("", "-- Select --"), *Gender.choices])
+    address = forms.CharField(label="Address", required=False, max_length=255, strip=True)
+    playing_level = forms.ChoiceField(label="Playing Level", required=False,
+                                      choices=[("", "-- Select --"), *PlayingLevel.choices])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,42 +41,83 @@ class CustomerCreateForm(forms.Form):
                 self.add_error("password", exc)
         return data
 
-    # tv4: chuẩn hóa email và chặn email đã có tài khoản
     def clean_email(self):
         email = AccountManager.normalize_account_email(self.cleaned_data["email"])
         if Account.objects.filter(email=email).exists():
-            raise forms.ValidationError("Email đã được sử dụng.")
+            raise forms.ValidationError("Email is already in use.")
         return email
 
-    # tv4: kiểm tra định dạng SĐT Việt Nam và chặn SĐT trùng với khách hàng chưa xóa
     def clean_phone(self):
         phone = self.cleaned_data["phone"].replace(" ", "")
         if not PHONE_PATTERN.match(phone):
-            raise forms.ValidationError("Số điện thoại không hợp lệ (ví dụ 0901234567).")
-        if Customer.objects.filter(phone=phone).exclude(status=CustomerStatus.DELETED).exists():
-            raise forms.ValidationError("Số điện thoại đã được sử dụng.")
+            raise forms.ValidationError("Invalid phone number (e.g. 0901234567).")
+        if Customer.objects.filter(phone=phone).exists():
+            raise forms.ValidationError("Phone number is already in use.")
         return phone
 
-    # tv4: chặn ngày sinh ở tương lai hoặc trước năm 1900
     def clean_date_of_birth(self):
         dob = self.cleaned_data.get("date_of_birth")
         if dob is not None and not (date(1900, 1, 1) <= dob <= date.today()):
-            raise forms.ValidationError("Ngày sinh không hợp lệ.")
+            raise forms.ValidationError("Invalid date of birth.")
         return dob
 
 
-# tv4: 4.1.3 form nhập lý do khóa tài khoản
+class CustomerEditForm(forms.Form):
+    full_name = forms.CharField(label="Full Name", max_length=150, strip=True, widget=forms.TextInput(attrs={"class": "crm-input"}))
+    email = forms.EmailField(label="Email", max_length=255, widget=forms.EmailInput(attrs={"class": "crm-input"}))
+    phone = forms.CharField(label="Phone", max_length=20, required=False, strip=True, widget=forms.TextInput(attrs={"class": "crm-input"}))
+    date_of_birth = forms.DateField(label="Date of Birth", required=False,
+                                    widget=forms.DateInput(attrs={"type": "date", "class": "crm-input"}, format="%Y-%m-%d"))
+    gender = forms.ChoiceField(label="Gender", required=False, choices=[("", "-- Select --"), *Gender.choices],
+                               widget=forms.Select(attrs={"class": "crm-select"}))
+    address = forms.CharField(label="Address", required=False, max_length=255, strip=True, widget=forms.TextInput(attrs={"class": "crm-input"}))
+    playing_level = forms.ChoiceField(label="Playing Level", required=False,
+                                      choices=[("", "-- Select --"), *PlayingLevel.choices],
+                                      widget=forms.Select(attrs={"class": "crm-select"}))
+
+    def __init__(self, *args, customer_id=None, **kwargs):
+        self.customer_id = customer_id
+        super().__init__(*args, **kwargs)
+
+    def clean_email(self):
+        email = AccountManager.normalize_account_email(self.cleaned_data["email"])
+        qs = Account.objects.filter(email=email)
+        if self.customer_id:
+            qs = qs.exclude(pk=self.customer_id)
+        if qs.exists():
+            raise forms.ValidationError("Email is already in use.")
+        return email
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get("phone", "")
+        if not phone:
+            return ""
+        phone = phone.replace(" ", "")
+        if not PHONE_PATTERN.match(phone):
+            raise forms.ValidationError("Invalid phone number (e.g. 0901234567).")
+        qs = Customer.objects.filter(phone=phone)
+        if self.customer_id:
+            qs = qs.exclude(pk=self.customer_id)
+        if qs.exists():
+            raise forms.ValidationError("Phone number is already in use.")
+        return phone
+
+    def clean_date_of_birth(self):
+        dob = self.cleaned_data.get("date_of_birth")
+        if dob is not None and not (date(1900, 1, 1) <= dob <= date.today()):
+            raise forms.ValidationError("Invalid date of birth.")
+        return dob
+
+
 class CustomerLockForm(forms.Form):
-    # Schema không có cột lý do khóa nên lý do chỉ hiển thị trong thông báo, không lưu DB.
-    reason = forms.CharField(label="Lý do khóa", required=False, max_length=255, strip=True)
+    reason = forms.CharField(label="Lock reason", required=False, max_length=255, strip=True)
 
 
-# tv4: form tìm kiếm / lọc danh sách khách hàng
 class CustomerFilterForm(forms.Form):
-    q = forms.CharField(label="Từ khóa", required=False, max_length=100, strip=True,
-                        widget=forms.TextInput(attrs={"placeholder": "Tên, SĐT, email"}))
-    age_group = forms.ChoiceField(label="Nhóm tuổi", required=False, choices=[("", "Tất cả"), *AGE_GROUP_CHOICES])
-    gender = forms.ChoiceField(label="Giới tính", required=False, choices=[("", "Tất cả"), *Gender.choices])
-    playing_level = forms.ChoiceField(label="Trình độ", required=False, choices=[("", "Tất cả"), *PlayingLevel.choices])
-    account_status = forms.ChoiceField(label="Tài khoản", required=False,
-                                       choices=[("", "Tất cả"), *AccountStatusFilter.choices])
+    q = forms.CharField(label="Keyword", required=False, max_length=100, strip=True,
+                        widget=forms.TextInput(attrs={"placeholder": "Name, phone, email"}))
+    age_group = forms.ChoiceField(label="Age Group", required=False, choices=[("", "All"), *AGE_GROUP_CHOICES])
+    gender = forms.ChoiceField(label="Gender", required=False, choices=[("", "All"), *Gender.choices])
+    playing_level = forms.ChoiceField(label="Playing Level", required=False, choices=[("", "All"), *PlayingLevel.choices])
+    account_status = forms.ChoiceField(label="Account", required=False,
+                                       choices=[("", "All"), *AccountStatusFilter.choices])

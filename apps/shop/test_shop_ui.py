@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlsplit
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from apps.catalog.models import Brand, Category, Product, Supplier
+from apps.catalog.models import Brand, Category, Product
 from .templatetags.shop_ui import vnd_price
 
 
@@ -94,9 +94,8 @@ class ShopNavigationTests(TestCase):
         cls.inactive = Category.objects.create(category_name="Hidden category", status="INACTIVE")
         cls.brand = Brand.objects.create(brand_name="Brand only label")
         cls.inactive_brand = Brand.objects.create(brand_name="Hidden brand", status="INACTIVE")
-        cls.supplier = Supplier.objects.create(supplier_code="SHOP-UI", supplier_name="Test supplier")
         cls.product = Product.objects.create(
-            category=cls.rackets, brand=cls.brand, supplier=cls.supplier,
+            category=cls.rackets, brand=cls.brand,
             product_name="Decimal price racket", price=Decimal("1250000.50"),
         )
 

@@ -190,99 +190,29 @@ class AccountServiceTests(TestCase):
 class AccountForeignKeyDeleteTests(TransactionTestCase):
     password = "StrongPass!2026"
 
-    def test_customer_without_history_is_soft_deleted(self):
+    def test_customer_without_history_is_hard_deleted(self):
         admin = get_user_model().objects.create_superuser("admin@example.com", self.password)
-        customer = get_user_model().objects.create_user("customer@example.com", self.password)
-        from apps.customers.models import Customer
-        profile = Customer.objects.create(account=customer, full_name="Customer")
+        customer = get_user_model().objects.create_user("customer@example.com", self.password, full_name="Customer")
         result = delete_account(admin, customer.pk)
-        self.assertEqual(result, {"account_id": customer.pk, "customer_deleted": True})
-        customer.refresh_from_db()
-        profile.refresh_from_db()
-        self.assertEqual(customer.status, AccountStatus.LOCKED)
-        self.assertEqual(profile.status, "DELETED")
-        self.assertIsNotNone(profile.deleted_at)
-        self.assertIsNone(authenticate(email=customer.email, password=self.password))
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT account_id FROM customers WHERE account_id = %s", [customer.pk])
-            self.assertEqual(cursor.fetchone()[0], customer.pk)
+        self.assertEqual(result, {"account_id": customer.pk})
+        self.assertFalse(get_user_model().objects.filter(pk=customer.pk).exists())
 
-    def test_customer_with_history_is_soft_deleted_and_history_preserved(self):
-        from apps.catalog.models import Brand, Category, Product, Supplier
-        from apps.customers.models import Customer, CustomerPreference
-        from apps.feedback.models import Feedback
-        from apps.surveys.models import Survey, SurveyRecipient
-
-        admin = get_user_model().objects.create_superuser("admin@example.com", self.password)
-        customer = get_user_model().objects.create_user("customer@example.com", self.password)
-        profile = Customer.objects.create(account=customer, full_name="Customer")
-        pref = CustomerPreference.objects.create(customer=profile, preference_type="BRAND", preference_value="Yonex")
-        product = Product.objects.create(
-            category=Category.objects.create(category_name="Rackets"),
-            brand=Brand.objects.create(brand_name="Demo brand"),
-            supplier=Supplier.objects.create(supplier_code="TEST", supplier_name="Demo supplier"),
-            product_name="Demo racket", price="100.00",
-        )
-        feedback = Feedback.objects.create(
-            customer=profile, product=product, rating=5,
-            content="Good", status="NEW",
-        )
-        survey = Survey.objects.create(title="History survey", created_by=admin, status="ACTIVE")
-        recipient = SurveyRecipient.objects.create(survey=survey, customer=profile, status="SENT")
-        delete_account(admin, customer.pk)
-        customer.refresh_from_db()
-        profile.refresh_from_db()
-        self.assertEqual((profile.status, customer.status), ("DELETED", AccountStatus.LOCKED))
-        self.assertTrue(get_user_model().objects.filter(pk=customer.pk).exists())
-        self.assertTrue(Feedback.objects.filter(pk=feedback.pk, customer=profile).exists())
-        self.assertTrue(SurveyRecipient.objects.filter(pk=recipient.pk, customer=profile).exists())
-        self.assertTrue(CustomerPreference.objects.filter(pk=pref.pk).exists())
-
-    def test_soft_deleted_customer_is_hidden_and_gets_no_new_surveys(self):
-        from apps.customers.models import Customer
-        from apps.customers.selectors import customer_queryset
-        from apps.surveys.services import eligible_customers
-
-        admin = get_user_model().objects.create_superuser("admin@example.com", self.password)
-        customer = get_user_model().objects.create_user("customer@example.com", self.password)
-        profile = Customer.objects.create(account=customer, full_name="Customer")
-        delete_account(admin, customer.pk)
-        self.assertFalse(customer_queryset().filter(pk=profile.pk).exists())
-        self.assertFalse(eligible_customers().filter(pk=profile.pk).exists())
-
-    def test_delete_is_idempotent_for_soft_deleted_customer(self):
-        from apps.customers.models import Customer
-
-        admin = get_user_model().objects.create_superuser("admin@example.com", self.password)
-        customer = get_user_model().objects.create_user("customer@example.com", self.password)
-        profile = Customer.objects.create(account=customer, full_name="Customer")
-        delete_account(admin, customer.pk)
-        profile.refresh_from_db()
-        deleted_at = profile.deleted_at
-        self.assertEqual(delete_account(admin, customer.pk)["customer_deleted"], True)
-        profile.refresh_from_db()
-        self.assertEqual(profile.deleted_at, deleted_at)
-
-    def test_set_null_reference_preserves_handler_attribution(self):
-        from apps.catalog.models import Brand, Category, Product, Supplier
-        from apps.customers.models import Customer
+    def test_customer_with_history_raises_protected_error(self):
+        from apps.catalog.models import Brand, Category, Product
         from apps.feedback.models import Feedback
 
         admin = get_user_model().objects.create_superuser("admin@example.com", self.password)
-        handler = get_user_model().objects.create_user("handler@example.com", self.password)
-        customer = Customer.objects.create(account=handler, full_name="Handler")
+        customer = get_user_model().objects.create_user("customer@example.com", self.password, full_name="Customer")
         product = Product.objects.create(
             category=Category.objects.create(category_name="Rackets"),
             brand=Brand.objects.create(brand_name="Demo brand"),
-            supplier=Supplier.objects.create(supplier_code="TEST", supplier_name="Demo supplier"),
             product_name="Demo racket", price="100.00",
         )
         feedback = Feedback.objects.create(
             customer=customer, product=product, rating=5,
-            content="Good", status="NEW", handled_by=handler,
+            content="Good", status="NEW",
         )
-        delete_account(admin, handler.pk)
-        feedback.refresh_from_db()
-        self.assertEqual(feedback.handled_by_id, handler.pk)
-        customer.refresh_from_db()
-        self.assertEqual(customer.status, "DELETED")
+        with self.assertRaises(AccountDeleteProtectedError):
+            delete_account(admin, customer.pk)
+        self.assertTrue(get_user_model().objects.filter(pk=customer.pk).exists())
+        self.assertTrue(Feedback.objects.filter(pk=feedback.pk).exists())

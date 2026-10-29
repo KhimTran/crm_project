@@ -52,15 +52,18 @@ def feedback_detail(request, feedback_id):
         except FeedbackServiceError as exc:
             form.add_error(None, tr(str(exc)))
         else:
-            messages.success(request, say(f"Đã cập nhật phản hồi #{feedback.feedback_id}: {feedback.status_label}.",
-                                          f"Feedback #{feedback.feedback_id} updated: {tr(feedback.status_label)}."))
+            messages.success(request, f"Feedback #{feedback.feedback_id} updated: {tr(feedback.status_label)}.")
             return redirect("crm_feedbacks:list")
     return render(request, "feedback/feedback_detail.html", {"feedback": feedback, "form": form})
 
 
-# tv4: 4.2.4 lấy hồ sơ khách hàng (chưa xóa) của tài khoản đang đăng nhập, không có thì trả None
+# Lấy tài khoản khách hàng đang hoạt động
 def _current_customer(user):
-    return Customer.objects.filter(account=user).exclude(status=CustomerStatus.DELETED).first()
+    if not getattr(user, "is_authenticated", False) or getattr(user, "role", None) != "CUSTOMER" or getattr(user, "status", None) != "ACTIVE":
+        return None
+    if not getattr(user, "full_name", None):
+        return None
+    return user
 
 
 # tv4: 4.2.4 khách hàng gửi phản hồi về sản phẩm (?product=<id> để chọn sẵn sản phẩm từ trang chi tiết)
@@ -68,7 +71,7 @@ def _current_customer(user):
 def my_feedback_create(request):
     customer = _current_customer(request.user)
     if customer is None:
-        messages.error(request, "Tài khoản chưa có hồ sơ khách hàng nên chưa thể gửi phản hồi.")
+        messages.error(request, "Account has no customer profile; cannot submit feedback.")
         return redirect("/")
     initial = {}
     if request.GET.get("product", "").isdigit():
@@ -80,7 +83,7 @@ def my_feedback_create(request):
         except FeedbackServiceError as exc:
             form.add_error("product", str(exc))
         else:
-            messages.success(request, "Cảm ơn bạn đã gửi phản hồi! Cửa hàng sẽ phản hồi sớm nhất.")
+            messages.success(request, "Thank you for your feedback! The store will respond as soon as possible.")
             return redirect("feedbacks:mine")
     return render(request, "feedback/my_feedback_form.html", {"form": form})
 
@@ -90,7 +93,7 @@ def my_feedback_create(request):
 def my_feedback_list(request):
     customer = _current_customer(request.user)
     if customer is None:
-        messages.error(request, "Tài khoản chưa có hồ sơ khách hàng.")
+        messages.error(request, "Account has no customer profile.")
         return redirect("/")
     feedbacks = (Feedback.objects.filter(customer=customer).select_related("product")
                  .order_by("-created_at", "-feedback_id"))

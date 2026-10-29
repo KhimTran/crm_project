@@ -1,0 +1,127 @@
+{% extends crm_layout %}
+{% load static portal_text %}
+{% block title %}{% t "Kết quả khảo sát" "Survey Results" %}{% endblock %}
+{% block page_title %}{% t "Kết quả khảo sát" "Survey Results" %}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">
+<link rel="stylesheet" href="{% static 'css/crm_feedbacks.css' %}">
+<link rel="stylesheet" href="{% static 'css/crm_reports.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="crm-toolbar">
+  {% if in_admin_portal %}<span>Data as of {{ generated_at|date:datetime_fmt }} (published 8-question surveys only).</span>
+  {% else %}<span>Số liệu tính đến {{ generated_at|date:datetime_fmt }} (chỉ gồm khảo sát bộ 8 câu đã phát hành).</span>{% endif %}
+  <button type="button" class="crm-btn report-no-print" id="report-print">{% t "In báo cáo" "Print Report" %}</button>
+</div>
+
+<form method="get" class="crm-toolbar report-no-print">
+  <label for="report-survey">{% t "Phạm vi" "Scope" %}</label>
+  <select name="survey_id" id="report-survey" class="crm-input">
+    <option value="">{% t "Tất cả khảo sát bộ 8 câu hỏi" "All 8-question surveys" %}</option>
+    {% for survey in surveys %}<option value="{{ survey.pk }}" {% if survey.pk == selected_survey.pk %}selected{% endif %}>{{ survey.title }} (#{{ survey.pk }})</option>{% endfor %}
+  </select>
+  <button type="submit" class="crm-btn">{% t "Xem báo cáo" "View report" %}</button>
+</form>
+{% if survey_error %}<p class="crm-errorlist">{{ survey_error }}</p>{% endif %}
+
+{% if report %}
+<div class="report-tiles">
+  <div class="report-tile"><span>{% t "Tổng số khảo sát" "Total Surveys" %}</span>
+    <strong>{{ report.total.count }} {% t "lượt" "responses" %}</strong>
+    <small>{% if report.total.direction == "up" %}{% t "tăng" "up" %} {{ report.total.pct }}% {% t "tháng này" "this month" %}
+      {% elif report.total.direction == "down" %}{% t "giảm" "down" %} {{ report.total.pct }}% {% t "tháng này" "this month" %}
+      {% elif report.total.direction == "flat" %}{% t "Không đổi so với tháng trước" "Unchanged from last month" %}
+      {% else %}{% t "Chưa có dữ liệu so sánh" "No comparison data" %}{% endif %}</small></div>
+  <div class="report-tile"><span>{% t "Điểm hài lòng (CSAT)" "Satisfaction (CSAT)" %}</span>
+    {% if report.csat.avg is not None %}<strong>{{ report.csat.avg }} / {{ report.csat.scale_max }}</strong>
+      <small><span class="crm-stars" aria-label="{{ report.csat.avg }} / {{ report.csat.scale_max }} {% t 'sao' 'stars' %}">{{ report.csat.stars }}</span> · {{ report.csat.respondents }} {% t "lượt trả lời" "responses" %}</small>
+    {% else %}<strong>—</strong><small>{% t "Chưa có dữ liệu" "No data yet" %}</small>{% endif %}</div>
+  <div class="report-tile"><span>{% t "Độ trung thành (NPS)" "Loyalty (NPS)" %}</span>
+    {% if report.nps.score is not None %}<strong>{{ report.nps.score }} {% t "điểm" "points" %}</strong>
+      <small>{% t "mức" "level" %} {% if report.nps.level == "excellent" %}{% t "Xuất sắc" "Excellent" %}{% elif report.nps.level == "good" %}{% t "Tốt" "Good" %}{% else %}{% t "Cần cải thiện" "Needs improvement" %}{% endif %}
+        · <abbr title="{% t '%Promoter (9–10) − %Detractor (1–6)' '%Promoters (9–10) − %Detractors (1–6)' %}">{% t "Tính trên thang 1–10" "Based on a 1–10 scale" %}</abbr></small>
+    {% else %}<strong>—</strong><small>{% t "Chưa có dữ liệu · Tính trên thang 1–10" "No data yet · Based on a 1–10 scale" %}</small>{% endif %}</div>
+  <div class="report-tile"><span>{% t "Phân khúc khách hàng phổ biến" "Most Common Segment" %}</span>
+    {% if report.segment %}<strong>{{ report.segment.label }} ({{ report.segment.pct }}%)</strong>
+      <small>{{ report.segment.n }} / {{ report.segment.respondents }} {% t "người trả lời câu 2" "question 2 respondents" %}</small>
+    {% else %}<strong>—</strong><small>{% t "Chưa có dữ liệu" "No data yet" %}</small>{% endif %}</div>
+</div>
+
+<div class="report-grid report-grid-3">
+  <section class="crm-card report-section" aria-labelledby="r-purchases">
+    <h2 id="r-purchases">{% t "Phân khúc sản phẩm mua nhiều nhất" "Top Purchased Categories" %}</h2>
+    {% if report.purchases.rows %}
+      <div class="report-chart"><canvas id="chart-purchases" role="img" aria-label="{% t 'Biểu đồ cột sản phẩm/dịch vụ đã mua' 'Bar chart of purchased categories' %}"></canvas></div>
+      <p class="report-note">{% t "% = số người chọn / số người trả lời hợp lệ câu 1" "% = respondents choosing it / valid question 1 respondents" %} ({{ report.purchases.respondents }}); {% t "chọn được nhiều nên tổng có thể vượt 100%." "multiple choice, so totals may exceed 100%." %}</p>
+      <table class="crm-table"><thead><tr><th>{% t "Sản phẩm / dịch vụ" "Category" %}</th><th>{% t "Người chọn" "Respondents" %}</th><th>%</th></tr></thead>
+        <tbody>{% for r in report.purchases.rows %}<tr><td>{{ r.label }}</td><td>{{ r.n }}</td><td>{{ r.pct }}%</td></tr>{% endfor %}</tbody></table>
+    {% else %}<p>{% t "Chưa có dữ liệu" "No data yet" %}</p>{% endif %}
+  </section>
+
+  <section class="crm-card report-section" aria-labelledby="r-brands">
+    <h2 id="r-brands">{% t "Thương hiệu được yêu thích" "Preferred Brands" %}</h2>
+    {% if report.brands.rows %}
+      <div class="report-chart"><canvas id="chart-brands" role="img" aria-label="{% t 'Biểu đồ tròn thương hiệu được yêu thích' 'Doughnut chart of preferred brands' %}"></canvas></div>
+      <p class="report-note">{% t "Tỷ lệ lát = lượt chọn hãng / tổng" "Slice = brand selections / total" %} {{ report.brands.selections }} {% t "lượt chọn" "selections" %}; {% t "di chuột để xem % người trả lời có chọn hãng." "hover to see % of respondents choosing it." %}</p>
+      <table class="crm-table"><thead><tr><th>{% t "Hãng" "Brand" %}</th><th>{% t "% lượt chọn" "% of selections" %}</th><th>{% t "% người trả lời" "% of respondents" %}</th></tr></thead>
+        <tbody>{% for r in report.brands.rows %}<tr><td>{{ r.label }}</td><td>{{ r.share_pct }}%</td><td>{{ r.respondent_pct }}%</td></tr>{% endfor %}</tbody></table>
+      {% if report.brands.other_texts %}<details><summary>{% t "Xem nội dung “Khác”" "View “Other” answers" %} ({{ report.brands.other_texts|length }})</summary>
+        <ul>{% for o in report.brands.other_texts %}<li>{{ o.text }} — {% if o.customer %}{{ o.customer }}{% else %}{% t "Khách ẩn danh" "Anonymous customer" %}{% endif %}</li>{% endfor %}</ul></details>{% endif %}
+    {% else %}<p>{% t "Chưa có dữ liệu" "No data yet" %}</p>{% endif %}
+  </section>
+
+  <section class="crm-card report-section" aria-labelledby="r-trend">
+    <h2 id="r-trend">{% t "Mức độ hài lòng theo thời gian" "Satisfaction Over Time" %}</h2>
+    {% if report.csat.avg is not None %}
+      <div class="report-chart"><canvas id="chart-trend" role="img" aria-label="{% t 'Biểu đồ CSAT trung bình 6 tháng gần nhất' 'Average CSAT chart for the last 6 months' %}"></canvas></div>
+      <p class="report-note">{% t "CSAT trung bình câu 3 theo tháng (6 tháng gần nhất); tháng không có dữ liệu để trống." "Average question 3 CSAT per month (last 6 months); months without data are left blank." %}</p>
+      <table class="crm-table"><thead><tr><th>{% t "Tháng" "Month" %}</th><th>{% t "Lượt" "Responses" %}</th><th>CSAT</th></tr></thead>
+        <tbody>{% for r in report.csat_trend %}<tr><td>{{ r.label }}</td><td>{{ r.n }}</td><td>{% if r.avg is not None %}{{ r.avg }}{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table>
+    {% else %}<p>{% t "Chưa có dữ liệu" "No data yet" %}</p>{% endif %}
+  </section>
+</div>
+
+<div class="report-grid">
+  <section class="crm-card report-section report-wide" aria-labelledby="r-comments">
+    <h2 id="r-comments">{% t "Ý kiến & Đánh giá gần đây" "Recent Comments & Ratings" %}</h2>
+    {% if report.comments %}
+    <table class="crm-table report-comments"><thead><tr><th>{% t "Khách hàng" "Customer" %}</th><th>{% t "Góp ý" "Comment" %}</th><th>{% t "Tag" "Tags" %}</th></tr></thead>
+      <tbody>{% for c in report.comments %}<tr>
+        <td>{% if c.customer %}{{ c.customer }}{% else %}{% t "Khách ẩn danh" "Anonymous customer" %}{% endif %}<br><small>{{ c.submitted_at|date:datetime_fmt }}</small></td>
+        <td>{% if c.is_long %}<details><summary>“{{ c.preview }}”</summary>{{ c.text|linebreaksbr }}</details>{% else %}“{{ c.text }}”{% endif %}</td>
+        <td>{% if c.sentiment == "positive" %}<span class="crm-badge">{% t "Tích cực" "Positive" %}</span>
+          {% elif c.sentiment == "neutral" %}<span class="crm-badge report-tag-neutral">{% t "Trung lập" "Neutral" %}</span>
+          {% elif c.sentiment == "negative" %}<span class="crm-badge locked">{% t "Tiêu cực" "Negative" %}</span>{% endif %}
+          <span class="crm-badge report-tag-note">{% t "Góp ý" "Suggestion" %}</span>
+          {% for topic in c.topics %}<span class="crm-badge report-tag-topic">{{ topic }}</span>{% endfor %}</td>
+      </tr>{% endfor %}</tbody></table>
+    <p class="report-note">{% t "Tag cảm xúc lấy theo điểm câu 3 (≥4 Tích cực, 3 Trung lập, ≤2 Tiêu cực); tag chủ đề lấy theo câu 1." "Sentiment tag from question 3 score (≥4 positive, 3 neutral, ≤2 negative); topic tags from question 1." %}</p>
+    {% else %}<p>{% t "Chưa có dữ liệu" "No data yet" %}</p>{% endif %}
+  </section>
+
+  <section class="crm-card report-section report-wide" aria-labelledby="r-details">
+    <h2 id="r-details">{% t "Chi tiết tiêu chí (câu 4) và mức sẵn sàng giới thiệu (câu 7)" "Criteria (question 4) and Recommendation (question 7)" %}</h2>
+    {% if report.criteria %}
+    <table class="crm-table"><thead><tr><th>{% t "Tiêu chí" "Criterion" %}</th><th>{% t "Điểm TB (1–5)" "Avg. (1–5)" %}</th><th>{% t "Người chấm" "Scored" %}</th><th>{% t "Không sử dụng" "Not used" %}</th><th>{% t "Chưa trả lời" "Unanswered" %}</th></tr></thead>
+      <tbody>{% for r in report.criteria %}<tr><td>{{ r.label }}</td><td>{% if r.avg is not None %}{{ r.avg }}{% else %}—{% endif %}</td><td>{{ r.scored }}</td><td>{{ r.not_used }}</td><td>{{ r.unanswered }}</td></tr>{% endfor %}</tbody></table>
+    <p class="report-note">{% t "“Không sử dụng” và chưa trả lời không tính vào điểm trung bình." "“Not used” and unanswered are excluded from the average." %}</p>
+    {% else %}<p>{% t "Chưa có dữ liệu câu 4." "No question 4 data yet." %}</p>{% endif %}
+    {% if report.nps.respondents %}
+    <table class="crm-table"><thead><tr><th>{% t "Nhóm câu 7" "Question 7 group" %}</th><th>{% t "Người trả lời" "Respondents" %}</th><th>%</th></tr></thead>
+      <tbody><tr><td>Promoter (9–10)</td><td>{{ report.nps.promoters }}</td><td>{{ report.nps.promoter_pct }}%</td></tr>
+        <tr><td>Passive (7–8)</td><td>{{ report.nps.passives }}</td><td>{{ report.nps.passive_pct }}%</td></tr>
+        <tr><td>Detractor (1–6)</td><td>{{ report.nps.detractors }}</td><td>{{ report.nps.detractor_pct }}%</td></tr></tbody></table>
+    <div class="report-scroll"><table class="crm-table"><thead><tr><th>{% t "Điểm câu 7" "Question 7 score" %}</th>{% for d in report.nps.distribution %}<th>{{ d.score }}</th>{% endfor %}</tr></thead>
+      <tbody><tr><td>{% t "Số người" "Respondents" %}</td>{% for d in report.nps.distribution %}<td>{{ d.n }}</td>{% endfor %}</tr></tbody></table></div>
+    {% else %}<p>{% t "Chưa có dữ liệu câu 7." "No question 7 data yet." %}</p>{% endif %}
+  </section>
+</div>
+{{ charts|json_script:"report-data" }}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/customer_report.js' %}"></script>
+{% endblock %}

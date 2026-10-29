@@ -10,6 +10,7 @@ urlpatterns = [
     path("recipients/<int:recipient_id>/result/", views.result, name="result"),
     # TV5 - CRM management (ADMIN or CRM_MANAGER)
     path("manage/", views.manage_list, name="manage_list"),
+    path("manage/results/", views.survey_results, name="results"),
     path("manage/new/",views.manage_create, name="manage_create"),
     path("manage/audience-count/", views.manage_audience_count, name="manage_audience_count"),
     path("manage/<int:survey_id>/", views.manage_detail, name="manage_detail"),

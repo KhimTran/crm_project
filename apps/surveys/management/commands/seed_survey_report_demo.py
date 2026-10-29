@@ -38,10 +38,9 @@ def clear_demo_data():
     surveys = Survey.objects.filter(title__startswith=TITLE_MARK)
     survey_count = surveys.count()
     surveys.delete()
-    customers = Customer.objects.filter(account__email__endswith=EMAIL_DOMAIN, full_name__startswith=NAME_MARK)
+    customers = Customer.objects.filter(email__endswith=EMAIL_DOMAIN, full_name__startswith=NAME_MARK)
     customer_count = customers.count()
     customers.delete()
-    Account.objects.filter(email__endswith=EMAIL_DOMAIN).delete()
     return survey_count, customer_count
 
 
@@ -76,9 +75,10 @@ class Command(BaseCommand):
             raise CommandError("Create a MANAGER or ADMIN account first (it becomes the survey creator).")
         rng = random.Random(2026)
         now = timezone.now()
-        customers = [Customer.objects.create(
-            account=Account.objects.create_user(f"khach{i:02d}{EMAIL_DOMAIN}", password),
-            full_name=f"{NAME_MARK} Khách khảo sát {i:02d}") for i in range(1, CUSTOMERS + 1)]
+        customers = [Account.objects.create_user(
+            f"khach{i:02d}{EMAIL_DOMAIN}", password,
+            full_name=f"{NAME_MARK} Khách khảo sát {i:02d}",
+        ) for i in range(1, CUSTOMERS + 1)]
 
         total = 0
         for title, days_ago, answered in ((f"{TITLE_MARK} Trải nghiệm mua sắm – đợt 1", 170, 14),

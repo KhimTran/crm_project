@@ -10,8 +10,8 @@ from apps.surveys.models import SurveyRecipient
 
 from .constants import CustomerStatus, PreferenceType
 from .errors import (
-    CustomerAlreadyActive, CustomerAlreadyDeleted, CustomerAlreadyLocked, CustomerNotFound,
-    DuplicateCustomerEmail, DuplicateCustomerPhone,
+    CustomerAlreadyActive, CustomerAlreadyLocked, CustomerNotFound,
+    CustomerServiceError, DuplicateCustomerEmail, DuplicateCustomerPhone,
 )
 from .models import Customer, CustomerPreference
 
@@ -19,56 +19,47 @@ from .models import Customer, CustomerPreference
 @transaction.atomic
 def create_customer(*, email, password, full_name, phone, date_of_birth=None, gender=None, address=None,
                     playing_level=None, play_styles=(), brands=()):
-    """Create a CUSTOMER account and profile atomically using Django password validation/hashing."""
+    """Create a CUSTOMER account atomically using Django password validation/hashing."""
     email = AccountManager.normalize_account_email(email)
     if Account.objects.filter(email=email).exists():
-        raise DuplicateCustomerEmail("Email đã được sử dụng")
-    if phone and Customer.objects.filter(phone=phone).exclude(status=CustomerStatus.DELETED).exists():
-        raise DuplicateCustomerPhone("Số điện thoại đã được sử dụng")
+        raise DuplicateCustomerEmail("Email is already in use")
+    if phone and Account.objects.filter(phone=phone).exists():
+        raise DuplicateCustomerPhone("Phone number is already in use")
 
     try:
         with transaction.atomic():
-            account = Account.objects.create_user(email, password, role=AccountRole.CUSTOMER)
+            account = Account.objects.create_user(
+                email, password, role=AccountRole.CUSTOMER, status=AccountStatus.ACTIVE,
+                full_name=full_name, phone=phone or None, date_of_birth=date_of_birth,
+                gender=gender or None, address=address or None, playing_level=playing_level or None,
+            )
     except (IntegrityError, ValidationError) as exc:
         if Account.objects.filter(email=email).exists():
-            raise DuplicateCustomerEmail("Email đã được sử dụng") from exc
+            raise DuplicateCustomerEmail("Email is already in use") from exc
         raise
 
-    customer = Customer.objects.create(
-        account=account,
-        full_name=full_name,
-        phone=phone or None,
-        date_of_birth=date_of_birth,
-        gender=gender or None,
-        address=address or None,
-        playing_level=playing_level or None,
-        status=CustomerStatus.ACTIVE,
-    )
-    preferences = [CustomerPreference(customer=customer, preference_type=PreferenceType.PLAY_STYLE, preference_value=v)
+    customer = Customer.objects.get(pk=account.pk)
+    preferences = [CustomerPreference(customer=account, preference_type=PreferenceType.PLAY_STYLE, preference_value=v)
                    for v in play_styles]
-    preferences += [CustomerPreference(customer=customer, preference_type=PreferenceType.BRAND, preference_value=v)
+    preferences += [CustomerPreference(customer=account, preference_type=PreferenceType.BRAND, preference_value=v)
                     for v in brands]
-    CustomerPreference.objects.bulk_create(preferences)
+    if preferences:
+        CustomerPreference.objects.bulk_create(preferences)
     return customer
 
 
-# tv4: lấy khách hàng chưa bị xóa và khóa dòng (select_for_update) để thao tác an toàn
 def _active_customer_for_update(customer_id):
-    customer = Customer.objects.select_for_update().select_related("account").filter(pk=customer_id).first()
+    customer = Customer.objects.select_for_update().filter(pk=customer_id).first()
     if customer is None:
-        raise CustomerNotFound("Không tìm thấy khách hàng")
-    if customer.status == CustomerStatus.DELETED:
-        raise CustomerAlreadyDeleted("Khách hàng đã bị xóa")
+        raise CustomerNotFound("Customer not found")
     return customer
 
 
-# tv4: đổi trạng thái tài khoản (ACTIVE/LOCKED) của khách hàng, cập nhật luôn updated_at
-def _set_account_status(account, status):
-    Account.objects.filter(pk=account.pk).update(status=status, updated_at=timezone.now())
-    account.refresh_from_db()
+def _set_account_status(customer, status):
+    Account.objects.filter(pk=customer.pk).update(status=status, updated_at=timezone.now())
+    customer.refresh_from_db()
 
 
-# tv4: đếm dữ liệu liên quan (phản hồi, khảo sát) để cảnh báo trước khi xóa khách hàng
 def customer_related_counts(customer):
     recipients = SurveyRecipient.objects.filter(customer=customer)
     return {
@@ -78,33 +69,57 @@ def customer_related_counts(customer):
     }
 
 
-# tv4: 4.1.3 khóa tài khoản khách hàng (accounts.status = LOCKED)
+@transaction.atomic
+def update_customer(customer_id, *, email, full_name, phone=None, date_of_birth=None,
+                    gender=None, address=None, playing_level=None):
+    """Update customer profile fields atomically without altering password, role, status, or preferences."""
+    customer = _active_customer_for_update(customer_id)
+    if customer.role != AccountRole.CUSTOMER:
+        raise CustomerServiceError("Only customer accounts can be edited here")
+
+    email = AccountManager.normalize_account_email(email)
+    if Account.objects.filter(email=email).exclude(pk=customer.pk).exists():
+        raise DuplicateCustomerEmail("Email is already in use")
+    if phone and Account.objects.filter(phone=phone).exclude(pk=customer.pk).exists():
+        raise DuplicateCustomerPhone("Phone number is already in use")
+
+    customer.email = email
+    customer.full_name = full_name
+    customer.phone = phone or None
+    customer.date_of_birth = date_of_birth
+    customer.gender = gender or None
+    customer.address = address or None
+    customer.playing_level = playing_level or None
+    customer.save()
+    return customer
+
+
 @transaction.atomic
 def lock_customer(customer_id):
     customer = _active_customer_for_update(customer_id)
-    if customer.account.status == AccountStatus.LOCKED:
-        raise CustomerAlreadyLocked("Tài khoản khách hàng đã bị khóa")
-    _set_account_status(customer.account, AccountStatus.LOCKED)
+    if customer.status == AccountStatus.LOCKED:
+        raise CustomerAlreadyLocked("This customer account is already locked")
+    _set_account_status(customer, AccountStatus.LOCKED)
     return customer
 
 
-# tv4: 4.1.3 mở khóa tài khoản khách hàng (accounts.status = ACTIVE)
 @transaction.atomic
 def unlock_customer(customer_id):
     customer = _active_customer_for_update(customer_id)
-    if customer.account.status == AccountStatus.ACTIVE:
-        raise CustomerAlreadyActive("Tài khoản khách hàng đang hoạt động")
-    _set_account_status(customer.account, AccountStatus.ACTIVE)
+    if customer.status == AccountStatus.ACTIVE:
+        raise CustomerAlreadyActive("This customer account is already active")
+    _set_account_status(customer, AccountStatus.ACTIVE)
     return customer
 
 
-# tv4: 4.1.2 xóa mềm khách hàng (status DELETED + deleted_at) và khóa tài khoản; giữ lại phản hồi/khảo sát
 @transaction.atomic
 def delete_customer(customer_id):
     customer = _active_customer_for_update(customer_id)
-    customer.status = CustomerStatus.DELETED
-    customer.deleted_at = timezone.now()
-    customer.save(update_fields=["status", "deleted_at", "updated_at"])
-    if customer.account.status != AccountStatus.LOCKED:
-        _set_account_status(customer.account, AccountStatus.LOCKED)
+    counts = customer_related_counts(customer)
+    if counts["feedbacks"] > 0 or counts["surveys_answered"] > 0:
+        raise CustomerServiceError("Cannot delete customer with feedback or survey data. Please lock the account instead.")
+
+    SurveyRecipient.objects.filter(customer=customer).delete()
+    CustomerPreference.objects.filter(customer=customer).delete()
+    customer.delete()
     return customer

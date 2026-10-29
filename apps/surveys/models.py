@@ -48,7 +48,7 @@ class SurveyOption(models.Model):
 class SurveyRecipient(models.Model):
     recipient_id = models.AutoField(primary_key=True)
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE, db_column="survey_id")
-    customer = models.ForeignKey("customers.Customer", on_delete=models.PROTECT, db_column="customer_id")
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_column="customer_id")
     status = models.CharField(max_length=20)
     sent_at = models.DateTimeField(auto_now_add=True)
     opened_at = models.DateTimeField(null=True, blank=True)

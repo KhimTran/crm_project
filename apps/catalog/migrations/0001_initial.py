@@ -41,25 +41,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Supplier',
-            fields=[
-                ('supplier_id', models.AutoField(primary_key=True, serialize=False)),
-                ('supplier_code', models.CharField(max_length=30)),
-                ('supplier_name', models.CharField(max_length=150)),
-                ('address', models.CharField(blank=True, max_length=255, null=True)),
-                ('phone', models.CharField(blank=True, max_length=20, null=True)),
-                ('email', models.EmailField(blank=True, max_length=255, null=True)),
-                ('status', models.CharField(choices=[('ACTIVE', 'Active'), ('INACTIVE', 'Inactive')], default='ACTIVE', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                'db_table': 'suppliers',
-                'indexes': [models.Index(fields=['supplier_name'], name='idx_suppliers_name'), models.Index(fields=['status'], name='idx_suppliers_status')],
-                'constraints': [models.UniqueConstraint(fields=('supplier_code',), name='uq_suppliers_code'), models.CheckConstraint(condition=models.Q(('status__in', ['ACTIVE', 'INACTIVE'])), name='chk_suppliers_status')],
-            },
-        ),
-        migrations.CreateModel(
             name='Product',
             fields=[
                 ('product_id', models.AutoField(primary_key=True, serialize=False)),
@@ -71,11 +52,10 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('brand', models.ForeignKey(db_column='brand_id', on_delete=django.db.models.deletion.PROTECT, to='catalog.brand')),
                 ('category', models.ForeignKey(db_column='category_id', on_delete=django.db.models.deletion.PROTECT, to='catalog.category')),
-                ('supplier', models.ForeignKey(db_column='supplier_id', on_delete=django.db.models.deletion.PROTECT, to='catalog.supplier')),
             ],
             options={
                 'db_table': 'products',
-                'indexes': [models.Index(fields=['category'], name='idx_products_category'), models.Index(fields=['brand'], name='idx_products_brand'), models.Index(fields=['supplier'], name='idx_products_supplier')],
+                'indexes': [models.Index(fields=['category'], name='idx_products_category'), models.Index(fields=['brand'], name='idx_products_brand')],
             },
         ),
     ]

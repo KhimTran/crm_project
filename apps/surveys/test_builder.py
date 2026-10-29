@@ -201,7 +201,7 @@ class SurveyBuilderTests(TestCase):
 
     def test_publish_blocked_without_questions(self):
         response = self.create([], action="publish")
-        self.assertContains(response, "Khảo sát chưa có câu hỏi nào.")
+        self.assertContains(response, "The survey has no questions yet.")
         self.assertFalse(Survey.objects.exists())
 
     def test_publish_blocked_without_recipients_keeps_typed_data(self):

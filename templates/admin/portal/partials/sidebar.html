@@ -1,5 +1,7 @@
 <div class="portal-brand">CRM <span>Admin Portal</span></div>
 <nav class="portal-nav" aria-label="Administration Modules">
+  <p class="portal-nav-heading">Personal</p>
+  <a class="portal-nav-link {% if active_section == 'profile' %}active{% endif %}" href="{% url 'admin_profile' %}" {% if active_section == 'profile' %}aria-current="page"{% endif %}>Profile</a>
   <p class="portal-nav-heading">Administration</p>
   <a class="portal-nav-link {% if active_section == 'accounts' or request.resolver_match.namespace == 'accounts_admin' %}active{% endif %}" href="{% url 'accounts_admin:list' %}" {% if active_section == 'accounts' or request.resolver_match.namespace == 'accounts_admin' %}aria-current="page"{% endif %}>Accounts</a>
   <p class="portal-nav-heading">System</p>

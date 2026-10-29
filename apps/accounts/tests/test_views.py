@@ -241,7 +241,7 @@ class AccountAdminViewTests(TestCase):
         res_other = self.client.post(self.url("reset_password", other_admin),
                                      {"new_password": "NewStrongPass!2026", "new_password_confirm": "NewStrongPass!2026"})
         self.assertEqual(res_other.status_code, 200)
-        self.assertContains(res_other, "Không thể đặt lại mật khẩu")
+        self.assertContains(res_other, "Cannot reset password")
 
         for data in ({"new_password": "GoodPass!2026", "new_password_confirm": "Different!2026"}, {"new_password": "123", "new_password_confirm": "123"}):
             response = self.client.post(url, data)
