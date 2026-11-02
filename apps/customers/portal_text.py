@@ -19,10 +19,8 @@ EN = {
     "Hoạt động": "Active", "Đã khóa": "Locked", "Đang hoạt động": "Active", "Đã xóa": "Deleted",
     "Nam": "Male", "Nữ": "Female", "Khác": "Other",
     "Mới chơi": "Beginner", "Phong trào": "Recreational", "Thi đấu": "Competitive",
-    "Lối chơi": "Play Style", "Thương hiệu": "Brand", "Nhóm sản phẩm": "Product Category",
-    "Tấn công": "Attacking", "Phòng thủ": "Defensive", "Toàn diện": "All-round",
-    "Đánh đơn": "Singles", "Đánh đôi": "Doubles",
-    "Mới": "New", "Đang xử lý": "In Progress", "Đã xử lý": "Resolved",
+    "Thương hiệu": "Brand", "Nhóm sản phẩm": "Product Category",
+    "Mới": "New", "Đã xử lý": "Resolved",
     "1 sao": "1 star", "2 sao": "2 stars", "3 sao": "3 stars", "4 sao": "4 stars", "5 sao": "5 stars",
     "Dưới 18": "Under 18", "Từ 55": "55+", "Chưa khai báo": "Not specified",
     # Nhãn form

@@ -15,7 +15,7 @@ class Feedback(models.Model):
     product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT, db_column="product_id")
     rating = models.PositiveSmallIntegerField()
     content = models.TextField()
-    status = models.CharField(max_length=20)
+    status = models.CharField(max_length=20, choices=FeedbackStatus.choices, default=FeedbackStatus.NEW)
     manager_note = models.TextField(null=True, blank=True)
     handled_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -37,7 +37,8 @@ class Feedback(models.Model):
             models.Index(fields=["handled_by"], name="idx_feedbacks_handled_by"),
             models.Index(fields=["created_at"], name="idx_feedbacks_created_at"),
         ]
-        constraints = [models.CheckConstraint(condition=models.Q(rating__gte=1, rating__lte=5), name="chk_feedbacks_rating")]
+        constraints = [models.CheckConstraint(condition=models.Q(rating__gte=1, rating__lte=5), name="chk_feedbacks_rating"),
+                       models.CheckConstraint(condition=models.Q(status__in=['NEW','RESOLVED']), name='chk_feedbacks_status')]
 
     @property
     def status_label(self):

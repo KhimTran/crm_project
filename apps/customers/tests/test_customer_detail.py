@@ -1,7 +1,8 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from datetime import date
 
 from django.contrib.auth.models import Group
-from django.test import TestCase
+
 from django.urls import reverse
 
 from apps.accounts.constants import AccountStatus
@@ -30,15 +31,16 @@ class CustomerDetailViewTests(TestCase):
         self.password = PASSWORD
         self.customer = create_customer(password=PASSWORD,
             email="an@example.com", full_name="Nguyễn Văn An", phone="0900000001", date_of_birth=date(2000, 1, 2),
-            gender="MALE", playing_level="COMPETITIVE", play_styles=["Tấn công"], brands=["Yonex", "Victor"])
+            gender="MALE", playing_level="COMPETITIVE", brands=["Yonex", "Victor"])
         self.feedback = Feedback.objects.create(customer=self.customer, product=self.product, rating=4,
                                                 content="Vợt đầm tay", status="RESOLVED", manager_note="Cảm ơn bạn")
         self.url = reverse("customers:detail", args=[self.customer.pk])
 
     def test_manager_sees_profile_preferences_and_feedback_history(self):
         self.client.force_login(self.manager)
+        self.client.cookies['manager_sessionid'] = self.client.cookies['sessionid'].value
         response = self.client.get(self.url)
-        for text in ("KH", "Nguyễn Văn An", "02/01/2000", "Nam", "Thi đấu", "Tấn công", "Victor, Yonex",
+        for text in ("KH", "Nguyễn Văn An", "02/01/2000", "Nam", "Thi đấu", "Victor, Yonex",
                      "Astrox 88D", "Vợt đầm tay", "Cảm ơn bạn", "Đã xử lý"):
             self.assertContains(response, text)
         self.assertContains(response, reverse("crm_feedbacks:detail", args=[self.feedback.pk]))
@@ -46,6 +48,7 @@ class CustomerDetailViewTests(TestCase):
 
     def test_customer_service_can_view_but_manage_buttons_are_hidden(self):
         self.client.force_login(self.staff)
+        self.client.cookies['manager_sessionid'] = self.client.cookies['sessionid'].value
         for url in (self.url, reverse("customers:list")):
             response = self.client.get(url)
             self.assertContains(response, "Nguyễn Văn An")
@@ -55,6 +58,7 @@ class CustomerDetailViewTests(TestCase):
 
     def test_lock_from_detail_returns_to_detail(self):
         self.client.force_login(self.manager)
+        self.client.cookies['manager_sessionid'] = self.client.cookies['sessionid'].value
         response = self.client.post(reverse("customers:lock", args=[self.customer.pk]), {"from": "detail"})
         self.assertRedirects(response, self.url)
         self.assertEqual(Account.objects.get(pk=self.customer.account.pk).status, AccountStatus.LOCKED)
@@ -62,6 +66,7 @@ class CustomerDetailViewTests(TestCase):
 
     def test_deleted_or_unknown_customer_returns_404(self):
         self.client.force_login(self.manager)
+        self.client.cookies['manager_sessionid'] = self.client.cookies['sessionid'].value
         self.assertEqual(self.client.get(reverse("customers:detail", args=[9999])).status_code, 404)
         self.feedback.delete()
         delete_customer(self.customer.pk)

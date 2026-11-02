@@ -35,7 +35,7 @@
 
         {% if request.user.is_authenticated %}
           <span class="crm-user">{{ request.user.email }}</span>
-          <a href="{% url 'customer_auth:password_change' %}">
+          <a href="{% url 'customer_auth:password_change' %}?portal={% if request.user.role == 'ADMIN' %}admin{% else %}manager{% endif %}">
             Đổi mật khẩu
           </a>
           <form method="post" action="{% url 'customer_auth:logout' %}">

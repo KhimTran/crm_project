@@ -1,10 +1,11 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 """Storefront presentation contracts, using only the isolated Django test DB."""
 
 from decimal import Decimal
 from html.parser import HTMLParser
 from urllib.parse import parse_qs, urlsplit
 
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
 
 from apps.catalog.models import Brand, Category, Product

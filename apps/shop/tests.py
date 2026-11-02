@@ -1,7 +1,8 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from decimal import Decimal
 
 from django.contrib.staticfiles import finders
-from django.test import TestCase
+
 
 from apps.catalog.models import Brand, Category, Product
 

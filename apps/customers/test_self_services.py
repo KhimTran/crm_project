@@ -1,9 +1,10 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from datetime import timedelta
 from unittest.mock import patch
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
-from django.test import TestCase
+
 from django.utils import timezone
 
 from apps.accounts.models import Account
@@ -111,14 +112,14 @@ class CustomerSelfServiceTests(TestCase):
         legacy = CustomerPreference.objects.create(customer=customer, preference_type="CATEGORY", preference_value="Missing category")
         inactive = CustomerPreference.objects.create(customer=customer, preference_type="CATEGORY", preference_value="Old shoes")
         brand = CustomerPreference.objects.create(customer=customer, preference_type="BRAND", preference_value="Yonex")
-        style = CustomerPreference.objects.create(customer=customer, preference_type="PLAY_STYLE", preference_value="Tấn công")
+        other_brand = CustomerPreference.objects.create(customer=customer, preference_type="BRAND", preference_value="Victor")
         update_own_profile(owner, profile_data={"full_name": "Updated"})
         self.assertEqual(customer.customerpreference_set.count(), 4)
         with self.assertRaises(ValidationError):
             update_own_profile(owner, profile_data={"full_name": "Must not save"}, remove_preference_ids=[brand.pk])
         update_own_profile(owner, profile_data={"full_name": "Updated"}, remove_preference_ids=[legacy.pk])
         self.assertFalse(CustomerPreference.objects.filter(pk=legacy.pk).exists())
-        self.assertEqual(set(customer.customerpreference_set.values_list("pk", flat=True)), {inactive.pk, brand.pk, style.pk})
+        self.assertEqual(set(customer.customerpreference_set.values_list("pk", flat=True)), {inactive.pk, brand.pk, other_brand.pk})
 
     def test_duplicate_existing_rows_and_duplicate_category_names_store_one_name(self):
         owner = self.register()

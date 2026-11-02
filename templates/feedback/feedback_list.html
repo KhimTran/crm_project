@@ -11,7 +11,7 @@
 {% if in_admin_portal %}<p class="crm-summary"><strong>{{ new_count }}</strong> new feedback item(s) waiting to be handled.</p>
 {% else %}<p class="crm-summary">Có <strong>{{ new_count }}</strong> phản hồi mới chưa xử lý.</p>{% endif %}
 
-<form method="get" class="crm-card crm-filter" role="search" aria-label="{% t 'Lọc phản hồi' 'Filter feedback' %}">
+<form method="get" class="crm-card crm-filter crm-feedback-filter" role="search" aria-label="{% t 'Lọc phản hồi' 'Filter feedback' %}">
   <div class="crm-field">{{ form.q.label_tag }}{{ form.q }}</div>
   <div class="crm-field">{{ form.status.label_tag }}{{ form.status }}</div>
   <div class="crm-field">{{ form.product.label_tag }}{{ form.product }}</div>

@@ -63,13 +63,14 @@ class Command(BaseCommand):
             defaults={"rating": 5, "content": "Good racket", "status": "NEW"},
         )
         survey, _ = Survey.objects.get_or_create(
-            title="Demo badminton survey", defaults={"created_by": admin, "status": "ACTIVE"}
+            title="Khảo sát trải nghiệm tư vấn và đan vợt tại cửa hàng",
+            defaults={"created_by": admin, "status": "ACTIVE", "objective": "SATISFACTION"}
         )
         question, _ = SurveyQuestion.objects.get_or_create(
-            survey=survey, question_text="How was your shopping experience?",
+            survey=survey, question_text="Bạn hài lòng như thế nào với dịch vụ tư vấn chọn vợt?",
             defaults={"question_type": "SINGLE_CHOICE", "is_required": True}
         )
-        option, _ = SurveyOption.objects.get_or_create(question=question, option_text="Good")
+        option, _ = SurveyOption.objects.get_or_create(question=question, option_text="Hài lòng, nhân viên tư vấn đúng trình độ chơi")
         recipient, _ = SurveyRecipient.objects.get_or_create(
             survey=survey, customer=customer, defaults={"status": "SENT"}
         )

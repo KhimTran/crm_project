@@ -20,6 +20,7 @@ from .constants import AccountStatus
 from .customer_forms import CustomerLoginForm, CustomerRegistrationForm
 from .decorators import get_home_path, role_required
 from .models import Account
+from .middleware import select_login_session
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +60,11 @@ def safe_login_destination(request, account):
 @sensitive_post_parameters("password")
 @require_http_methods(["GET", "POST"])
 def customer_login(request):
-    if request.user.is_authenticated and request.user.is_active:
+    if request.method == 'GET' and request.user.is_authenticated and request.user.is_active:
         return redirect(safe_login_destination(request, request.user))
     form = CustomerLoginForm(request, request.POST if request.method == "POST" else None)
     if request.method == "POST" and form.is_valid():
+        select_login_session(request, form.account)
         login(request, form.account)
         return redirect(safe_login_destination(request, form.account))
     return render(request, "accounts/customer/login.html", {"form": form, "next": request.POST.get("next", request.GET.get("next", ""))})

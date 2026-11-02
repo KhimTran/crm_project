@@ -1,7 +1,8 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from datetime import date, datetime, timedelta
 
 from django.contrib.auth.models import Group
-from django.test import TestCase
+
 from django.urls import reverse
 from django.utils import timezone
 
@@ -30,7 +31,7 @@ class CustomerReportTests(TestCase):
         cls.manager.groups.add(Group.objects.create(name="CRM_MANAGER"))
         cls.an = create_customer(password=PASSWORD, email="an@example.com", full_name="An", phone="0900000001",
                                     date_of_birth=date(2008, 10, 5), gender="MALE", playing_level="BEGINNER",
-                                    play_styles=["Tấn công"], brands=["Yonex"])
+                                    brands=["Yonex"])
         cls.binh = create_customer(password=PASSWORD, email="binh@example.com", full_name="Bình", phone="0900000002",
                                       date_of_birth=date(1995, 3, 1), gender="FEMALE", playing_level="BEGINNER",
                                       brands=["Yonex", "Victor"])
@@ -65,7 +66,7 @@ class CustomerReportTests(TestCase):
     def test_preferences_grouped_by_type(self):
         groups = {g["type"]: counts(g["rows"]) for g in reports.preference_report()}
         self.assertEqual(groups["BRAND"], {"Yonex": 2, "Victor": 1})
-        self.assertEqual(groups["PLAY_STYLE"], {"Tấn công": 1})
+        self.assertNotIn("PLAY_STYLE", groups)
         self.assertNotIn("CATEGORY", groups)
 
     def test_new_customers_by_month_fills_empty_months(self):
@@ -98,6 +99,7 @@ class CustomerReportTests(TestCase):
 
     def test_report_page_renders_charts_data_and_print_button(self):
         self.client.force_login(self.manager)
+        self.client.cookies['manager_sessionid'] = self.client.cookies['sessionid'].value
         response = self.client.get(reverse("customer_reports:customers"))
         content = response.content.decode()
         self.assertTrue("Customer Report" in content or "Báo cáo khách hàng" in content)
@@ -132,13 +134,13 @@ class CustomerReportTests(TestCase):
             status="RESOLVED", created_at=created, resolved_at=created + timedelta(hours=3))
         Feedback.objects.filter(pk=feedback[1].pk).update(
             status="RESOLVED", created_at=created, resolved_at=created + timedelta(hours=5))
-        Feedback.objects.filter(pk=feedback[2].pk).update(status="IN_PROGRESS", created_at=created)
+        Feedback.objects.filter(pk=feedback[2].pk).update(status="NEW", created_at=created)
         self.assertEqual(reports.avg_resolution_hours(), 4.0)
         months = reports.feedback_by_month(months=6, today=TODAY)
-        self.assertEqual(months[-1], {"label": "10/2026", "count": 3, "new": 0, "in_progress": 1, "resolved": 2})
+        self.assertEqual(months[-1], {"label": "10/2026", "count": 3, "new": 1, "resolved": 2})
         self.assertEqual(sum(r["count"] for r in months[:-1]), 0)
         status = {r["label"]: (r["count"], r["pct"]) for r in reports.feedback_status_report()}
-        self.assertEqual(status, {"Mới": (0, 0.0), "Đang xử lý": (1, 33.3), "Đã xử lý": (2, 66.7)})
+        self.assertEqual(status, {"Mới": (1, 33.3), "Đã xử lý": (2, 66.7)})
 
 
 # tv4: 4.1.5 ranh giới nhóm tuổi, thiếu ngày sinh, KH đã xóa, sở thích lấy từ hồ sơ (không từ khảo sát)
@@ -159,6 +161,7 @@ class CustomerReportBoundaryTests(TestCase):
         self.assertEqual(reports.feedback_status_report()[0]["pct"], None)
         manager = Account.objects.create_user("empty-manager@example.com", "Quanly@12345", role="MANAGER")
         self.client.force_login(manager)
+        self.client.cookies['manager_sessionid'] = self.client.cookies['sessionid'].value
         page = self.client.get(reverse("customer_reports:customers")).content.decode()
         self.assertTrue("Chưa có dữ liệu" in page or "No data yet" in page)
         self.assertNotIn("NaN", page)

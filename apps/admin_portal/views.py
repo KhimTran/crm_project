@@ -5,8 +5,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from apps.accounts.forms import PersonalPasswordChangeForm, PersonalProfileEditForm
-from django.core.management import call_command
-from django.core.management.base import CommandError
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -18,10 +16,11 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.managers import AccountManager
+from apps.accounts.middleware import select_login_session
 from apps.accounts.permissions import account_admin_required, manager_required, require_active_admin, require_active_manager
 from apps.accounts.errors import AccountPermissionDenied
 from apps.admin_portal.services.backup_service import create_database_backup, list_database_backups
-from apps.admin_portal.services.restore_service import RestoreFailed, restore_confirmation, restore_database_from_backup, validate_backup_filename
+from apps.admin_portal.services.restore_service import RestoreFailed, RestoreRecovered, restore_confirmation, restore_database_from_backup, validate_backup_filename
 
 
 logger = logging.getLogger(__name__)
@@ -127,6 +126,9 @@ def staff_login(request):
                 elif account.role == AccountRole.CUSTOMER:
                     form.add_error(None, "Access Denied: Staff only.")
                 elif account.role in (AccountRole.ADMIN, AccountRole.MANAGER):
+                    # The shared sign-in form may receive either staff role.
+                    # Store it in that role's session without replacing the other.
+                    select_login_session(request, account)
                     login(request, account)
                     return redirect(_safe_staff_next(request, account))
                 else:
@@ -165,7 +167,6 @@ def database_tools(request):
     backups = list_database_backups()
     return render(request, "admin/portal/database.html", {
         "active_section": "database",
-        "seed_available": settings.DEBUG,
         "backups": backups,
         "database_name": settings.DATABASES["default"]["NAME"],
     })
@@ -200,12 +201,14 @@ def restore_database(request):
     filename = request.POST.get("filename", "").strip()
     confirm = (request.POST.get("restore_confirm") or request.POST.get("confirm") or "").strip()
     if not filename:
+        logger.warning('RESTORE_FAILED actor_id=%s source=%r reason=no_file_selected', request.user.pk, filename)
         messages.error(request, "Please select a backup file to restore.")
         return redirect("database_tools")
     database_name = settings.DATABASES["default"]["NAME"]
     if (request.POST.get("target_database") != database_name
             or confirm != restore_confirmation(filename, database_name)
             or request.POST.get("maintenance_ack") != "on"):
+        logger.warning('RESTORE_FAILED actor_id=%s source=%r reason=invalid_confirmation', request.user.pk, filename)
         messages.error(request, "Confirm the exact backup file, target database and maintenance window before restoring.")
         return redirect("database_tools")
 
@@ -218,44 +221,28 @@ def restore_database(request):
         # The imported dump may replace django_session, including this session.
         # Report the result without a session save or database-backed rendering.
         response = HttpResponse(format_html(
-            "<h1>Database restored</h1><p>Database <code>{}</code> was restored from <code>{}</code>.</p>"
-            "<p>Recovery backup retained: <code>{}</code>.</p><p><a href=\"{}\">Sign in again</a></p>",
-            database_name, filename, recovery_path.name, reverse("admin_login"),
+            "<h1>Restore Successful</h1><p>Database <code>{}</code> was restored and verified against <code>{}</code>.</p>"
+            "<p>Recovery backup retained: <code>{}</code>.</p><p><a href=\"{}\">Refresh database tools (sign in again if required)</a></p>",
+            database_name, filename, recovery_path.name, reverse("database_tools"),
         ))
         response.delete_cookie(settings.SESSION_COOKIE_NAME, path=settings.SESSION_COOKIE_PATH,
                                domain=settings.SESSION_COOKIE_DOMAIN, samesite=settings.SESSION_COOKIE_SAMESITE)
         return response
+    except RestoreRecovered as exc:
+        return HttpResponse(format_html('<h1>Restore failed</h1><p>{}</p><p><a href="{}">Return to Database Tools</a></p>', str(exc), reverse('database_tools')), status=409)
     except RestoreFailed as exc:
         # A partially imported database may no longer support sessions or context processors.
         return HttpResponse(format_html("<h1>Database recovery required</h1><p>{}</p>", str(exc)), status=503)
     except AccountPermissionDenied:
         return HttpResponseForbidden("Database restoration is restricted to active administrators.")
     except (ValueError, RuntimeError) as exc:
-        logger.warning("database_restore request_rejected actor_id=%s reason=%s", request.user.pk, type(exc).__name__)
+        logger.warning("RESTORE_FAILED actor_id=%s source=%r reason=%s", request.user.pk, filename, str(exc))
         messages.error(request, str(exc))
     except OSError:
         logger.error("database_restore request_failure actor_id=%s reason=filesystem_error", request.user.pk)
         return HttpResponse("Database restore could not complete. Keep external writers stopped and check the server log and "
                             "database/backups/.restore-recovery.json for recovery instructions.", status=503, content_type="text/plain")
     return redirect("database_tools")
-
-
-@account_admin_required
-@require_POST
-def seed_data(request):
-    if not settings.DEBUG:
-        return HttpResponseForbidden("Seed data is available only in development mode")
-    if request.POST.get("confirm") != "SEED":
-        messages.error(request, "Confirm the seed operation before continuing.")
-        return redirect("database_tools")
-    try:
-        call_command("seed_data", verbosity=0)
-    except (CommandError, ValueError):
-        messages.error(request, "Seed data could not be completed. Check the server log.")
-    else:
-        messages.success(request, "Seed data completed.")
-    return redirect("database_tools")
-
 
 
 @account_admin_required

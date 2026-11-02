@@ -53,7 +53,7 @@ REPLIES = {
     "bad": "Cửa hàng xin lỗi vì trải nghiệm chưa tốt. Nhân viên đã liên hệ để đổi sản phẩm mới cho bạn.",
 }
 # Thứ tự trạng thái rải đều: khoảng 1/3 mới, 1/4 đang xử lý, còn lại đã xử lý.
-STATUS_CYCLE = [FeedbackStatus.NEW, FeedbackStatus.RESOLVED, FeedbackStatus.IN_PROGRESS,
+STATUS_CYCLE = [FeedbackStatus.NEW, FeedbackStatus.RESOLVED, FeedbackStatus.NEW,
                 FeedbackStatus.RESOLVED, FeedbackStatus.NEW, FeedbackStatus.RESOLVED]
 RATINGS = [5, 5, 4, 4, 4, 3, 3, 2, 1]
 

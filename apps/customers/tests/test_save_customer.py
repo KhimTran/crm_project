@@ -1,8 +1,9 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 """Save Customer's JSON submission uses the real database and existing RBAC."""
 from unittest.mock import patch
 
 from django.db import DatabaseError, IntegrityError
-from django.test import Client, TestCase
+
 from django.urls import reverse
 
 from apps.accounts.models import Account

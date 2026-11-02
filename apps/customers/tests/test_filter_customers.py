@@ -1,7 +1,8 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from datetime import date
 
 from django.contrib.auth.models import Group
-from django.test import TestCase
+
 from django.urls import reverse
 
 from apps.accounts.models import Account
@@ -19,10 +20,10 @@ class FilterCustomersTests(TestCase):
     def setUpTestData(cls):
         cls.an = create_customer(password=PASSWORD, email="an@example.com", full_name="Nguyễn Văn An", phone="0900000001",
                                     date_of_birth=date(2008, 10, 5), gender="MALE", playing_level="BEGINNER",
-                                    play_styles=["Tấn công"], brands=["Yonex", "Victor"])
+                                    brands=["Yonex", "Victor"])
         cls.binh = create_customer(password=PASSWORD, email="binh@example.com", full_name="Trần Thị Bình", phone="0900000002",
                                       date_of_birth=date(2008, 10, 6), gender="FEMALE",
-                                      playing_level="COMPETITIVE", play_styles=["Phòng thủ"], brands=["Yonex"])
+                                      playing_level="COMPETITIVE", brands=["Yonex"])
         cls.cuong = create_customer(password=PASSWORD, email="cuong@example.com", full_name="Lê Cường", phone="0900000003",
                                        date_of_birth=date(1960, 1, 1), gender="MALE", brands=["Li-Ning"])
         cls.dung = create_customer(password=PASSWORD, email="dung@example.com", full_name="Phạm Dũng", phone="0900000004")
@@ -46,7 +47,7 @@ class FilterCustomersTests(TestCase):
     def test_profile_and_preference_filters(self):
         self.assertEqual(self.ids(gender="MALE"), {self.an.pk, self.cuong.pk})
         self.assertEqual(self.ids(playing_level="COMPETITIVE"), {self.binh.pk})
-        self.assertEqual(self.ids(play_style="Tấn công"), {self.an.pk})
+        self.assertEqual(self.ids(play_style="Tấn công"), self.ids())
         self.assertEqual(self.ids(brand="Yonex"), {self.an.pk, self.binh.pk})
         self.assertEqual(self.ids(account_status="LOCKED"), {self.cuong.pk})
         self.assertEqual(self.ids(q="bình"), {self.binh.pk})
@@ -55,7 +56,7 @@ class FilterCustomersTests(TestCase):
     def test_filters_combine_without_duplicate_rows(self):
         self.assertEqual(self.ids(brand="Yonex", gender="FEMALE"), {self.binh.pk})
         qs = filter_customers(customer_queryset(), {"brand": "Yonex", "play_style": "Tấn công"}, today=TODAY)
-        self.assertEqual(qs.count(), 1)
+        self.assertEqual(qs.count(), 2)
 
     def test_age_helpers(self):
         self.assertEqual(years_ago(date(2028, 2, 29), 1), date(2027, 2, 28))

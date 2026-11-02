@@ -1,7 +1,8 @@
 {% extends crm_layout %}
-{% load portal_text %}
+{% load portal_text static %}
 {% block title %}{% t "Khảo sát" "Surveys" %}{% endblock %}
 {% block page_title %}{% t "Khảo sát" "Surveys" %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}?v=survey-filter-row-2">{% endblock %}
 {% block content %}
 
 <div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
@@ -9,31 +10,44 @@
   <a class="btn btn-primary" href="{% url 'surveys:manage_create' %}">{% t "Tạo khảo sát" "Create Survey" %}</a>
 </div>
 
-{# tv4: thanh tìm kiếm/lọc chỉ để xem giao diện, chưa lọc thật #}
 <section class="portal-panel">
-  <form method="get" class="row g-3 align-items-end">
-    <div class="col-12 col-md-6 col-lg-5">
+  <form method="get" class="survey-list-filter" role="search">
+    <div>
       <label class="form-label" for="survey-query">{% t "Tìm khảo sát" "Search surveys" %}</label>
-      <input class="form-control" id="survey-query" name="q" placeholder="{% t 'Tìm theo tên khảo sát...' 'Search by survey name...' %}">
+      <input class="form-control" id="survey-query" name="q" value="{{ filters.q.value|default_if_none:'' }}" placeholder="{% t 'Tìm theo tên khảo sát...' 'Search by survey name...' %}">
+      {{ filters.q.errors }}
     </div>
-    <div class="col-12 col-md-4 col-lg-3">
+    <div>
       <label class="form-label" for="survey-status">{% t "Trạng thái" "Status" %}</label>
       <select class="form-select" id="survey-status" name="status">
         <option value="">{% t "Tất cả trạng thái" "All statuses" %}</option>
-        <option value="DRAFT">{% t "Nháp" "Draft" %}</option>
-        <option value="ACTIVE">{% t "Đã phát hành" "Published" %}</option>
-        <option value="CLOSED">{% t "Đã đóng" "Closed" %}</option>
+        <option value="DRAFT" {% if filters.status.value == 'DRAFT' %}selected{% endif %}>{% t "Nháp" "Draft" %}</option>
+        <option value="ACTIVE" {% if filters.status.value == 'ACTIVE' %}selected{% endif %}>{% t "Đã phát hành" "Published" %}</option>
+        <option value="CLOSED" {% if filters.status.value == 'CLOSED' %}selected{% endif %}>{% t "Đã đóng" "Closed" %}</option>
       </select>
+      {{ filters.status.errors }}
     </div>
-    <div class="col-12 col-md-auto d-flex align-items-center gap-2 flex-wrap">
+    <div>
+      <label class="form-label" for="survey-date-from">{% t 'Từ ngày' 'From Date' %}</label>
+      <input class="form-control" type="date" id="survey-date-from" name="date_from" value="{{ filters.date_from.value|default_if_none:'' }}" {% if filters.date_from.errors %}aria-invalid="true" aria-describedby="survey-date-from-errors"{% endif %}>
+      <div id="survey-date-from-errors">{{ filters.date_from.errors }}</div>
+    </div>
+    <div>
+      <label class="form-label" for="survey-date-to">{% t 'Đến ngày' 'To Date' %}</label>
+      <input class="form-control" type="date" id="survey-date-to" name="date_to" value="{{ filters.date_to.value|default_if_none:'' }}" {% if filters.date_to.errors %}aria-invalid="true" aria-describedby="survey-date-to-errors"{% endif %}>
+      <div id="survey-date-to-errors">{{ filters.date_to.errors }}</div>
+    </div>
+    <div class="survey-list-filter-actions">
       <button class="btn btn-outline-primary" type="submit">{% t "Tìm" "Search" %}</button>
       <a class="btn btn-outline-secondary" href="{% url 'surveys:manage_list' %}">{% t "Xóa lọc" "Clear" %}</a>
     </div>
   </form>
 </section>
 
-{% if not items %}
-<section class="portal-panel portal-empty"><p class="mb-0">{% t "Chưa có khảo sát nào." "No surveys yet." %}</p></section>
+{% if filters.errors %}
+<section class="portal-panel" role="alert"><p class="text-danger mb-0">{% t 'Vui lòng kiểm tra bộ lọc và khoảng ngày đã chọn.' 'Please check the filters and selected date range.' %}</p></section>
+{% elif not items %}
+<section class="portal-panel portal-empty"><p class="mb-0">{% if filters.q.value or filters.status.value or filters.date_from.value or filters.date_to.value %}{% t "Không có khảo sát phù hợp với bộ lọc." "No surveys match the selected filters." %}{% else %}{% t "Chưa có khảo sát nào." "No surveys yet." %}{% endif %}</p></section>
 {% else %}
 <section class="portal-panel p-0">
   <div class="table-responsive">

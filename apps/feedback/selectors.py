@@ -11,10 +11,10 @@ def _start_of_day(day):
     return timezone.make_aware(datetime.combine(day, time.min))
 
 
-# tv4: 4.1.4 truy vấn danh sách phản hồi kèm khách hàng, sản phẩm, người xử lý; mới nhất trước
+# Stable numeric ID order for the shared CRM list, before pagination.
 def feedback_queryset():
     return (Feedback.objects.select_related("customer", "product", "handled_by")
-            .order_by("-created_at", "-feedback_id"))
+            .order_by("feedback_id"))
 
 
 # tv4: 4.1.4 lọc phản hồi theo từ khóa, trạng thái, sản phẩm, số sao, khoảng ngày gửi

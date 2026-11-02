@@ -1,10 +1,11 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 """TV5 tests: survey management, audience filter, multi-choice answers, statistics."""
 import json
 from datetime import timedelta
 
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+
 from django.urls import reverse
 from django.utils import timezone
 

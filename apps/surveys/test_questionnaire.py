@@ -1,3 +1,4 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 """The versioned questionnaire's storage, validation and report contract."""
 import json
 from copy import deepcopy
@@ -7,7 +8,7 @@ from unittest.mock import patch
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.auth.models import Group
 from django.db import DatabaseError
-from django.test import Client, TestCase
+
 from django.urls import reverse
 from django.utils import timezone
 

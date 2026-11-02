@@ -1,7 +1,8 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from datetime import timedelta
 
 from django.contrib.auth.models import Group
-from django.test import TestCase
+
 from django.urls import reverse
 from django.utils import timezone
 
@@ -48,11 +49,26 @@ class FeedbackTestData(TestCase):
 
 # tv4: test 4.1.4 service xử lý: handled_by, resolved_at, trạng thái
 class HandleFeedbackServiceTests(FeedbackTestData):
-    def test_in_progress_sets_handler_without_resolved_at(self):
+    def test_database_rejects_retired_status(self):
+        from django.db import transaction, IntegrityError
         feedback = self.make_feedback()
-        handle_feedback(feedback.pk, status=FeedbackStatus.IN_PROGRESS, manager_note="", handled_by=self.staff)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Feedback.objects.filter(pk=feedback.pk).update(status='IN_PROGRESS')
         feedback.refresh_from_db()
-        self.assertEqual(feedback.status, FeedbackStatus.IN_PROGRESS)
+        self.assertEqual(feedback.status, FeedbackStatus.NEW)
+
+    def test_form_rejects_retired_status(self):
+        from apps.feedback.forms import FeedbackHandleForm, FeedbackFilterForm
+        for form in (FeedbackHandleForm({'status':'IN_PROGRESS','manager_note':'old'}),
+                     FeedbackFilterForm({'status':'IN_PROGRESS'})):
+            self.assertFalse(form.is_valid())
+            self.assertIn('status', form.errors)
+
+    def test_new_sets_handler_without_resolved_at(self):
+        feedback = self.make_feedback()
+        handle_feedback(feedback.pk, status=FeedbackStatus.NEW, manager_note="", handled_by=self.staff)
+        feedback.refresh_from_db()
+        self.assertEqual(feedback.status, FeedbackStatus.NEW)
         self.assertEqual(feedback.handled_by, self.staff)
         self.assertIsNone(feedback.resolved_at)
         self.assertIsNone(feedback.manager_note)
@@ -77,21 +93,21 @@ class HandleFeedbackServiceTests(FeedbackTestData):
         self.assertEqual(feedback.manager_note, "Lần 2")
         self.assertEqual(feedback.handled_by, self.manager)
 
-        handle_feedback(feedback.pk, status=FeedbackStatus.IN_PROGRESS, manager_note="Kiểm tra lại",
+        handle_feedback(feedback.pk, status=FeedbackStatus.NEW, manager_note="Kiểm tra lại",
                         handled_by=self.staff)
         feedback.refresh_from_db()
         self.assertIsNone(feedback.resolved_at)
-        self.assertEqual(feedback.status, FeedbackStatus.IN_PROGRESS)
+        self.assertEqual(feedback.status, FeedbackStatus.NEW)
 
     def test_invalid_input_is_rejected_without_changes(self):
         feedback = self.make_feedback()
         with self.assertRaises(FeedbackNoteRequired):
             handle_feedback(feedback.pk, status=FeedbackStatus.RESOLVED, manager_note="   ", handled_by=self.staff)
-        for status in (FeedbackStatus.NEW, "DONE"):
+        for status in ("IN_PROGRESS", "DONE"):
             with self.assertRaises(InvalidFeedbackStatus):
                 handle_feedback(feedback.pk, status=status, manager_note="x", handled_by=self.staff)
         with self.assertRaises(FeedbackNotFound):
-            handle_feedback(9999, status=FeedbackStatus.IN_PROGRESS, manager_note="", handled_by=self.staff)
+            handle_feedback(9999, status=FeedbackStatus.NEW, manager_note="", handled_by=self.staff)
         feedback.refresh_from_db()
         self.assertEqual(feedback.status, FeedbackStatus.NEW)
         self.assertIsNone(feedback.handled_by)
@@ -102,7 +118,7 @@ class FilterFeedbackTests(FeedbackTestData):
     def setUp(self):
         self.recent = self.make_feedback(rating=5, content="Vợt nhẹ, dễ đánh")
         self.old = self.make_feedback(customer=self.binh, product=self.shoe, rating=2, content="Giày bị bong keo",
-                                      status=FeedbackStatus.IN_PROGRESS, days_ago=10)
+                                      status=FeedbackStatus.RESOLVED, days_ago=10)
 
     def ids(self, **params):
         return set(filter_feedbacks(feedback_queryset(), params).values_list("pk", flat=True))
@@ -110,6 +126,7 @@ class FilterFeedbackTests(FeedbackTestData):
     def test_filters(self):
         self.assertEqual(self.ids(), {self.recent.pk, self.old.pk})
         self.assertEqual(self.ids(status=FeedbackStatus.NEW), {self.recent.pk})
+        self.assertEqual(self.ids(status=FeedbackStatus.RESOLVED), {self.old.pk})
         self.assertEqual(self.ids(product=self.shoe), {self.old.pk})
         self.assertEqual(self.ids(rating=2), {self.old.pk})
         self.assertEqual(self.ids(q="bình"), {self.old.pk})

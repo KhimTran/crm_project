@@ -1,5 +1,28 @@
 # crm_project
 
+## CRM completion verification — 2026-11-02
+
+Current verification and remaining deployment condition: [audit report](docs/crm_audit_20261101/REPORT.md).
+All 456 original tests plus eight regression cases pass on isolated MySQL (464 total).
+`/login/` selects `sessionid` (Customer), `staff_sessionid` (Admin) or
+`manager_sessionid` (Manager). Logout removes only the selected portal session.
+The shared password page accepts `?portal=manager` or `?portal=admin`; without
+that parameter an authenticated Customer remains selected, with staff fallback
+when no Customer session is available.
+
+`seed_survey_report_demo --confirm` uses ORM-assigned IDs and recreates only marked
+demo accounts/surveys. `--clear --confirm` retains unrelated rows. The data-only
+SQL seed names its columns explicitly to support migration-created schemas.
+
+Migration `surveys.0006_reconcile_rating_constraint` reconciles legacy SQL imports
+with the existing questionnaire Rating 1–10 contract. Fresh migrations, upgraded
+clones and the current SQL import were verified. **It has not been applied to
+shared `crm_db`: its legacy Rating 1–5 CHECK remains a deployment blocker for
+scores 6–10.** Live changes were excluded by the audit request. Before deployment,
+use the project's verified full-backup/recovery procedure and apply the migration
+in an authorized maintenance window. Do not re-import the initialization SQL over
+an existing database.
+
 Website bán đồ cầu lông tích hợp CRM. Django 5.2, MySQL 8.x, Django Templates.
 
 Phần TV1 trên nhánh `feature/tv1-auth-customer` được xây từ develop `ee13e42`.
@@ -67,7 +90,7 @@ Template custom Admin ở `templates/admin/portal/`; không dùng trực tiếp
 `templates/admin/base.html`, `base_site.html`, `index.html` hoặc `login.html` để
 tránh che template Django Admin. Tên app `apps.admin_portal`, URL/namespace và
 static `admin_portal.css`/`admin_portal.js` giữ nguyên. Xem
-[bàn giao Admin/Manager và recovery](docs/admin_manager_review_fixes.md).
+[bàn giao Admin/Manager và recovery](docs/crm_audit_20261101/REPORT.md).
 
 ## Email và mật khẩu
 
@@ -227,5 +250,11 @@ chưa khớp models develop. Check source thành công không chứng minh live 
 TV1 không reset hoặc migrate DB đó. Kiểm thử TV1 dùng MySQL test schema riêng.
 
 Bàn giao: [docs/tv1_handoff.md](docs/tv1_handoff.md).
-Kế hoạch: [docs/15_week_plan.md](docs/15_week_plan.md).
+Kế hoạch: [docs/crm_audit_20261101/REPORT.md](docs/crm_audit_20261101/REPORT.md).
 Báo cáo: [docs/chapter4.md](docs/chapter4.md).
+
+
+Live finalization 2026-11-02: owner authorized and applied surveys.0006; verified recovery backup outside backups, full dump/restore22 tables, unchanged business fingerprints, idempotent seed (0 new live rows). Prior pending-0006 statements are superseded. Evidence: docs/crm_audit_20261101/completion/finalize_database.json.
+
+
+Feedback owner decision 2026-11-02: only NEW and RESOLVED are valid. Existing IN_PROGRESS feedbacks converted to NEW by feedback.0003_two_status_feedback; note and handler retained, resolved_at cleared. Existing reopen remains RESOLVED -> NEW. Survey response IN_PROGRESS is unrelated and remains supported. Live migration and verified recovery/full backup evidence: docs/crm_audit_20261101/completion/feedback_finalization.json. Previous three-status Feedback descriptions are historical and superseded.

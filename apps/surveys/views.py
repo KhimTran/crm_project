@@ -6,13 +6,13 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.db import DatabaseError, transaction
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 
-from django.db.models import Count, Q
+from django.db.models import Q
 
 from apps.accounts.decorators import role_required
 from apps.accounts.errors import AccountPermissionDenied
@@ -20,13 +20,15 @@ from apps.accounts.permissions import account_admin_required
 from apps.customers.models import Customer
 from apps.customers.portal_text import localize_form, localize_rows, portal_english, say, tr
 from .constants import BUILDER_TYPES, CHOICE_TYPES, RECIPIENT_COMPLETED, SHOP_NAME, QuestionType, SurveyStatus
-from .forms import AudienceForm, BuilderQuestionForm, SurveyBuilderForm
+from .forms import AudienceForm, BuilderQuestionForm, SurveyBuilderForm, SurveyListFilterForm
+from .selectors import survey_list_queryset
+from .services import resolve_audience, send_saved_survey
 from .configuration import populate_questionnaire, prepare_questions
 from .questionnaire import TEMPLATE_KEY
 from .models import Survey, SurveyQuestion, SurveyRecipient
 from .services import (COMPLETED_MESSAGE, build_stats, check_ready_to_send, clone_survey, close_expired, close_survey,
-                       eligible_customers, filter_customers, is_survey_open, recipient_for_user, send_survey,
-                       send_to_audience, start_survey, submit_survey, survey_overview)
+                       eligible_customers, is_survey_open, recipient_for_user,
+                       start_survey, submit_survey, survey_overview)
 
 manager_required = role_required("ADMIN", "MANAGER", "CRM_MANAGER")
 
@@ -36,8 +38,7 @@ manager_required = role_required("ADMIN", "MANAGER", "CRM_MANAGER")
 def send(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     try:
-        customer_ids = request.POST.getlist("customer_id")
-        result = send_survey(request.user, survey, customer_ids)
+        result = send_saved_survey(request.user, survey)
     except (ValidationError, ValueError) as exc:
         return HttpResponseBadRequest(str(exc))
     messages.success(request, f"Survey sent to {result['created']} customers. Skipped {result['skipped']} customers who already received this survey.")
@@ -128,13 +129,14 @@ def _localized_stats(stats):
     return stats
 
 
-# tv4: trang Surveys – đọc danh sách khảo sát (mới nhất trước); nút Xem/Sửa/Xóa dùng view manage_detail/edit/delete có sẵn
+# Survey list uses validated schedule filters and ascending numeric IDs.
 @manager_required
 @require_GET
 @portal_english
 def manage_list(request):
     close_expired()
-    items = list(Survey.objects.annotate(sent=Count("surveyrecipient", distinct=True)).order_by("-survey_id"))
+    filters = SurveyListFilterForm(request.GET)
+    items = list(survey_list_queryset(filters.cleaned_data)) if filters.is_valid() else []
     for survey in items:  # chỉ Nháp chưa gửi cho ai mới sửa/xóa được (cùng quy tắc với manage_delete)
         survey.editable = survey.status == SurveyStatus.DRAFT and not survey.sent
         done = survey.surveyrecipient_set.filter(status=RECIPIENT_COMPLETED).count()
@@ -143,6 +145,7 @@ def manage_list(request):
         survey.status_label = tr(SurveyStatus(survey.status).label) if survey.status in SurveyStatus.values else survey.status
     return render(request, "surveys/manage_list.html", {
         "items": items,
+        "filters": filters,
         "surveys": items,
         "overview": survey_overview(),
     })
@@ -283,9 +286,7 @@ def _survey_locked(survey):
 
 # tv4: lọc danh sách khách nhận khảo sát theo lựa chọn đối tượng (dùng chung cho trang tạo và trang gửi)
 def _audience_customers(data):
-    if data["audience"] == "pick":
-        return eligible_customers().filter(customer_id__in=data["customer_ids"])
-    return filter_customers(data["audience"], data["age_groups"], data["playing_levels"], data["preferences"])
+    return resolve_audience(data)
 
 
 # tv4: form đối tượng nhận cho trình soạn: nạp lựa chọn đã lưu cùng bản Nháp, nhãn theo ảnh mẫu
@@ -393,7 +394,7 @@ def _save_builder(request, survey, form, audience_form, question_forms, *, fixed
                 SurveyQuestion.objects.filter(survey=saved).delete()
             for question_form in question_forms:  # bộ 8 câu: form gắn với câu đã lưu nên sửa tại chỗ
                 question_form.save_for(saved)
-        result = send_to_audience(request.user, saved, _audience_customers(audience_form.cleaned_data)) if publish else None
+        result = send_saved_survey(request.user, saved) if publish else None
     return saved, result
 
 
@@ -466,7 +467,7 @@ def _survey_builder(request, survey):
                  for c in eligible_customers().select_related("account").order_by("full_name", "customer_id")]
     types = [{"value": value, "label": say(label, english), "badge": say(badge, badge_en)}
              for (value, label, badge), (english, badge_en) in zip(BUILDER_TYPES, [
-                 ("Multiple choice (pick 1)", "Single choice"), ("Multiple answers", "Multiple answers"),
+                 ("Single choice", "Single choice"), ("Multiple answers", "Multiple answers"),
                  ("Rating scale", "Rating"), ("Free text", "Free text"), ("Criteria rating", "Criteria")])]
     if not any(item.get("type") == QuestionType.MATRIX for item in items):
         types = [t for t in types if t["value"] != QuestionType.MATRIX]  # ma trận chỉ giữ cho câu cũ đã có
@@ -557,27 +558,24 @@ def manage_detail(request, survey_id):
 
 @manager_required
 @portal_english
+@require_http_methods(['GET', 'POST'])
 def manage_send(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
     errors = [_send_error(e) for e in check_ready_to_send(survey)]
-    form = localize_form(AudienceForm(request.POST or None))
-    preview = None
-    if request.method == "POST" and form.is_valid():
-        data = form.cleaned_data
-        customers = _audience_customers(data)
-        if request.POST.get("action") == "send" and not errors:
-            try:
-                result = send_to_audience(request.user, survey, customers)
-            except (AccountPermissionDenied, ValidationError) as exc:
-                messages.error(request, tr(exc.messages[0] if isinstance(exc, ValidationError) else str(exc)))
-                return redirect("surveys:manage_detail", survey_id=survey.pk)
-            note = f" ({result['skipped']} previous recipient(s) skipped)" if result["skipped"] else ""
-            messages.success(request, f"Survey sent to {result['created']} customer(s){note}.")
-            return redirect("surveys:manage_detail", survey_id=survey.pk)
-        preview = customers.count()
-    return render(request, "surveys/manage_send.html",
-                  {"survey": survey, "form": form, "errors": errors, "preview": preview})
-
+    preview = 0
+    try:
+        preview = resolve_audience(survey.audience).count()
+    except ValidationError as exc:
+        errors.extend(exc.messages)
+    if request.method == 'POST' and request.POST.get('action') == 'send' and not errors:
+        try:
+            result = send_saved_survey(request.user, survey)
+        except (AccountPermissionDenied, ValidationError) as exc:
+            messages.error(request, tr(exc.messages[0] if isinstance(exc, ValidationError) else str(exc)))
+            return redirect('surveys:manage_detail', survey_id=survey.pk)
+        messages.success(request, f"Survey sent to {result['created']} customer(s). Skipped {result['skipped']} previous recipients.")
+        return redirect('surveys:manage_detail', survey_id=survey.pk)
+    return render(request, 'surveys/manage_send.html', {'survey': survey, 'errors': errors, 'preview': preview})
 
 @manager_required
 @require_POST

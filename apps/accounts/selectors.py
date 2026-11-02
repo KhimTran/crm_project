@@ -53,7 +53,7 @@ def list_accounts(actor):
 
 def list_account_page(actor, *, page=1, q="", role=None, status=None, page_size=20):
     require_active_admin(actor)
-    query = Account.objects.order_by("-account_id")
+    query = Account.objects.order_by("account_id")
     if q and q.strip():
         term = q.strip()
         code_filter = Q()

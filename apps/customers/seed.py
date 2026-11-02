@@ -16,7 +16,7 @@ from apps.accounts.models import Account
 
 from apps.catalog.vocabulary import brand_choices
 
-from .constants import PLAY_STYLE_CHOICES, CustomerStatus, Gender, PlayingLevel, PreferenceType
+from .constants import CustomerStatus, Gender, PlayingLevel, PreferenceType
 from .models import Customer, CustomerPreference
 from .selectors import years_ago
 
@@ -56,7 +56,6 @@ def _demo_profile(index, rng, today, brands):
         "gender": gender,
         "address": CITIES[index % len(CITIES)],
         "playing_level": None if index % 17 == 0 else LEVELS[index % len(LEVELS)],
-        "play_styles": rng.sample([v for v, _ in PLAY_STYLE_CHOICES], rng.randint(1, 2)),
         "brands": rng.sample(brands, rng.randint(1, min(3, len(brands)))) if brands else [],
         "days_ago": rng.randint(0, 365),  # ngày tạo rải trong 12 tháng gần nhất
     }
@@ -93,9 +92,7 @@ def seed_customers(count=DEMO_CUSTOMER_COUNT, password=DEMO_CUSTOMER_PASSWORD):
             Account.objects.filter(pk=account.pk).update(created_at=now - timedelta(days=profile["days_ago"]))
 
             CustomerPreference.objects.bulk_create(
-                [CustomerPreference(customer=account, preference_type=PreferenceType.PLAY_STYLE, preference_value=v)
-                 for v in profile["play_styles"]]
-                + [CustomerPreference(customer=account, preference_type=PreferenceType.BRAND, preference_value=v)
+                [CustomerPreference(customer=account, preference_type=PreferenceType.BRAND, preference_value=v)
                    for v in profile["brands"]]
             )
             created += 1

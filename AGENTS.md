@@ -1,5 +1,25 @@
 # Project Overview
 
+## CURRENT VERIFIED SESSION / SQL CONTRACT — 2026-11-02
+
+Unified login selects a role-specific session before Django login; portal logout
+deletes that cookie only. Shared CRM prefers a valid authorized Manager session,
+then Admin. Expired/hash-revoked/locked/role-revoked Manager sessions cannot mask
+Admin. Password change uses explicit `?portal=manager` / `?portal=admin` where
+needed to disambiguate simultaneous Customer sessions. Preserve CSRF and role guards.
+
+Tests use `apps.accounts.testing.PortalClient` for explicit actor fixtures;
+`force_login`/`login` impersonate the actor across portals. Real HTTP POST login
+does not mirror cookies. Session isolation must also be tested with actual login.
+Do not infer production behavior from fixture cookie mirroring.
+
+Current SQL supports Rating 1–10, as migration 0003 originally intended. New
+0006 reconciles imports retaining the legacy 1–5 constraint. It is verified on
+private databases but deliberately NOT applied to shared crm_db during audit.
+Treat live migration as outstanding; never report live schema synchronized until
+it has actually been applied and verified with the required backup safety gate.
+See docs/crm_audit_20261101/REPORT.md and completion/ evidence.
+
 ## CURRENT ADMIN & MANAGER PORTAL & RBAC ARCHITECTURE — owner decision 2026-10-15
 
 Role `MANAGER` is added to `accounts.role` alongside `ADMIN` and `CUSTOMER`. Valid stored values are `ADMIN`, `MANAGER`, and `CUSTOMER`.
@@ -591,3 +611,9 @@ When related models/modules do not yet exist:
 - do not block standalone implementation unless the missing dependency is technically required.
 
 The module must be designed so it can be integrated into the full project later with minimal changes.
+
+
+Live finalization 2026-11-02: owner authorized and applied surveys.0006; verified recovery backup outside backups, full dump/restore22 tables, unchanged business fingerprints, idempotent seed (0 new live rows). Prior pending-0006 statements are superseded. Evidence: docs/crm_audit_20261101/completion/finalize_database.json.
+
+
+Feedback owner decision 2026-11-02: only NEW and RESOLVED are valid. Existing IN_PROGRESS feedbacks converted to NEW by feedback.0003_two_status_feedback; note and handler retained, resolved_at cleared. Existing reopen remains RESOLVED -> NEW. Survey response IN_PROGRESS is unrelated and remains supported. Live migration and verified recovery/full backup evidence: docs/crm_audit_20261101/completion/feedback_finalization.json. Previous three-status Feedback descriptions are historical and superseded.

@@ -1,8 +1,9 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 import datetime
 from django.apps import apps
 from django.contrib.auth.models import Group
 from django.db import connection
-from django.test import Client, TestCase
+
 from django.urls import reverse
 
 from apps.accounts.constants import AccountRole, AccountStatus

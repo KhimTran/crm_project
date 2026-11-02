@@ -1,7 +1,8 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.test import TestCase
+
 
 from apps.accounts.constants import AccountStatus
 from apps.accounts.models import Account

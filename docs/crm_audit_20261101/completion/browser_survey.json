@@ -1,0 +1,62 @@
+{
+  "cases": [
+    {
+      "case": "Browser Create + Draft + 4 answer types + saved audience",
+      "status": "PASS",
+      "survey_id": 9,
+      "question_ids": [
+        36,
+        37,
+        38,
+        39
+      ]
+    },
+    {
+      "case": "Browser Edit / reorder / add / delete / persisted SQL order",
+      "status": "PASS",
+      "questions": [
+        [
+          "SINGLE_CHOICE",
+          "Browser single edited"
+        ],
+        [
+          "MULTI_CHOICE",
+          "Browser MULTI_CHOICE"
+        ],
+        [
+          "TEXT",
+          "Browser TEXT"
+        ],
+        [
+          "RATING",
+          "Browser RATING"
+        ]
+      ]
+    },
+    {
+      "case": "Browser Send uses saved pick audience without second selection",
+      "status": "PASS",
+      "recipient_id": 107
+    },
+    {
+      "case": "Browser Customer creates NEW / Manager reads without mutation / direct resolve / Customer history",
+      "status": "PASS",
+      "feedback_id": 38
+    },
+    {
+      "case": "Browser customer submit Single/Multi/Text/Rating/Matrix through survey_take.js",
+      "status": "PASS",
+      "answer_count": 6,
+      "rating": 10
+    },
+    {
+      "case": "Browser console/uncaught errors during builder/send/take/stats/report",
+      "status": "PASS"
+    }
+  ],
+  "database": "crm_browser_audit_a4ad4b9927",
+  "send_confirmation": "CRM Manager Portal\n\nPERSONAL\n\nProfile\n\nCATALOG\n\nProducts\nCategories\nBrands\n\nCRM MODULES\n\nCustomers\nCustomer Report\nFeedback\nSurveys\n\nCRM MANAGER PORTAL\n\nSend Survey\nbrowser-manager@audit.test\nST0077\nLogout\nBROWSER survey builder\n\nSchedule: 02/11/2026 00:00 – 09/11/2026 23:59\n\nRecipients are determined by the audience saved in Create/Edit Survey.\n\n1 eligible recipient(s).\n\nConfirm Send Survey\nBack to survey",
+  "report_chart_count": 5,
+  "browser_errors": [],
+  "live_database_unchanged": true
+}

@@ -1,3 +1,4 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 """4.1.6 / 4.1.7 / 4.2.5 – quy tắc nghiệp vụ khảo sát: vòng đời, người nhận, quyền truy cập,
 validation, chống gửi trùng và thống kê. Chạy trên test database (không đụng dữ liệu thật)."""
 import json
@@ -5,7 +6,7 @@ import re
 from datetime import timedelta
 
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.test import TestCase
+
 from django.urls import reverse
 from django.utils import timezone
 
@@ -73,13 +74,13 @@ class LifecycleTests(SurveyFixture):
         self.assertRedirects(response, reverse("surveys:manage_edit", args=[survey.pk]))  # lưu xong ở lại trình soạn
         self.assertEqual((survey.status, survey.template_key, survey.surveyquestion_set.count()), ("DRAFT", None, 0))
         self.client.post(reverse("surveys:manage_edit", args=[survey.pk]), {
-            "title": "Luồng mới", "objective": "SATISFACTION", "audience": "all", "action": "save",
+            "title": "Luồng mới", "objective": "SATISFACTION", "audience": "pick", "customer_ids": [self.an.pk], "action": "save",
             "start_at": start.date().isoformat(), "end_at": (start + timedelta(days=3)).date().isoformat(),
             "questions_json": json.dumps([{"text": "Bạn hài lòng?", "type": "SINGLE_CHOICE", "required": True,
                                            "options": ["Có", "Không"]}])})
         question = survey.surveyquestion_set.get()
         self.client.post(reverse("surveys:manage_send", args=[survey.pk]),
-                         {"audience": "pick", "customer_ids": [self.an.pk], "action": "send"})
+                         {"audience": "all", "customer_ids": [self.binh.pk], "action": "send"})
         survey.refresh_from_db()
         self.assertEqual(survey.status, "ACTIVE")
         recipient = SurveyRecipient.objects.get(survey=survey)
@@ -156,11 +157,16 @@ class LifecycleTests(SurveyFixture):
         locked = make_customer("rules-locked2@example.com", full_name="Khóa")
         Account.objects.filter(pk=locked.account_id).update(status=AccountStatus.LOCKED)
         self.client.force_login(self.manager)
-        page = self.client.get(reverse("surveys:manage_send", args=[self.survey.pk]))
+        page = self.client.get(reverse("surveys:manage_edit", args=[self.survey.pk]))
         self.assertContains(page, "rules-an@example.com")
         self.assertNotContains(page, "rules-locked2@example.com")
-        self.client.post(reverse("surveys:manage_send", args=[self.survey.pk]),
-                         {"audience": "pick", "customer_ids": [locked.pk], "action": "send"})
+        self.survey.audience = {"audience": "pick", "customer_ids": [locked.pk]}
+        self.survey.save(update_fields=["audience"])
+        response = self.client.post(reverse("surveys:manage_send", args=[self.survey.pk]),
+                                   {"audience": "all", "action": "send"})
+        self.assertRedirects(response, reverse('surveys:manage_detail', args=[self.survey.pk]))
+        self.survey.refresh_from_db()
+        self.assertEqual(self.survey.status, 'DRAFT')
         self.assertFalse(SurveyRecipient.objects.exists())
 
     def test_questions_locked_after_publish_and_answers(self):

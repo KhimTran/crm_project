@@ -84,13 +84,30 @@
 .portal-shell .portal-pagination a.btn:focus-visible { outline: 3px solid rgb(23 107 134 / 28%); outline-offset: 2px; box-shadow: none; }
 .portal-login-page { min-height: 100vh; display: grid; place-items: center; padding: 1.25rem; }
 .portal-login-card { width: min(100%, 420px); padding: 2rem; background: #fff; border: 1px solid var(--portal-border); border-radius: .6rem; }
-.portal-shell .portal-login-card input:not([type="hidden"]), .portal-shell .modal-body input:not([type="hidden"]), .portal-shell .modal-body select, .portal-shell .portal-panel input:not([type="hidden"]), .portal-shell .portal-panel select { display: block; width: 100%; min-height: 42px; padding: .55rem .75rem; border: 1px solid #c7d2da; border-radius: .4rem; background: #fff; color: var(--portal-text); }
+.portal-shell .portal-login-card input:not([type="hidden"]), .portal-shell .modal-body input:not([type="hidden"]), .portal-shell .modal-body select, .portal-shell .portal-panel input:not([type="hidden"]):not([name="maintenance_ack"]), .portal-shell .portal-panel select { display: block; width: 100%; min-height: 42px; padding: .55rem .75rem; border: 1px solid #c7d2da; border-radius: .4rem; background: #fff; color: var(--portal-text); }
 .portal-shell .portal-login-card input:focus, .portal-shell .modal-body input:focus, .portal-shell .modal-body select:focus, .portal-shell .portal-panel input:focus, .portal-shell .portal-panel select:focus { border-color: #3284a0; outline: 0; box-shadow: 0 0 0 3px rgb(50 132 160 / 16%); }
 .portal-shell .portal-panel textarea { display: block; width: 100%; min-height: 140px; box-sizing: border-box; padding: .55rem .75rem; border: 1px solid #c7d2da; border-radius: .4rem; color: var(--portal-text); font: inherit; line-height: 1.55; resize: vertical; }
 .portal-shell .portal-panel p:has(> textarea) > label { display: block; margin-bottom: .4rem; font-weight: 600; }
 .portal-shell .portal-panel textarea:focus { border-color: #3284a0; outline: 0; box-shadow: 0 0 0 3px rgb(50 132 160 / 16%); }
 .portal-shell .errorlist { margin: .3rem 0 0; padding-left: 1.1rem; color: #a93333; font-size: .82rem; }
 .portal-confirm-input { max-width: 220px; }
+.portal-shell .portal-restore-ack { display: flex; align-items: center; gap: 8px; }
+.portal-shell .portal-panel .portal-restore-ack input[type="checkbox"][name="maintenance_ack"] {
+  box-sizing: border-box;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  max-width: 16px;
+  max-height: 16px;
+  flex: 0 0 16px;
+  padding: 0;
+  margin: 0;
+  transform: none;
+  scale: none;
+  appearance: auto;
+}
 @media (max-width: 991.98px) { .portal-main { padding: 0 1rem 2rem; } .portal-header { padding: 1rem 0; } }
 @media (max-width: 575.98px) { .portal-header { align-items: flex-start; } .portal-user { flex-direction: column; align-items: flex-end; gap: .3rem; } .portal-pagination { align-items: flex-start; flex-direction: column; } .portal-login-card { padding: 1.35rem; } }
 

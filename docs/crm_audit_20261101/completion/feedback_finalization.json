@@ -1,0 +1,600 @@
+{
+  "operator": "Tea",
+  "seed_added": 0,
+  "before": {
+    "accounts": [
+      [
+        "account_id",
+        "email",
+        "password_hash",
+        "role",
+        "status",
+        "last_login_at",
+        "created_at",
+        "updated_at",
+        "full_name",
+        "phone",
+        "date_of_birth",
+        "gender",
+        "address",
+        "playing_level"
+      ],
+      76,
+      "48dc42b50619f1a16da6b4eda0f5b6db3ec26333c7f52130077d108caf930613"
+    ],
+    "accounts_groups": [
+      [
+        "id",
+        "account_id",
+        "group_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "accounts_user_permissions": [
+      [
+        "id",
+        "account_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group": [
+      [
+        "id",
+        "name"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group_permissions": [
+      [
+        "id",
+        "group_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_permission": [
+      [
+        "id",
+        "name",
+        "content_type_id",
+        "codename"
+      ],
+      84,
+      "e43afddab1b6d8a2a9139a8f71c7ba486ecceeb4fa837479ed8e68a60874a0bb"
+    ],
+    "brands": [
+      [
+        "brand_id",
+        "brand_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "1b91094ca5232161bd647fb466e3d6ff039c24e0862a5728d297036b55a6415d"
+    ],
+    "categories": [
+      [
+        "category_id",
+        "category_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "6e39623a271284388959e0ebaa9ad49c5574b7538cd7f2e5d1a5a99e68e0654f"
+    ],
+    "customer_preferences": [
+      [
+        "preference_id",
+        "preference_type",
+        "preference_value",
+        "created_at",
+        "customer_id"
+      ],
+      238,
+      "aedb33ec05b50d8f3e077bac50b7c5c1fd257806aae8891b09a53a447fd0f973"
+    ],
+    "django_admin_log": [
+      [
+        "id",
+        "action_time",
+        "object_id",
+        "object_repr",
+        "action_flag",
+        "change_message",
+        "content_type_id",
+        "user_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "django_content_type": [
+      [
+        "id",
+        "app_label",
+        "model"
+      ],
+      21,
+      "42b3311b3491bb275cfd35af6d19586e7014940c16cc6881c8ad927f27f766e3"
+    ],
+    "django_migrations": [
+      [
+        "id",
+        "app",
+        "name",
+        "applied"
+      ],
+      36,
+      "329c520b7c74cefd4e247cd495da87e5b5192ed1a84b7779ee9e4adea5f0d87d"
+    ],
+    "django_session": [
+      [
+        "session_key",
+        "session_data",
+        "expire_date"
+      ],
+      5,
+      "93c8c27ed21fcb3151bdc9a4bba04345565fab9a97659fcc8b32daa4274c6663"
+    ],
+    "feedbacks": [
+      [
+        "feedback_id",
+        "rating",
+        "content",
+        "status",
+        "manager_note",
+        "created_at",
+        "resolved_at",
+        "customer_id",
+        "handled_by",
+        "product_id"
+      ],
+      37,
+      "23125f9375a8f63e5349b69c6df8b0a0d888552085232d95ac6930f08ee161a7"
+    ],
+    "products": [
+      [
+        "product_id",
+        "product_name",
+        "description",
+        "price",
+        "status",
+        "created_at",
+        "updated_at",
+        "brand_id",
+        "category_id",
+        "image_url"
+      ],
+      40,
+      "6a06b42daa74817183b6a3fb089aa36218c591d1c718f350b5ab481fc307f46e"
+    ],
+    "roles": [
+      [
+        "role_id",
+        "role_code",
+        "role_name",
+        "description",
+        "created_at",
+        "updated_at"
+      ],
+      3,
+      "5f0a25148ba47cb68ae37f1b3047791f7873da8245562c37cc4c6aae57aad81b"
+    ],
+    "survey_answers": [
+      [
+        "answer_id",
+        "answer_text",
+        "rating_value",
+        "created_at",
+        "option_id",
+        "question_id",
+        "response_id"
+      ],
+      696,
+      "615ea969f74c227a7b3c6760589bf710bc4dc07e48e9de168731753eadb2586e"
+    ],
+    "survey_options": [
+      [
+        "option_id",
+        "option_text",
+        "sort_order",
+        "question_id"
+      ],
+      88,
+      "4a95ac0fbd6f6a3c6f909488c22f7c2cf16fa95c96d8f6c8347737a47ab70a66"
+    ],
+    "survey_questions": [
+      [
+        "question_id",
+        "question_text",
+        "question_type",
+        "is_required",
+        "sort_order",
+        "survey_id",
+        "config"
+      ],
+      35,
+      "fae195139fa34401dbb71d9a4bc037a67b060b6032a9084e45030075a96261d0"
+    ],
+    "survey_recipients": [
+      [
+        "recipient_id",
+        "status",
+        "sent_at",
+        "opened_at",
+        "completed_at",
+        "customer_id",
+        "survey_id"
+      ],
+      106,
+      "520896c3dd597301050949c8ea440cf8bc47125030d4f2232527c50f1812e746"
+    ],
+    "survey_responses": [
+      [
+        "response_id",
+        "status",
+        "started_at",
+        "submitted_at",
+        "recipient_id"
+      ],
+      93,
+      "38c6201b7c687425630e5c5c771d9c4299871aa406deb193f083cbe07a408b96"
+    ],
+    "surveys": [
+      [
+        "survey_id",
+        "title",
+        "description",
+        "start_at",
+        "end_at",
+        "status",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "template_key",
+        "objective",
+        "audience"
+      ],
+      8,
+      "852482c505c210522c97c3c9975b611f656965b8b42d8107e306b6dfd480e87a"
+    ]
+  },
+  "converted_ids": [
+    4,
+    10,
+    16,
+    22,
+    28,
+    34
+  ],
+  "recovery_backup": "database\\recovery\\4cb885ae9598495d80072aebd88eae31\\crm_db_20261102_124234_093410.sql",
+  "after": {
+    "accounts": [
+      [
+        "account_id",
+        "email",
+        "password_hash",
+        "role",
+        "status",
+        "last_login_at",
+        "created_at",
+        "updated_at",
+        "full_name",
+        "phone",
+        "date_of_birth",
+        "gender",
+        "address",
+        "playing_level"
+      ],
+      76,
+      "48dc42b50619f1a16da6b4eda0f5b6db3ec26333c7f52130077d108caf930613"
+    ],
+    "accounts_groups": [
+      [
+        "id",
+        "account_id",
+        "group_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "accounts_user_permissions": [
+      [
+        "id",
+        "account_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group": [
+      [
+        "id",
+        "name"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group_permissions": [
+      [
+        "id",
+        "group_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_permission": [
+      [
+        "id",
+        "name",
+        "content_type_id",
+        "codename"
+      ],
+      84,
+      "e43afddab1b6d8a2a9139a8f71c7ba486ecceeb4fa837479ed8e68a60874a0bb"
+    ],
+    "brands": [
+      [
+        "brand_id",
+        "brand_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "1b91094ca5232161bd647fb466e3d6ff039c24e0862a5728d297036b55a6415d"
+    ],
+    "categories": [
+      [
+        "category_id",
+        "category_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "6e39623a271284388959e0ebaa9ad49c5574b7538cd7f2e5d1a5a99e68e0654f"
+    ],
+    "customer_preferences": [
+      [
+        "preference_id",
+        "preference_type",
+        "preference_value",
+        "created_at",
+        "customer_id"
+      ],
+      238,
+      "aedb33ec05b50d8f3e077bac50b7c5c1fd257806aae8891b09a53a447fd0f973"
+    ],
+    "django_admin_log": [
+      [
+        "id",
+        "action_time",
+        "object_id",
+        "object_repr",
+        "action_flag",
+        "change_message",
+        "content_type_id",
+        "user_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "django_content_type": [
+      [
+        "id",
+        "app_label",
+        "model"
+      ],
+      21,
+      "42b3311b3491bb275cfd35af6d19586e7014940c16cc6881c8ad927f27f766e3"
+    ],
+    "django_migrations": [
+      [
+        "id",
+        "app",
+        "name",
+        "applied"
+      ],
+      37,
+      "66720a76b4439b1c1fd12ebf6bc8c28d861c234d55761cb0f01898a19dd3e434"
+    ],
+    "django_session": [
+      [
+        "session_key",
+        "session_data",
+        "expire_date"
+      ],
+      5,
+      "93c8c27ed21fcb3151bdc9a4bba04345565fab9a97659fcc8b32daa4274c6663"
+    ],
+    "feedbacks": [
+      [
+        "feedback_id",
+        "rating",
+        "content",
+        "status",
+        "manager_note",
+        "created_at",
+        "resolved_at",
+        "customer_id",
+        "handled_by",
+        "product_id"
+      ],
+      37,
+      "5efbac99efd231de200c503e9eabacc3dbeb6e92958f81184c5110acff408d65"
+    ],
+    "products": [
+      [
+        "product_id",
+        "product_name",
+        "description",
+        "price",
+        "status",
+        "created_at",
+        "updated_at",
+        "brand_id",
+        "category_id",
+        "image_url"
+      ],
+      40,
+      "6a06b42daa74817183b6a3fb089aa36218c591d1c718f350b5ab481fc307f46e"
+    ],
+    "roles": [
+      [
+        "role_id",
+        "role_code",
+        "role_name",
+        "description",
+        "created_at",
+        "updated_at"
+      ],
+      3,
+      "5f0a25148ba47cb68ae37f1b3047791f7873da8245562c37cc4c6aae57aad81b"
+    ],
+    "survey_answers": [
+      [
+        "answer_id",
+        "answer_text",
+        "rating_value",
+        "created_at",
+        "option_id",
+        "question_id",
+        "response_id"
+      ],
+      696,
+      "615ea969f74c227a7b3c6760589bf710bc4dc07e48e9de168731753eadb2586e"
+    ],
+    "survey_options": [
+      [
+        "option_id",
+        "option_text",
+        "sort_order",
+        "question_id"
+      ],
+      88,
+      "4a95ac0fbd6f6a3c6f909488c22f7c2cf16fa95c96d8f6c8347737a47ab70a66"
+    ],
+    "survey_questions": [
+      [
+        "question_id",
+        "question_text",
+        "question_type",
+        "is_required",
+        "sort_order",
+        "survey_id",
+        "config"
+      ],
+      35,
+      "fae195139fa34401dbb71d9a4bc037a67b060b6032a9084e45030075a96261d0"
+    ],
+    "survey_recipients": [
+      [
+        "recipient_id",
+        "status",
+        "sent_at",
+        "opened_at",
+        "completed_at",
+        "customer_id",
+        "survey_id"
+      ],
+      106,
+      "520896c3dd597301050949c8ea440cf8bc47125030d4f2232527c50f1812e746"
+    ],
+    "survey_responses": [
+      [
+        "response_id",
+        "status",
+        "started_at",
+        "submitted_at",
+        "recipient_id"
+      ],
+      93,
+      "38c6201b7c687425630e5c5c771d9c4299871aa406deb193f083cbe07a408b96"
+    ],
+    "surveys": [
+      [
+        "survey_id",
+        "title",
+        "description",
+        "start_at",
+        "end_at",
+        "status",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "template_key",
+        "objective",
+        "audience"
+      ],
+      8,
+      "852482c505c210522c97c3c9975b611f656965b8b42d8107e306b6dfd480e87a"
+    ]
+  },
+  "backup": "E:\\CNTT_Code\\HTTT\\crm_project\\database\\backups\\crm_db_20261102_124244_255981.sql",
+  "manifest": {
+    "version": 1,
+    "database": "crm_db",
+    "size_bytes": 154495,
+    "sha256": "121c245af8d2f39288410e8fb7b660c4fec48bee25567519823c908d439bc598",
+    "created_at": "2026-11-02T12:42:44.622956+00:00"
+  },
+  "restore_verified": true,
+  "seed_idempotent": true,
+  "deleted": [
+    "crm_db_20261102_045936_816740.sql",
+    "crm_db_20261102_124234_093410.sql"
+  ],
+  "before_status": {
+    "NEW": 13,
+    "IN_PROGRESS": 6,
+    "RESOLVED": 18
+  },
+  "after_status": {
+    "NEW": 19,
+    "RESOLVED": 18
+  },
+  "source_schema": {
+    "accounts": "CREATE TABLE `accounts` (\n  `account_id` int NOT NULL AUTO_INCREMENT,\n  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',\n  `last_login_at` datetime DEFAULT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  `full_name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',\n  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `date_of_birth` date DEFAULT NULL,\n  `gender` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `playing_level` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  PRIMARY KEY (`account_id`),\n  UNIQUE KEY `uq_accounts_email` (`email`),\n  KEY `idx_accounts_role` (`role`),\n  CONSTRAINT `fk_accounts_role` FOREIGN KEY (`role`) REFERENCES `roles` (`role_code`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `chk_accounts_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'LOCKED')))\n) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "accounts_groups": "CREATE TABLE `accounts_groups` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `account_id` int NOT NULL,\n  `group_id` int NOT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `accounts_groups_account_id_group_id_f16ff131_uniq` (`account_id`,`group_id`),\n  KEY `accounts_groups_group_id_8ed31270_fk_auth_group_id` (`group_id`),\n  CONSTRAINT `accounts_groups_account_id_13c99fce_fk_accounts_account_id` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`account_id`),\n  CONSTRAINT `accounts_groups_group_id_8ed31270_fk_auth_group_id` FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "accounts_user_permissions": "CREATE TABLE `accounts_user_permissions` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `account_id` int NOT NULL,\n  `permission_id` int NOT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `accounts_user_permissions_account_id_permission_id_6b5c0652_uniq` (`account_id`,`permission_id`),\n  KEY `accounts_user_permis_permission_id_ef5446eb_fk_auth_perm` (`permission_id`),\n  CONSTRAINT `accounts_user_permis_account_id_362b3798_fk_accounts_` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`account_id`),\n  CONSTRAINT `accounts_user_permis_permission_id_ef5446eb_fk_auth_perm` FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "auth_group": "CREATE TABLE `auth_group` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `name` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "auth_group_permissions": "CREATE TABLE `auth_group_permissions` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `group_id` int NOT NULL,\n  `permission_id` int NOT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `auth_group_permissions_group_id_permission_id_0cd325b0_uniq` (`group_id`,`permission_id`),\n  KEY `auth_group_permissio_permission_id_84c5c92e_fk_auth_perm` (`permission_id`),\n  CONSTRAINT `auth_group_permissio_permission_id_84c5c92e_fk_auth_perm` FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`),\n  CONSTRAINT `auth_group_permissions_group_id_b120cbf9_fk_auth_group_id` FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "auth_permission": "CREATE TABLE `auth_permission` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `content_type_id` int NOT NULL,\n  `codename` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `auth_permission_content_type_id_codename_01ab375a_uniq` (`content_type_id`,`codename`),\n  CONSTRAINT `auth_permission_content_type_id_2f476e4b_fk_django_co` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "brands": "CREATE TABLE `brands` (\n  `brand_id` int NOT NULL AUTO_INCREMENT,\n  `brand_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`brand_id`),\n  KEY `idx_brands_name` (`brand_name`),\n  KEY `idx_brands_status` (`status`),\n  CONSTRAINT `chk_brands_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'INACTIVE')))\n) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "categories": "CREATE TABLE `categories` (\n  `category_id` int NOT NULL AUTO_INCREMENT,\n  `category_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`category_id`),\n  KEY `idx_categories_name` (`category_name`),\n  KEY `idx_categories_status` (`status`),\n  CONSTRAINT `chk_categories_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'INACTIVE')))\n) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "customer_preferences": "CREATE TABLE `customer_preferences` (\n  `preference_id` int NOT NULL AUTO_INCREMENT,\n  `preference_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `preference_value` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `customer_id` int NOT NULL,\n  PRIMARY KEY (`preference_id`),\n  KEY `idx_customer_preferences_customer` (`customer_id`),\n  KEY `idx_customer_preferences_type` (`preference_type`),\n  CONSTRAINT `fk_customer_preferences_account` FOREIGN KEY (`customer_id`) REFERENCES `accounts` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n  CONSTRAINT `chk_customer_preferences_type` CHECK ((`preference_type` in (_utf8mb4'BRAND',_utf8mb4'CATEGORY',_utf8mb4'FAVORITE_BRAND',_utf8mb4'FAVORITE_BRAND_OTHER')))\n) ENGINE=InnoDB AUTO_INCREMENT=349 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "django_admin_log": "CREATE TABLE `django_admin_log` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `action_time` datetime(6) NOT NULL,\n  `object_id` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,\n  `object_repr` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `action_flag` smallint unsigned NOT NULL,\n  `change_message` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `content_type_id` int DEFAULT NULL,\n  `user_id` int NOT NULL,\n  PRIMARY KEY (`id`),\n  KEY `django_admin_log_content_type_id_c4bce8eb_fk_django_co` (`content_type_id`),\n  KEY `django_admin_log_user_id_c564eba6_fk_accounts_account_id` (`user_id`),\n  CONSTRAINT `django_admin_log_content_type_id_c4bce8eb_fk_django_co` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`),\n  CONSTRAINT `django_admin_log_user_id_c564eba6_fk_accounts_account_id` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`account_id`),\n  CONSTRAINT `django_admin_log_chk_1` CHECK ((`action_flag` >= 0))\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "django_content_type": "CREATE TABLE `django_content_type` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `app_label` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `model` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `django_content_type_app_label_model_76bd3d3b_uniq` (`app_label`,`model`)\n) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "django_migrations": "CREATE TABLE `django_migrations` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `applied` datetime(6) NOT NULL,\n  PRIMARY KEY (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "django_session": "CREATE TABLE `django_session` (\n  `session_key` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `session_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `expire_date` datetime(6) NOT NULL,\n  PRIMARY KEY (`session_key`),\n  KEY `django_session_expire_date_a5c62663` (`expire_date`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "feedbacks": "CREATE TABLE `feedbacks` (\n  `feedback_id` int NOT NULL AUTO_INCREMENT,\n  `rating` tinyint NOT NULL,\n  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `manager_note` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `resolved_at` datetime DEFAULT NULL,\n  `customer_id` int NOT NULL,\n  `handled_by` int DEFAULT NULL,\n  `product_id` int NOT NULL,\n  PRIMARY KEY (`feedback_id`),\n  KEY `idx_feedbacks_customer` (`customer_id`),\n  KEY `idx_feedbacks_product` (`product_id`),\n  KEY `idx_feedbacks_status` (`status`),\n  KEY `idx_feedbacks_handled_by` (`handled_by`),\n  KEY `idx_feedbacks_created_at` (`created_at`),\n  CONSTRAINT `fk_feedbacks_customer` FOREIGN KEY (`customer_id`) REFERENCES `accounts` (`account_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `fk_feedbacks_handled_by` FOREIGN KEY (`handled_by`) REFERENCES `accounts` (`account_id`) ON DELETE SET NULL ON UPDATE CASCADE,\n  CONSTRAINT `fk_feedbacks_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `chk_feedbacks_rating` CHECK (((`rating` >= 1) and (`rating` <= 5))),\n  CONSTRAINT `chk_feedbacks_status` CHECK ((`status` in (_utf8mb4'NEW',_utf8mb4'RESOLVED')))\n) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "products": "CREATE TABLE `products` (\n  `product_id` int NOT NULL AUTO_INCREMENT,\n  `product_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,\n  `price` decimal(12,2) NOT NULL,\n  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  `brand_id` int NOT NULL,\n  `category_id` int NOT NULL,\n  `image_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  PRIMARY KEY (`product_id`),\n  KEY `idx_products_category` (`category_id`),\n  KEY `idx_products_brand` (`brand_id`),\n  KEY `idx_products_name` (`product_name`),\n  KEY `idx_products_status` (`status`),\n  KEY `idx_products_price` (`price`),\n  CONSTRAINT `fk_products_brand` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`brand_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `chk_products_price` CHECK ((`price` >= 0)),\n  CONSTRAINT `chk_products_status` CHECK ((`status` in (_utf8mb4'ACTIVE',_utf8mb4'INACTIVE')))\n) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "roles": "CREATE TABLE `roles` (\n  `role_id` int NOT NULL AUTO_INCREMENT,\n  `role_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `role_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`role_id`),\n  UNIQUE KEY `uq_roles_code` (`role_code`),\n  CONSTRAINT `chk_roles_code` CHECK ((`role_code` in (_utf8mb4'ADMIN',_utf8mb4'MANAGER',_utf8mb4'CUSTOMER')))\n) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "survey_answers": "CREATE TABLE `survey_answers` (\n  `answer_id` int NOT NULL AUTO_INCREMENT,\n  `answer_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,\n  `rating_value` tinyint DEFAULT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `option_id` int DEFAULT NULL,\n  `question_id` int NOT NULL,\n  `response_id` int NOT NULL,\n  PRIMARY KEY (`answer_id`),\n  KEY `idx_survey_answers_response` (`response_id`),\n  KEY `idx_survey_answers_question` (`question_id`),\n  KEY `idx_survey_answers_option` (`option_id`),\n  CONSTRAINT `fk_survey_answers_option` FOREIGN KEY (`option_id`) REFERENCES `survey_options` (`option_id`) ON DELETE SET NULL ON UPDATE CASCADE,\n  CONSTRAINT `fk_survey_answers_question` FOREIGN KEY (`question_id`) REFERENCES `survey_questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n  CONSTRAINT `fk_survey_answers_response` FOREIGN KEY (`response_id`) REFERENCES `survey_responses` (`response_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n  CONSTRAINT `chk_survey_answers_rating_1_10` CHECK (((`rating_value` is null) or (`rating_value` between 1 and 10)))\n) ENGINE=InnoDB AUTO_INCREMENT=697 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "survey_options": "CREATE TABLE `survey_options` (\n  `option_id` int NOT NULL AUTO_INCREMENT,\n  `option_text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `sort_order` int NOT NULL,\n  `question_id` int NOT NULL,\n  PRIMARY KEY (`option_id`),\n  KEY `idx_survey_options_question` (`question_id`),\n  KEY `idx_survey_options_sort` (`question_id`,`sort_order`),\n  CONSTRAINT `fk_survey_options_question` FOREIGN KEY (`question_id`) REFERENCES `survey_questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n  CONSTRAINT `chk_survey_options_sort_order` CHECK ((`sort_order` >= 0))\n) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "survey_questions": "CREATE TABLE `survey_questions` (\n  `question_id` int NOT NULL AUTO_INCREMENT,\n  `question_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `question_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `is_required` tinyint(1) NOT NULL,\n  `sort_order` int NOT NULL,\n  `survey_id` int NOT NULL,\n  `config` json DEFAULT NULL,\n  PRIMARY KEY (`question_id`),\n  KEY `idx_survey_questions_survey` (`survey_id`),\n  KEY `idx_survey_questions_type` (`question_type`),\n  KEY `idx_survey_questions_sort` (`survey_id`,`sort_order`),\n  CONSTRAINT `fk_survey_questions_survey` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`survey_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n  CONSTRAINT `chk_survey_questions_sort_order` CHECK ((`sort_order` >= 0))\n) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "survey_recipients": "CREATE TABLE `survey_recipients` (\n  `recipient_id` int NOT NULL AUTO_INCREMENT,\n  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `sent_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `opened_at` datetime DEFAULT NULL,\n  `completed_at` datetime DEFAULT NULL,\n  `customer_id` int NOT NULL,\n  `survey_id` int NOT NULL,\n  PRIMARY KEY (`recipient_id`),\n  UNIQUE KEY `uq_survey_recipients_survey_customer` (`survey_id`,`customer_id`),\n  KEY `idx_survey_recipients_survey` (`survey_id`),\n  KEY `idx_survey_recipients_customer` (`customer_id`),\n  KEY `idx_survey_recipients_status` (`status`),\n  CONSTRAINT `fk_survey_recipients_customer` FOREIGN KEY (`customer_id`) REFERENCES `accounts` (`account_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `fk_survey_recipients_survey` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`survey_id`) ON DELETE CASCADE ON UPDATE CASCADE\n) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "survey_responses": "CREATE TABLE `survey_responses` (\n  `response_id` int NOT NULL AUTO_INCREMENT,\n  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `started_at` datetime DEFAULT NULL,\n  `submitted_at` datetime DEFAULT NULL,\n  `recipient_id` int NOT NULL,\n  PRIMARY KEY (`response_id`),\n  UNIQUE KEY `uq_survey_responses_recipient` (`recipient_id`),\n  KEY `idx_survey_responses_status` (`status`),\n  CONSTRAINT `fk_survey_responses_recipient` FOREIGN KEY (`recipient_id`) REFERENCES `survey_recipients` (`recipient_id`) ON DELETE CASCADE ON UPDATE CASCADE\n) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+    "surveys": "CREATE TABLE `surveys` (\n  `survey_id` int NOT NULL AUTO_INCREMENT,\n  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,\n  `start_at` datetime DEFAULT NULL,\n  `end_at` datetime DEFAULT NULL,\n  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  `created_by` int NOT NULL,\n  `template_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `objective` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `audience` json DEFAULT NULL,\n  PRIMARY KEY (`survey_id`),\n  KEY `idx_surveys_status` (`status`),\n  KEY `idx_surveys_created_by` (`created_by`),\n  KEY `idx_surveys_start_at` (`start_at`),\n  KEY `idx_surveys_end_at` (`end_at`),\n  CONSTRAINT `fk_surveys_created_by` FOREIGN KEY (`created_by`) REFERENCES `accounts` (`account_id`) ON DELETE RESTRICT ON UPDATE CASCADE\n) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+  },
+  "all22_schema_equal": true,
+  "unchanged_after_regression": true,
+  "regression": {
+    "PASS": 466,
+    "FAIL": 0,
+    "ERROR": 0,
+    "SKIP": 0
+  }
+}

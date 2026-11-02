@@ -1,3 +1,4 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 import hashlib
 import json
 import logging
@@ -8,16 +9,17 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
+from contextlib import nullcontext
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.test import Client, RequestFactory, SimpleTestCase, TestCase, override_settings
+from django.test import RequestFactory, SimpleTestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.errors import AccountPermissionDenied
-from .services.backup_service import create_database_backup, get_backup_dir, verify_database_backup
+from .services.backup_service import backup_manifest_path, create_database_backup, get_backup_dir, verify_database_backup
 from .services.maintenance import DatabaseMaintenanceError, DatabaseMaintenanceMiddleware, database_access, recovery_marker_path
 from .services.restore_service import RestoreFailed, restore_confirmation, restore_database_from_backup, validate_backup_filename
 
@@ -30,7 +32,7 @@ DUMP = (b"-- MySQL dump 10.13\n-- Trusted regression fixture\n"
 def publish_fixture(name="source.sql", data=DUMP):
     path = get_backup_dir() / name
     path.write_bytes(data)
-    path.with_suffix(".sql.json").write_text(json.dumps({
+    backup_manifest_path(path).write_text(json.dumps({
         "version": 1, "size_bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
     }), encoding="utf-8")
     return path
@@ -59,6 +61,14 @@ class DatabaseToolsServiceTests(SimpleTestCase):
         self.permission = permission.start()
         self.addCleanup(permission.stop)
         self.source = publish_fixture()
+        self.fingerprint = {'fixture': (['fixture_id'], 1, 'unit-fingerprint')}
+        for target, kwargs in [
+            ('apps.admin_portal.services.restore_service.database_fingerprint', {'return_value':self.fingerprint}),
+            ('apps.admin_portal.services.restore_service.connection.ensure_connection', {}),
+            ('apps.admin_portal.services.restore_service.connection.close', {}),
+            ('apps.admin_portal.services.restore_service.verified_import_snapshot', {'side_effect':lambda *a,**k:nullcontext(self.fingerprint)}),
+        ]:
+            mocked=patch(target,**kwargs); mocked.start(); self.addCleanup(mocked.stop)
 
     def restore(self, **kwargs):
         options = {"actor": self.actor, "target_database": "crm_restore_unit_test", "maintenance_ack": True}
@@ -115,7 +125,7 @@ class DatabaseToolsServiceTests(SimpleTestCase):
         self.assertEqual(order, ["dump", "import"])
         self.assertTrue(recovery.is_file())
         self.assertFalse(recovery_marker_path().exists())
-        self.assertIn("success", " ".join(logs.output))
+        self.assertIn("RESTORE_SUCCESS", " ".join(logs.output))
         self.assertEqual(self.permission.call_count, 2)
 
     @patch("apps.admin_portal.services.restore_service.create_database_backup")
@@ -150,7 +160,7 @@ class DatabaseToolsServiceTests(SimpleTestCase):
                     with self.assertRaises(RestoreFailed) as error:
                         self.restore()
                 message = str(error.exception)
-                self.assertIn("not rolled back", message)
+                self.assertIn("automatic recovery failed", message)
                 self.assertNotIn("sensitive-unit-password", message + " ".join(logs.output))
                 state = json.loads(recovery_marker_path().read_text())
                 verify_database_backup(get_backup_dir() / state["recovery_backup"])
@@ -204,7 +214,7 @@ class DatabaseToolsServiceTests(SimpleTestCase):
             DatabaseMaintenanceMiddleware(failing_view)(RequestFactory().get("/"))
 
     def test_missing_and_malformed_manifests_are_rejected(self):
-        manifest = self.source.with_suffix(".sql.json")
+        manifest = backup_manifest_path(self.source)
         for contents in ("[]", "1", "null", "{invalid", '{"version": 1}'):
             with self.subTest(contents=contents):
                 manifest.write_text(contents)
@@ -301,10 +311,10 @@ class DatabaseRestoreHttpTests(TestCase):
 
         restore.side_effect = import_replacing_session
         response = self.client.post(reverse("database_restore"), self.data)
-        self.assertContains(response, "Database restored")
+        self.assertContains(response, "Restore Successful")
         self.assertContains(response, "recovery.sql")
-        self.assertContains(response, reverse("admin_login"))
-        self.assertEqual(response.cookies[settings.SESSION_COOKIE_NAME]["max-age"], 0)
+        self.assertContains(response, reverse("database_tools"))
+        self.assertEqual(response.cookies['staff_sessionid']["max-age"], 0)
 
     def test_confirmation_page_identifies_file_database_and_maintenance(self):
         publish_fixture()

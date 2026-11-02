@@ -1,7 +1,8 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 import json
 
 from django.contrib.auth import authenticate, get_user_model
-from django.test import Client, TestCase
+
 
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.customers.models import Customer
@@ -74,7 +75,8 @@ class AccountApiTests(TestCase):
         response = self.client.get(self.root)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["total"], 2)
-        self.assertEqual(response.json()["items"][0]["account_id"], self.customer.pk)
+        self.assertEqual([item["account_id"] for item in response.json()["items"]],
+                         sorted([self.admin.pk, self.customer.pk]))
         self.assert_safe(response)
         detail = self.client.get(self.url())
         self.assertEqual(detail.status_code, 200)

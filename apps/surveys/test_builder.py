@@ -1,9 +1,10 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 """tv4: trang Tạo/Sửa khảo sát (trình soạn): validation, thứ tự câu hỏi, lưu Nháp, phát hành, khóa sửa."""
 import json
 from datetime import timedelta
 
 from django.contrib.auth.models import Group
-from django.test import TestCase
+
 from django.urls import reverse
 from django.utils import timezone
 
@@ -41,6 +42,7 @@ class SurveyBuilderTests(TestCase):
 
     def setUp(self):
         self.client.force_login(self.manager)
+        self.client.cookies['manager_sessionid'] = self.client.cookies['sessionid'].value
 
     # tv4: dữ liệu form hợp lệ tối thiểu (ngày định dạng yyyy-mm-dd của ô chọn ngày)
     def payload(self, questions=(), action="save", **overrides):

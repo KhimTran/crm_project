@@ -1,6 +1,7 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from django.contrib.auth import get_user_model
 from django.db import connection
-from django.test import TestCase
+
 
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.errors import (
@@ -64,7 +65,6 @@ class AdminCustomerSyncTests(TestCase):
             password=self.password,
             full_name="Le Van Manager",
             phone="0911222333",
-            play_styles=["Tấn công"],
             brands=["Yonex"],
         )
         # Verify it appears in ADMIN's list_account_page
@@ -79,7 +79,6 @@ class AdminCustomerSyncTests(TestCase):
             password=self.password,
             full_name="Customer By Manager",
             phone="0988777666",
-            play_styles=["Phản tạt"],
             brands=["Victor"],
         )
         target_account_id = manager_customer.account_id
