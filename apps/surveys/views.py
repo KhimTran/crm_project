@@ -22,7 +22,7 @@ from apps.customers.portal_text import localize_form, localize_rows, portal_engl
 from .constants import BUILDER_TYPES, CHOICE_TYPES, RECIPIENT_COMPLETED, SHOP_NAME, QuestionType, SurveyStatus
 from .forms import AudienceForm, BuilderQuestionForm, SurveyBuilderForm, SurveyListFilterForm
 from .selectors import survey_list_queryset
-from .services import resolve_audience, send_saved_survey
+from .services import NO_NEW_RECIPIENTS_MESSAGE, new_recipient_customers, resolve_audience, send_saved_survey
 from .configuration import populate_questionnaire, prepare_questions
 from .questionnaire import TEMPLATE_KEY
 from .models import Survey, SurveyQuestion, SurveyRecipient
@@ -41,7 +41,10 @@ def send(request, survey_id):
         result = send_saved_survey(request.user, survey)
     except (ValidationError, ValueError) as exc:
         return HttpResponseBadRequest(str(exc))
-    messages.success(request, f"Survey sent to {result['created']} customers. Skipped {result['skipped']} customers who already received this survey.")
+    if result['created']:
+        messages.success(request, f"Survey sent to {result['created']} new recipient(s).")
+    else:
+        messages.info(request, NO_NEW_RECIPIENTS_MESSAGE)
     return redirect("surveys:send_result", survey_id=survey.pk)
 
 
@@ -548,7 +551,14 @@ def manage_detail(request, survey_id):
                                       .order_by("sort_order", "question_id")))
     recipients = SurveyRecipient.objects.filter(survey=survey)
     stats = _localized_stats(build_stats(survey))
+    can_send_new = False
+    if survey.status == SurveyStatus.ACTIVE and not check_ready_to_send(survey):
+        try:
+            can_send_new = new_recipient_customers(survey).exists()
+        except ValidationError:
+            pass  # Invalid saved audiences must be corrected before sending.
     return render(request, "surveys/manage_detail.html", {
+        "can_send_new": can_send_new,
         "stats": stats, "charts": _question_charts(stats),
         "survey": survey, "questions": questions, "is_draft": survey.status == SurveyStatus.DRAFT and not recipients.exists(),
         "status_label": tr(SurveyStatus(survey.status).label) if survey.status in SurveyStatus.values else survey.status,
@@ -564,7 +574,7 @@ def manage_send(request, survey_id):
     errors = [_send_error(e) for e in check_ready_to_send(survey)]
     preview = 0
     try:
-        preview = resolve_audience(survey.audience).count()
+        preview = new_recipient_customers(survey).count()
     except ValidationError as exc:
         errors.extend(exc.messages)
     if request.method == 'POST' and request.POST.get('action') == 'send' and not errors:
@@ -573,9 +583,15 @@ def manage_send(request, survey_id):
         except (AccountPermissionDenied, ValidationError) as exc:
             messages.error(request, tr(exc.messages[0] if isinstance(exc, ValidationError) else str(exc)))
             return redirect('surveys:manage_detail', survey_id=survey.pk)
-        messages.success(request, f"Survey sent to {result['created']} customer(s). Skipped {result['skipped']} previous recipients.")
+        if result['created']:
+            messages.success(request, f"Survey sent to {result['created']} new recipient(s).")
+        else:
+            messages.info(request, NO_NEW_RECIPIENTS_MESSAGE)
         return redirect('surveys:manage_detail', survey_id=survey.pk)
-    return render(request, 'surveys/manage_send.html', {'survey': survey, 'errors': errors, 'preview': preview})
+    if not preview and not errors:
+        errors.append(NO_NEW_RECIPIENTS_MESSAGE)
+    return render(request, 'surveys/manage_send.html', {
+        'survey': survey, 'errors': errors, 'preview': preview, 'is_draft': survey.status == SurveyStatus.DRAFT})
 
 @manager_required
 @require_POST

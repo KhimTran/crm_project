@@ -28,7 +28,7 @@ class SurveyAdminPortalTests(TestCase):
         sid = self.survey.pk
         for url, text in ((reverse("surveys:manage_list"), "Create Survey"),
                           (reverse("surveys:manage_create"), "Start Date"),
-                          (reverse("surveys:manage_detail", args=[sid]), "Send Survey"),
+                          (reverse("surveys:manage_detail", args=[sid]), "Publish Survey"),
                           (reverse("surveys:manage_send", args=[sid]), "The survey has no questions yet."),
                           (reverse("surveys:manage_stats", args=[sid]), "Response Rate"),
                           (reverse("surveys:manage_edit", args=[sid]), "Edit Survey")):

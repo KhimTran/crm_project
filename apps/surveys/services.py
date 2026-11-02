@@ -18,6 +18,7 @@ from .questionnaire import NOT_USED
 
 
 COMPLETED_MESSAGE = "You have already completed this survey and cannot submit it again."
+NO_NEW_RECIPIENTS_MESSAGE = "No new eligible customers in the saved audience to invite."
 
 
 def require_survey_manager(actor):
@@ -317,6 +318,12 @@ def resolve_audience(data):
                             data.get('playing_levels') or (), data.get('preferences') or ())
 
 
+def new_recipient_customers(survey):
+    """Eligible saved-audience customers without any invitation, regardless of its status."""
+    invited = SurveyRecipient.objects.filter(survey=survey, customer_id=OuterRef("pk"))
+    return resolve_audience(survey.audience).filter(~Exists(invited))
+
+
 @transaction.atomic
 def send_saved_survey(actor, survey):
     require_survey_manager(actor)
@@ -324,7 +331,12 @@ def send_saved_survey(actor, survey):
     errors = check_ready_to_send(locked)
     if errors:
         raise ValidationError(errors)
-    result = send_to_audience(actor, locked, resolve_audience(locked.audience))
+    customers = new_recipient_customers(locked)
+    if not customers.exists():
+        if locked.status == SurveyStatus.DRAFT:
+            raise ValidationError("Chưa có khách hàng nào phù hợp để nhận khảo sát.")
+        return {"created": 0, "skipped": 0}
+    result = send_to_audience(actor, locked, customers)
     survey.status = locked.status
     return result
 
