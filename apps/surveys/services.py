@@ -293,6 +293,42 @@ def send_to_audience(actor, survey, customers):
     return send_survey(actor, survey, customers.values_list("customer_id", flat=True))
 
 
+def resolve_audience(data):
+    """Resolve stored rules without accepting recipient overrides from the send form."""
+    if not isinstance(data, dict) or data.get('audience') not in ('all', 'filter', 'pick'):
+        raise ValidationError('Save a valid survey audience in Create/Edit Survey before sending.')
+    for key in ('age_groups', 'playing_levels', 'preferences', 'customer_ids'):
+        if key in data and not isinstance(data[key], (list, tuple)):
+            raise ValidationError('The saved audience is invalid. Edit the survey before sending.')
+    if data['audience'] == 'filter' and not any(data.get(key) for key in ('age_groups', 'playing_levels', 'preferences')):
+        raise ValidationError('The saved customer group is empty. Edit the survey first.')
+    if any(key not in {item[0] for item in AGE_GROUPS} for key in data.get('age_groups', ())):
+        raise ValidationError('The saved age group is invalid.')
+    if data['audience'] == 'pick':
+        ids = data.get('customer_ids')
+        if not isinstance(ids, (list, tuple)) or not ids:
+            raise ValidationError('The saved audience has no selected customers. Edit the survey first.')
+        try:
+            ids = [int(value) for value in ids]
+        except (TypeError, ValueError):
+            raise ValidationError('The saved customer selection is invalid.') from None
+        return eligible_customers().filter(pk__in=ids)
+    return filter_customers(data['audience'], data.get('age_groups') or (),
+                            data.get('playing_levels') or (), data.get('preferences') or ())
+
+
+@transaction.atomic
+def send_saved_survey(actor, survey):
+    require_survey_manager(actor)
+    locked = Survey.objects.select_for_update().get(pk=survey.pk)
+    errors = check_ready_to_send(locked)
+    if errors:
+        raise ValidationError(errors)
+    result = send_to_audience(actor, locked, resolve_audience(locked.audience))
+    survey.status = locked.status
+    return result
+
+
 def close_survey(actor, survey):
     """Đóng thủ công khảo sát đang mở; bản Nháp thì xóa thay vì đóng, đã đóng thì giữ nguyên."""
     require_survey_manager(actor)

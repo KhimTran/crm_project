@@ -1,6 +1,7 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import TestCase
+
 from django.urls import reverse
 
 from apps.customers.services import create_customer

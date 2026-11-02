@@ -7,13 +7,26 @@ from django.utils import timezone
 
 from apps.catalog.forms import BrandPreferenceMultipleChoiceField
 
-from .constants import AGE_GROUPS, CHOICE_TYPES, QuestionType, SurveyObjective
+from .constants import AGE_GROUPS, CHOICE_TYPES, QuestionType, SurveyObjective, SurveyStatus
 from .questionnaire import TEMPLATE_KEY, question_definitions
 from .models import Survey, SurveyOption, SurveyQuestion
 from .services import eligible_customers, playing_level_choices, preference_choices
 from apps.customers.portal_text import say
 
 DT_FORMAT = "%Y-%m-%dT%H:%M"
+
+
+class SurveyListFilterForm(forms.Form):
+    q = forms.CharField(required=False, max_length=200)
+    status = forms.ChoiceField(required=False, choices=[('', 'All statuses'), *SurveyStatus.choices])
+    date_from = forms.DateField(required=False, input_formats=['%Y-%m-%d'], widget=forms.DateInput(attrs={'type': 'date'}))
+    date_to = forms.DateField(required=False, input_formats=['%Y-%m-%d'], widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def clean(self):
+        data = super().clean()
+        if data.get('date_from') and data.get('date_to') and data['date_from'] > data['date_to']:
+            self.add_error('date_to', say('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.', 'From Date must be on or before To Date.'))
+        return data
 
 
 # tv4: form thông tin khảo sát của trình soạn (trang tạo/sửa): chọn ngày (bắt đầu 00:00, kết thúc 23:59:59 giờ địa phương)

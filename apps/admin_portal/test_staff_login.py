@@ -1,9 +1,10 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 """Staff-login denial must leave an existing customer session intact."""
 
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+
 from django.urls import reverse
 
 from apps.accounts.constants import AccountRole

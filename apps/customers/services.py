@@ -19,8 +19,8 @@ from .models import Customer, CustomerPreference
 
 @transaction.atomic
 def create_customer(*, email, password, full_name, phone, date_of_birth=None, gender=None, address=None,
-                    playing_level=None, play_styles=(), brands=()):
-    """Create a CUSTOMER account atomically using Django password validation/hashing."""
+                    playing_level=None, brands=()):
+    """Create a CUSTOMER account with supported preferences only."""
     email = AccountManager.normalize_account_email(email)
     if Account.objects.filter(email=email).exists():
         raise DuplicateCustomerEmail("Email is already in use")
@@ -40,9 +40,7 @@ def create_customer(*, email, password, full_name, phone, date_of_birth=None, ge
         raise
 
     customer = Customer.objects.get(pk=account.pk)
-    preferences = [CustomerPreference(customer=account, preference_type=PreferenceType.PLAY_STYLE, preference_value=v)
-                   for v in play_styles]
-    preferences += [CustomerPreference(customer=account, preference_type=PreferenceType.BRAND, preference_value=v)
+    preferences = [CustomerPreference(customer=account, preference_type=PreferenceType.BRAND, preference_value=v)
                     for v in sorted({canonical_brand(value) for value in brands})]
     if preferences:
         CustomerPreference.objects.bulk_create(preferences)

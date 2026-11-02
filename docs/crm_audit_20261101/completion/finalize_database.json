@@ -1,0 +1,555 @@
+{
+  "operator": "Tea",
+  "seed_added": 0,
+  "before": {
+    "accounts": [
+      [
+        "account_id",
+        "email",
+        "password_hash",
+        "role",
+        "status",
+        "last_login_at",
+        "created_at",
+        "updated_at",
+        "full_name",
+        "phone",
+        "date_of_birth",
+        "gender",
+        "address",
+        "playing_level"
+      ],
+      76,
+      "48dc42b50619f1a16da6b4eda0f5b6db3ec26333c7f52130077d108caf930613"
+    ],
+    "accounts_groups": [
+      [
+        "id",
+        "account_id",
+        "group_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "accounts_user_permissions": [
+      [
+        "id",
+        "account_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group": [
+      [
+        "id",
+        "name"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group_permissions": [
+      [
+        "id",
+        "group_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_permission": [
+      [
+        "id",
+        "name",
+        "content_type_id",
+        "codename"
+      ],
+      84,
+      "e43afddab1b6d8a2a9139a8f71c7ba486ecceeb4fa837479ed8e68a60874a0bb"
+    ],
+    "brands": [
+      [
+        "brand_id",
+        "brand_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "1b91094ca5232161bd647fb466e3d6ff039c24e0862a5728d297036b55a6415d"
+    ],
+    "categories": [
+      [
+        "category_id",
+        "category_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "6e39623a271284388959e0ebaa9ad49c5574b7538cd7f2e5d1a5a99e68e0654f"
+    ],
+    "customer_preferences": [
+      [
+        "preference_id",
+        "preference_type",
+        "preference_value",
+        "created_at",
+        "customer_id"
+      ],
+      238,
+      "aedb33ec05b50d8f3e077bac50b7c5c1fd257806aae8891b09a53a447fd0f973"
+    ],
+    "django_admin_log": [
+      [
+        "id",
+        "action_time",
+        "object_id",
+        "object_repr",
+        "action_flag",
+        "change_message",
+        "content_type_id",
+        "user_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "django_content_type": [
+      [
+        "id",
+        "app_label",
+        "model"
+      ],
+      21,
+      "42b3311b3491bb275cfd35af6d19586e7014940c16cc6881c8ad927f27f766e3"
+    ],
+    "django_migrations": [
+      [
+        "id",
+        "app",
+        "name",
+        "applied"
+      ],
+      35,
+      "477def57840e9c31e011f4378748909093359b8d66e7505b6ea5fe35c5f397d1"
+    ],
+    "django_session": [
+      [
+        "session_key",
+        "session_data",
+        "expire_date"
+      ],
+      5,
+      "93c8c27ed21fcb3151bdc9a4bba04345565fab9a97659fcc8b32daa4274c6663"
+    ],
+    "feedbacks": [
+      [
+        "feedback_id",
+        "rating",
+        "content",
+        "status",
+        "manager_note",
+        "created_at",
+        "resolved_at",
+        "customer_id",
+        "handled_by",
+        "product_id"
+      ],
+      37,
+      "23125f9375a8f63e5349b69c6df8b0a0d888552085232d95ac6930f08ee161a7"
+    ],
+    "products": [
+      [
+        "product_id",
+        "product_name",
+        "description",
+        "price",
+        "status",
+        "created_at",
+        "updated_at",
+        "brand_id",
+        "category_id",
+        "image_url"
+      ],
+      40,
+      "6a06b42daa74817183b6a3fb089aa36218c591d1c718f350b5ab481fc307f46e"
+    ],
+    "roles": [
+      [
+        "role_id",
+        "role_code",
+        "role_name",
+        "description",
+        "created_at",
+        "updated_at"
+      ],
+      3,
+      "5f0a25148ba47cb68ae37f1b3047791f7873da8245562c37cc4c6aae57aad81b"
+    ],
+    "survey_answers": [
+      [
+        "answer_id",
+        "answer_text",
+        "rating_value",
+        "created_at",
+        "option_id",
+        "question_id",
+        "response_id"
+      ],
+      696,
+      "615ea969f74c227a7b3c6760589bf710bc4dc07e48e9de168731753eadb2586e"
+    ],
+    "survey_options": [
+      [
+        "option_id",
+        "option_text",
+        "sort_order",
+        "question_id"
+      ],
+      88,
+      "4a95ac0fbd6f6a3c6f909488c22f7c2cf16fa95c96d8f6c8347737a47ab70a66"
+    ],
+    "survey_questions": [
+      [
+        "question_id",
+        "question_text",
+        "question_type",
+        "is_required",
+        "sort_order",
+        "survey_id",
+        "config"
+      ],
+      35,
+      "fae195139fa34401dbb71d9a4bc037a67b060b6032a9084e45030075a96261d0"
+    ],
+    "survey_recipients": [
+      [
+        "recipient_id",
+        "status",
+        "sent_at",
+        "opened_at",
+        "completed_at",
+        "customer_id",
+        "survey_id"
+      ],
+      106,
+      "520896c3dd597301050949c8ea440cf8bc47125030d4f2232527c50f1812e746"
+    ],
+    "survey_responses": [
+      [
+        "response_id",
+        "status",
+        "started_at",
+        "submitted_at",
+        "recipient_id"
+      ],
+      93,
+      "38c6201b7c687425630e5c5c771d9c4299871aa406deb193f083cbe07a408b96"
+    ],
+    "surveys": [
+      [
+        "survey_id",
+        "title",
+        "description",
+        "start_at",
+        "end_at",
+        "status",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "template_key",
+        "objective",
+        "audience"
+      ],
+      8,
+      "852482c505c210522c97c3c9975b611f656965b8b42d8107e306b6dfd480e87a"
+    ]
+  },
+  "recovery_backup": "database\\recovery\\73f0c7f6d8fa420aae6876764ac00d1b\\crm_db_20261102_045932_876840.sql",
+  "after": {
+    "accounts": [
+      [
+        "account_id",
+        "email",
+        "password_hash",
+        "role",
+        "status",
+        "last_login_at",
+        "created_at",
+        "updated_at",
+        "full_name",
+        "phone",
+        "date_of_birth",
+        "gender",
+        "address",
+        "playing_level"
+      ],
+      76,
+      "48dc42b50619f1a16da6b4eda0f5b6db3ec26333c7f52130077d108caf930613"
+    ],
+    "accounts_groups": [
+      [
+        "id",
+        "account_id",
+        "group_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "accounts_user_permissions": [
+      [
+        "id",
+        "account_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group": [
+      [
+        "id",
+        "name"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group_permissions": [
+      [
+        "id",
+        "group_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_permission": [
+      [
+        "id",
+        "name",
+        "content_type_id",
+        "codename"
+      ],
+      84,
+      "e43afddab1b6d8a2a9139a8f71c7ba486ecceeb4fa837479ed8e68a60874a0bb"
+    ],
+    "brands": [
+      [
+        "brand_id",
+        "brand_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "1b91094ca5232161bd647fb466e3d6ff039c24e0862a5728d297036b55a6415d"
+    ],
+    "categories": [
+      [
+        "category_id",
+        "category_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "6e39623a271284388959e0ebaa9ad49c5574b7538cd7f2e5d1a5a99e68e0654f"
+    ],
+    "customer_preferences": [
+      [
+        "preference_id",
+        "preference_type",
+        "preference_value",
+        "created_at",
+        "customer_id"
+      ],
+      238,
+      "aedb33ec05b50d8f3e077bac50b7c5c1fd257806aae8891b09a53a447fd0f973"
+    ],
+    "django_admin_log": [
+      [
+        "id",
+        "action_time",
+        "object_id",
+        "object_repr",
+        "action_flag",
+        "change_message",
+        "content_type_id",
+        "user_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "django_content_type": [
+      [
+        "id",
+        "app_label",
+        "model"
+      ],
+      21,
+      "42b3311b3491bb275cfd35af6d19586e7014940c16cc6881c8ad927f27f766e3"
+    ],
+    "django_migrations": [
+      [
+        "id",
+        "app",
+        "name",
+        "applied"
+      ],
+      36,
+      "329c520b7c74cefd4e247cd495da87e5b5192ed1a84b7779ee9e4adea5f0d87d"
+    ],
+    "django_session": [
+      [
+        "session_key",
+        "session_data",
+        "expire_date"
+      ],
+      5,
+      "93c8c27ed21fcb3151bdc9a4bba04345565fab9a97659fcc8b32daa4274c6663"
+    ],
+    "feedbacks": [
+      [
+        "feedback_id",
+        "rating",
+        "content",
+        "status",
+        "manager_note",
+        "created_at",
+        "resolved_at",
+        "customer_id",
+        "handled_by",
+        "product_id"
+      ],
+      37,
+      "23125f9375a8f63e5349b69c6df8b0a0d888552085232d95ac6930f08ee161a7"
+    ],
+    "products": [
+      [
+        "product_id",
+        "product_name",
+        "description",
+        "price",
+        "status",
+        "created_at",
+        "updated_at",
+        "brand_id",
+        "category_id",
+        "image_url"
+      ],
+      40,
+      "6a06b42daa74817183b6a3fb089aa36218c591d1c718f350b5ab481fc307f46e"
+    ],
+    "roles": [
+      [
+        "role_id",
+        "role_code",
+        "role_name",
+        "description",
+        "created_at",
+        "updated_at"
+      ],
+      3,
+      "5f0a25148ba47cb68ae37f1b3047791f7873da8245562c37cc4c6aae57aad81b"
+    ],
+    "survey_answers": [
+      [
+        "answer_id",
+        "answer_text",
+        "rating_value",
+        "created_at",
+        "option_id",
+        "question_id",
+        "response_id"
+      ],
+      696,
+      "615ea969f74c227a7b3c6760589bf710bc4dc07e48e9de168731753eadb2586e"
+    ],
+    "survey_options": [
+      [
+        "option_id",
+        "option_text",
+        "sort_order",
+        "question_id"
+      ],
+      88,
+      "4a95ac0fbd6f6a3c6f909488c22f7c2cf16fa95c96d8f6c8347737a47ab70a66"
+    ],
+    "survey_questions": [
+      [
+        "question_id",
+        "question_text",
+        "question_type",
+        "is_required",
+        "sort_order",
+        "survey_id",
+        "config"
+      ],
+      35,
+      "fae195139fa34401dbb71d9a4bc037a67b060b6032a9084e45030075a96261d0"
+    ],
+    "survey_recipients": [
+      [
+        "recipient_id",
+        "status",
+        "sent_at",
+        "opened_at",
+        "completed_at",
+        "customer_id",
+        "survey_id"
+      ],
+      106,
+      "520896c3dd597301050949c8ea440cf8bc47125030d4f2232527c50f1812e746"
+    ],
+    "survey_responses": [
+      [
+        "response_id",
+        "status",
+        "started_at",
+        "submitted_at",
+        "recipient_id"
+      ],
+      93,
+      "38c6201b7c687425630e5c5c771d9c4299871aa406deb193f083cbe07a408b96"
+    ],
+    "surveys": [
+      [
+        "survey_id",
+        "title",
+        "description",
+        "start_at",
+        "end_at",
+        "status",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "template_key",
+        "objective",
+        "audience"
+      ],
+      8,
+      "852482c505c210522c97c3c9975b611f656965b8b42d8107e306b6dfd480e87a"
+    ]
+  },
+  "backup": "E:\\CNTT_Code\\HTTT\\crm_project\\database\\backups\\crm_db_20261102_045936_816740.sql",
+  "manifest": {
+    "version": 1,
+    "database": "crm_db",
+    "size_bytes": 154376,
+    "sha256": "3be0b7ce98b1bf1a209830f7bf35842a5b2fe4ae8dd5c7688dd226addf68c734",
+    "created_at": "2026-11-02T04:59:37.014272+00:00"
+  },
+  "restore_verified": true,
+  "seed_idempotent": true,
+  "deleted": [
+    "crm_db_20261101.sql",
+    "crm_db_20261101_153134_096575.sql",
+    "crm_db_20261101_153139_396885.sql",
+    "crm_db_20261101_161901_381796.sql",
+    "crm_db_20261101_161905_477173.sql",
+    "crm_db_20261102_045932_876840.sql"
+  ]
+}

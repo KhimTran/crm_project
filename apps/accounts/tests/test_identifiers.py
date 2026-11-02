@@ -1,6 +1,7 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from django.apps import apps
 from django.db import connection, models
-from django.test import TestCase
+
 
 
 BUSINESS_TABLES = {

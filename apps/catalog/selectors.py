@@ -17,7 +17,7 @@ PRODUCT_SORTS = {
 
 def _order(query, sorts, sort, direction, default_key, tie_breaker):
     field = sorts.get(sort) or sorts[default_key]
-    if direction == "desc":
+    if sort in sorts and direction == "desc":
         field = f"-{field}"
     return query.order_by(field, tie_breaker)
 
@@ -52,7 +52,7 @@ def _list_simple_page(model, name_field, *, page, q, status, sort, direction, pa
         query = query.filter(condition)
     if status:
         query = query.filter(status=status)
-    query = _order(query, sorts, sort, direction, "name", "pk")
+    query = _order(query, sorts, sort, direction, "id", "pk")
     return Paginator(query, page_size).get_page(page)
 
 

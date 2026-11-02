@@ -62,11 +62,17 @@ def _inspect_dump(path):
     return size, digest.hexdigest()
 
 
+def backup_manifest_path(path: Path):
+    directory = path.parent.parent / 'backup_metadata'
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory / (path.name + '.json')
+
+
 def verify_database_backup(path: Path):
     """Re-read the published file and its manifest; fail closed on corruption."""
     size, checksum = _inspect_dump(path)
     try:
-        manifest = json.loads(path.with_suffix(".sql.json").read_text(encoding="utf-8"))
+        manifest = json.loads(backup_manifest_path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         raise ValueError("Backup has no valid verification manifest. Create a new system backup.") from None
     if (not isinstance(manifest, dict) or manifest.get("version") != 1 or manifest.get("size_bytes") != size
@@ -93,12 +99,11 @@ def create_database_backup(*, actor_id=None, purpose="manual") -> Path:
         raise RuntimeError("mysqldump executable is unavailable on the system.")
 
     directory = get_backup_dir()
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    unique_suffix = uuid4().hex[:8]
-    filename = f"{config['NAME']}_{timestamp}_{unique_suffix}.sql"
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
+    filename = f"{config['NAME']}_{timestamp}.sql"
     final_path = directory / filename
     temporary_path = directory / f"{filename}.partial"
-    manifest_path = final_path.with_suffix(".sql.json")
+    manifest_path = backup_manifest_path(final_path)
 
     environment = os.environ.copy()
     environment["MYSQL_PWD"] = config.get("PASSWORD", "") or ""

@@ -1,3 +1,4 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -6,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
-from django.test import TestCase
+
 from django.urls import reverse
 from django.utils import timezone
 from apps.catalog.money import format_money

@@ -1,10 +1,11 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 from unittest.mock import patch
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
-from django.test import Client, TestCase, override_settings
+from django.test import override_settings
 from django.urls import reverse
 
 from apps.accounts.constants import AccountRole, AccountStatus
@@ -165,22 +166,6 @@ class AdminPortalUiTests(TestCase):
         page = self.client.get(reverse("accounts_admin:list"))
         self.assertContains(page, 'data-confirm-title="Unlock Account"')
 
-    @override_settings(DEBUG=True)
-    @patch("apps.admin_portal.views.call_command")
-    def test_database_tools_seed_confirmation(self, command):
-        self.client.force_login(self.admin)
-        response = self.client.get(reverse("database_tools"))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Database Backup")
-        self.assertContains(response, "Create Backup Now")
-        self.assertContains(response, "Development Seed Data")
-        self.assertEqual(self.client.post(reverse("seed_data"), {}).status_code, 302)
-        command.assert_not_called()
-        self.assertEqual(self.client.post(reverse("seed_data"), {"confirm": "SEED"}).status_code, 302)
-        command.assert_called_once_with("seed_data", verbosity=0)
-        self.client.force_login(self.customer)
-        self.assertEqual(self.client.post(reverse("seed_data"), {"confirm": "SEED"}).status_code, 403)
-
     @patch("apps.admin_portal.views.create_database_backup")
     def test_database_backup_view(self, mock_create_backup):
         from pathlib import Path
@@ -216,14 +201,6 @@ class AdminPortalUiTests(TestCase):
 
         self.client.force_login(self.customer)
         self.assertEqual(self.client.post(reverse("database_restore"), {"filename": "test.sql", "confirm": "RESTORE"}).status_code, 403)
-
-    @override_settings(DEBUG=False)
-    def test_seed_ui_disabled_outside_development(self):
-        self.client.force_login(self.admin)
-        response = self.client.get(reverse("database_tools"))
-        self.assertNotContains(response, 'name="confirm"')
-        self.assertEqual(self.client.post(reverse("seed_data"), {"confirm": "SEED"}).status_code, 403)
-
 
 class ManagerPortalUiTests(TestCase):
     password = "StrongPass!2026"

@@ -1,3 +1,4 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 """Regressions for Account/Customer integration through real HTTP entry points."""
 import json
 from io import StringIO
@@ -7,7 +8,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError
-from django.test import Client, TestCase
+
 from django.urls import reverse
 
 from apps.accounts.models import Account
@@ -101,7 +102,7 @@ class CustomerAccountLifecycleTests(TestCase):
             self.assertIn("password", response.context["form"].errors)
             self.assertFalse(Account.objects.filter(email="new@lifecycle.test").exists())
         response = self.client.post(reverse("customers:create"), self.customer_payload(
-            play_styles=["Forged style"], brands=["Forged brand"], role="ADMIN", status="LOCKED"))
+            brands=["Forged brand"], role="ADMIN", status="LOCKED"))
         self.assertEqual(response.status_code, 302)
         customer = Customer.objects.get(email="new@lifecycle.test")
         self.assertEqual(customer.role, "CUSTOMER")
@@ -118,7 +119,7 @@ class CustomerAccountLifecycleTests(TestCase):
         self.assertFalse(Account.objects.filter(email="new@lifecycle.test").exists())
         with patch("apps.customers.services.CustomerPreference.objects.bulk_create", side_effect=IntegrityError("profile failure")):
             with self.assertRaises(IntegrityError):
-                create_customer(**self.customer_payload(play_styles=["ATTACK"]))
+                create_customer(**self.customer_payload(brands=["Yonex"]))
         self.assertFalse(Account.objects.filter(email="new@lifecycle.test").exists())
         with self.assertRaises(ValidationError):
             create_account(self.admin, email="rollback@lifecycle.test", role="CUSTOMER", status="ACTIVE", password="123")
@@ -165,7 +166,7 @@ class RepairCustomerProfilesTests(TestCase):
         staff = Account.objects.create_user("staff@repair.test", self.password, role="MANAGER", full_name="Staff")
         admin = Account.objects.create_superuser("admin@repair.test", self.password, full_name="Admin")
         existing = Account.objects.create_user("existing@repair.test", self.password, full_name="Existing")
-        pref = CustomerPreference.objects.create(customer=existing, preference_type="PLAY_STYLE", preference_value="Saved")
+        pref = CustomerPreference.objects.create(customer=existing, preference_type="BRAND", preference_value="Saved")
         original_hashes = dict(Account.objects.values_list("pk", "password"))
         out = StringIO()
         call_command("repair_customer_profiles", stdout=out)

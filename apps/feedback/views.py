@@ -41,7 +41,7 @@ def feedback_list(request):
 @portal_english
 def feedback_detail(request, feedback_id):
     feedback = get_object_or_404(feedback_queryset(), pk=feedback_id)
-    initial = {"status": (feedback.status if feedback.status != FeedbackStatus.NEW else FeedbackStatus.IN_PROGRESS),
+    initial = {"status": feedback.status,
                "manager_note": feedback.manager_note or ""}
     form = localize_form(FeedbackHandleForm(request.POST or None, initial=initial))
     if request.method == "POST" and form.is_valid():

@@ -1,8 +1,20 @@
 .crm-summary { margin: 0 0 1rem; }
+.crm-filter.crm-feedback-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.crm-feedback-filter > .crm-field { min-width: 0; }
+.crm-feedback-filter .crm-field input,
+.crm-feedback-filter .crm-field select { min-width: 0; width: 100%; box-sizing: border-box; height: 42px; }
+.crm-feedback-filter > .crm-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: .5rem; grid-column: 1 / -1; }
+.crm-feedback-filter .crm-actions .crm-btn { white-space: nowrap; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; }
+@media (min-width: 1400px) {
+  .crm-filter.crm-feedback-filter { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, .65fr) repeat(2, minmax(0, 1fr)) max-content; gap: .75rem; }
+  .crm-feedback-filter > .crm-actions { grid-column: auto; }
+}
+@media (max-width: 575.98px) {
+  .crm-filter.crm-feedback-filter { grid-template-columns: minmax(0, 1fr); }
+}
 .crm-fb-back { display: inline-flex; align-items: center; gap: .4rem; text-decoration: none; }
 .crm-stars { color: #a86b00; font-weight: 600; white-space: nowrap; }
 .crm-badge.fb-new { background: #fdf0d5; color: #7a4d00; }
-.crm-badge.fb-in_progress { background: #e1ecfa; color: #1d4a80; }
 .crm-badge.fb-resolved { background: #e3f3e9; color: #195c37; }
 .crm-feedback-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .crm-feedback-grid h2 { margin: 0 0 1rem; padding-bottom: .6rem; border-bottom: 1px solid #e3eaf1; font-size: 1.1rem; }

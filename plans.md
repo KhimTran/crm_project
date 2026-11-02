@@ -779,10 +779,10 @@ For curl diagnostics, `X-CSRFToken` alone does not authenticate. Use curl's `-c 
 - Owner subsequently authorized commit/push to feature/tv2-catalog and update
   of existing PR #4. Refetched TV2/develop still match the tested SHAs above;
   application/tests unchanged since validation. Commit scope is forms.py,
-  test_pr4_catalog.py, docs/pr4_tv2_review.md and this PR #4 entry only. Local
+  test_pr4_catalog.py, docs/crm_audit_20261101/REPORT.md and this PR #4 entry only. Local
   credentials/settings/venv/temp artifacts excluded; normal push only, no push
   to develop and no approve/merge. Technical verification is complete.
-  Evidence and handoff: `docs/pr4_tv2_review.md`. Patch/logs stored outside repo;
+  Evidence and handoff: `docs/crm_audit_20261101/REPORT.md`. Patch/logs stored outside repo;
   no remaining code/environment blocker within the requested scope.
 
 ### Products and Suppliers SQL field UI alignment — 2026-10-02
@@ -827,7 +827,7 @@ For curl diagnostics, `X-CSRFToken` alone does not authenticate. Use curl's `-c 
   preservation. Invalid filters return field errors/400; missing or INACTIVE
   detail is 404. Local Bootstrap 5.3.3 CSS with MIT license, local SVG placeholder
   and responsive CSS; no new frontend framework or model fields.
-- [x] README run/demo/email/test instructions; docs/15_week_plan.md proposal with
+- [x] README run/demo/email/test instructions; docs/crm_audit_20261101/REPORT.md proposal with
   blank group/student identifiers; docs/chapter4.md reflecting actual TV1 scope;
   docs/tv1_handoff.md URL/permission/model/menu contracts for TV3/TV4/TV5.
 
@@ -1033,7 +1033,7 @@ was used without printing credentials.
 - Read-only review found ACTIVE Product may have INACTIVE Category under existing
   selector. Detail now renders inactive category as text and links to full catalog,
   without changing visibility policy. Existing long/demo labels preserved.
-- Run/rollback guidance and precise validation: docs/tv1_shop_redesign.md.
+- Run/rollback guidance and precise validation: docs/crm_audit_20261101/REPORT.md.
 
 ### TV1 compact retail revision — 2026-10-12
 
@@ -1055,7 +1055,7 @@ was used without printing credentials.
 - Before/after captures at matching 1440 and 390 viewports outside repository.
   Final browser connection interrupted; preview 8001 restarted. See precise results,
   data TV1/TV2 must prepare, run commands and safe rollback in
-  docs/tv1_shop_retail_revision.md. Previous redesign evidence remains historical.
+  docs/crm_audit_20261101/REPORT.md. Previous redesign evidence remains historical.
 
 ### TV1 approved storefront — prepare PR to develop, 2026-10-13
 
@@ -1074,7 +1074,7 @@ was used without printing credentials.
   customer list, Admin accounts/products. QA writes only on test_crm_db after
   runner completion; all own fixtures/authenticated sessions/server/scripts cleaned.
 - PR validation evidence and precise integration limitations recorded in
-  docs/tv1_shop_pr_validation.md. Branch prepared for push and PR to develop;
+  docs/crm_audit_20261101/REPORT.md. Branch prepared for push and PR to develop;
   final merge remains the owner's review decision.
 
 ### TV4 PR #5 integration with merged storefront — 2026-10-13
@@ -1092,7 +1092,7 @@ was used without printing credentials.
 - Browser confirmed customer submit -> CRM reply/resolve -> customer reply view,
   missing-field/reply errors, menus, 1440/390 layout. Persisted handler/reply/time
   verified; only own QA fixtures/sessions removed, QA server/settings/scripts cleaned.
-  Demo data untouched. Details: docs/tv4_pr5_develop_integration.md.
+  Demo data untouched. Details: docs/crm_audit_20261101/REPORT.md.
 - Existing PR #5 is the update target; final merge remains the owner's decision.
 
 ### TV5 PR #6 corrections and develop integration — 2026-10-13
@@ -1116,7 +1116,7 @@ was used without printing credentials.
 - [!] Direct browser QA remains unverified: browser and Node runtime could not
   initialize after reset (kernel asset/path error). HTTP verification is not a
   substitute for visual/mobile/JavaScript/confirmation testing. No screenshots claim.
-  Detailed evidence: docs/tv5_pr6_validation.md. PR remains open for final review.
+  Detailed evidence: docs/crm_audit_20261101/REPORT.md. PR remains open for final review.
 
 ### TV5 PR #6 dedicated browser QA — 2026-10-13
 
@@ -1147,7 +1147,7 @@ was used without printing credentials.
   IDs, no held/future answers and resolved feedback before exact-ID cleanup.
   Both synthetic fixtures and 9+1 sessions removed, QA contexts/server closed,
   private credential/state JSON and logs deleted. No crm_tv1_demo writes/reset/seed.
-- Evidence/details: docs/tv5_pr6_validation.md; screenshots/PDF/JSON outside Git.
+- Evidence/details: docs/crm_audit_20261101/REPORT.md; screenshots/PDF/JSON outside Git.
   Native OS printer chooser/physical printing and other browser engines not tested.
   No remaining functional blocker in the tested scope; PR stays open for owner review.
 
@@ -1224,7 +1224,7 @@ was used without printing credentials.
   settings remain outside Git; no operational backup/credentials committed.
   Temporary MySQL server stopped after validation. Ready for reviewer sign-off;
   changes remain uncommitted, no push or merge. Details, operation and recovery
-  procedure: docs/admin_manager_review_fixes.md.
+  procedure: docs/crm_audit_20261101/REPORT.md.
 
 ### Admin/Manager final publication and TV3 template names — 2026-10-17
 
@@ -1257,7 +1257,7 @@ was used without printing credentials.
   No shared DB changes. SQL Git blob is LF-normalized (67,911 bytes,
   SHA-256 f6acc57fe27dc1b49ea7c98dfc263d16dd07be8af4f4e45ccf42b59ac08eafda);
   exactly equivalent to verified CRLF export. Private server stopped after QA.
-  Full implementation manifest/evidence: docs/admin_manager_review_fixes.md.
+  Full implementation manifest/evidence: docs/crm_audit_20261101/REPORT.md.
   Publication is on the owner-requested codex branch with a PR into develop;
   Git/PR metadata record the final SHA and state. No merge/auto-merge authorized.
 
@@ -1342,7 +1342,7 @@ was used without printing credentials.
   No development/demo migration/seed/reset/repair/delete performed. Existing
   missing real profiles still need the documented maintenance command.
 - Implementation manifest, API behavior, repair instructions and verification:
-  docs/customer_account_fix.md. Changes remain local; no commit/push requested.
+  docs/crm_audit_20261101/REPORT.md. Changes remain local; no commit/push requested.
 
 ### Eight-question Survey and Customer Report update — 2026-10-18
 
@@ -1436,3 +1436,95 @@ was used without printing credentials.
 - Details, file manifest and existing-DB preview/apply instructions:
   docs/catalog_money_consistency.md. Verified operational backup is required before
   applying repair to an existing shared DB; no live repair was executed.
+
+### Portal session isolation - 2026-11-01
+- Separated staff_sessionid for Admin/Manager/CRM/API from storefront sessionid; no schema or account changes.
+- Regression verified simultaneous Admin and Customer logins and independent logout in both directions (1 test passed). Django check passed; server restarted and login returned HTTP 200.
+
+### Complete report seed - 2026-11-01
+- FAVORITE_BRAND preferences for 71 customers; all four objective constants covered. Additive SQL generator synchronized both SQL files and demo command. No schema/UI/URL changes.
+- Verified backup manifest and disposable restore; seed imported twice with equal counts and zero invalid answer relationships. Reserved 201-204 after finding existing unmarked survey 103; preserved it.
+- Django check passed. 42/42 focused Customer/Survey tests passed with default session middleware for legacy force_login fixtures; initial production-middleware run had 8 failures/3 errors from authentication redirects. Live Manager login, Customer report and survey 201 stats verified (HTTP 200). Details in docs/crm_audit_20261101/REPORT.md.
+
+### Compact demo IDs - 2026-11-01
+- Owner authorized sequential IDs for all demo data. Compacted all 15 auto-increment domain/mapping tables in current ID order, updated actual FKs, question config.other_option_id and signed session account IDs; allocation counters reset.
+- Backup checksum/manifest verified and restored to private recovery DB; all business rows compared before changes. Recovery DB removed after validation. All PK sequences and actual FK orphan counts verified; mapping retained in ignored database/backups/id_compaction_mapping.json.
+- Exported full crm_db.sql and idempotent INSERT IGNORE business-data snapshot seed_survey_report.sql. Demo command now reads this snapshot; old arithmetic-ID generator removed. Django check and restarted server HTTP 200 passed. Old report fixture expectations adjusted; full suite not rerun for this task.
+
+### Verified Admin restore and backup cleanup - 2026-11-01
+- Real Admin POST with CSRF on disposable MySQL DB: RESTORE_SENTINEL -> Yonex; 22 tables matched source columns/counts/all-row hashes after reconnect. Invalid, schema-only and broken SQL rejected without target changes; target-only partial SQL failure returned 503 and blocked access; recovery backup restored exact previous fingerprint.
+- Restore now preflights selected SQL in a temporary DB and verifies actual target data before success. Checkbox 18px, gated confirmation and pending/repeat-submit guard. No new routes or schema changes.
+- Source database/crm_db.sql is full schema/data; replacement crm_db_latest_verified.sql plus manifest verified before removing 11 old SQL backups. All non-SQL files retained. Django/JS checks pass; full unit suite and visual browser automation not run. Details and deleted filenames: docs/crm_audit_20261101/REPORT.md.
+
+### Backup filename and folder cleanup - 2026-11-01
+- Renamed verified SQL to crm_db_20261101.sql; future backups use crm_db_YYYYMMDD_HHMMSS_microseconds.sql to avoid overwrites.
+- Integrity manifests and retained ID mapping moved to ignored database/backup_metadata; operational logging moved to database/operations.log. Deleted stale JSON/log files from backups; retained maintenance lock. Restore verification remains mandatory.
+
+### Remove Admin Development Seed Data - 2026-11-01
+- Removed seed panel, seed_available context, Admin seed handler/imports and /admin/database/seed/ route. Updated obsolete tests; added three DB-free regression tests (3/3 pass).
+- Preserved CLI seed_data/seed_catalog/seed_surveys/seed_survey_report_demo and SQL initialization/report snapshots: existing development and test dependencies remain.
+- Django check passed. Read-only live checks: Database Tools 200 without seed; verified backup download 200; Restore GET rejected 405. No DB writes, migrations, seed execution or destructive restore tests. Backup/Restore services and authorization unchanged.
+
+### Independent Admin and Manager sessions - 2026-11-01
+- Manager now uses manager_sessionid; Admin retains staff_sessionid; Customer retains sessionid. Shared CRM/Survey management uses Manager when its cookie is present, otherwise Admin. Shared sign-in stores credentials in the correct role cookie.
+- Two portal session regression tests pass, including simultaneous three-role login, route identities and independent logout in both directions. Django check passes.
+
+### Ascending list IDs and Feedback filter layout - 2026-11-01
+- Accounts/Customers now order account_id ASC; Brands/Categories default pk ASC; CRM Feedback feedback_id ASC, all before pagination. Catalog explicit sorting preserved; invalid/absent sort defaults ascending.
+- Feedback-only grid with fixed column structure and grouped actions; existing auto-fit generic grid no longer governs this form. No schema, IDs, data, permissions or Backup/Restore changes.
+- 11 targeted MySQL tests passed (sparse IDs, pagination/search/filters/manual sorting). Read-only Admin/Manager list/search/page renders pass. Edge headless 18/18 role/status/viewport cases pass, including identical rectangles across statuses and no form overflow. Django/diff checks pass. Details: docs/crm_audit_20261101/REPORT.md.
+
+### Survey list sorting and schedule filter - 2026-11-01
+- Manager Survey list previously ignored q/status and sorted descending. Added SurveyListFilterForm and shared read-only survey_list_queryset: title/status plus inclusive local-day Schedule overlap, requiring both schedule endpoints when filtering dates; survey_id ASC before evaluation. Invalid ranges/dates show bound field errors and no results. Clear returns unfiltered ascending list. Existing list remains unpaginated; queryset pagination order verified independently.
+- Scoped survey-list-filter grid keeps six controls aligned on desktop and grouped Search/Clear on tablet/mobile; values retained. No schema/data/permission/action changes; existing close_expired behavior retained.
+- 6/6 targeted MySQL tests pass: sparse IDs, default/search/status/date combinations, inclusive day boundary/overlap, missing schedules, invalid ranges, field state, Clear, Create/View/Edit GET and Delete POST-only guard. Edge headless 12/12 ALL/DRAFT/ACTIVE/CLOSED x 1440/1024/390 layouts pass; identical control rectangles across statuses, no overflow and consistent 42px height. Browser script suppresses expiry maintenance to keep live verification read-only. Django/diff checks pass.
+
+### Compact Survey filter row - 2026-11-01
+- Adjusted existing survey-list-filter grid proportions/gap and tablet breakpoint to 1100px; explicit block labels. Added stylesheet version to list template to refresh cached CSS. No search/filter/backend changes.
+- Edge headless 20/20 checks pass: ALL/DRAFT/ACTIVE/CLOSED at 1440/1280/1200/1024/390; one row on tested desktop widths, buttons aligned together, 42px controls, bounds and identical status layouts verified. Django and targeted diff checks pass.
+
+### Automatic restore recovery verified - 2026-11-01
+- partial.sql is an intentional target-only syntax error: writes PARTIAL_IMPORT, then ERROR 1064 at SQL line 727. Existing behavior retained maintenance marker but required manual recovery. Added automatic verified pre-restore snapshot recovery while holding exclusive HTTP lock; failed restore returns 409 after successful recovery, never restore-success. Recovery failure keeps marker and returns 503.
+- Real tests on crm_restore_e2e_da5abfd5d5 and crm_restore_e2e_d0feab7fbf: selected restore matched all 22 table fingerprints after reconnect. Observed actual PARTIAL_IMPORT between mysql failure and recovery; recovered BEFORE_FAILED_RESTORE and exact pre-request fingerprint before access reopened. Corrupted recovery media caused RECOVERY_FAILED and blocked HTTP; repaired snapshot and verified operator recovery before removing test marker. No fake mysql results: wrapper observes actual subprocess and deliberately corrupts test-only recovery media.
+- RESTORE_SUCCESS/RESTORE_FAILED/RECOVERY_STARTED/RECOVERY_SUCCESS/RECOVERY_FAILED logged in existing database/operations.log (actor/database/source/recovery/reason). Shared crm_db fingerprint unchanged. No new persistent log files or folders. Django check, three DB-free Database Tools regression tests and diff checks pass.
+
+### Saved survey audience send and retired Play Style - 2026-11-01
+- Send confirmation no longer contains recipient radio/filter/pick controls or JS. Manager send, legacy Admin send and builder publish use send_saved_survey: lock survey, validate readiness, resolve stored audience and send idempotently. Posted recipient overrides ignored. Empty/invalid stored audience requires editing rather than silently defaulting to all.
+- Customer detail/profile/report queries hide PLAY_STYLE; customer list no longer filters it; new customer creation and demo generator no longer write it. Removed unused choices/translation. Preserved historical rows, PreferenceType enum (no migration), saved legacy Survey segmentation read rules, and ignored play_styles service argument for caller compatibility. Old saved style choices remain hidden inputs only on edit so audience stays unchanged; preview still works.
+- Builder SINGLE_CHOICE display label is now Single choice; enum/question behavior unchanged.
+- 70/70 targeted MySQL 8.0.44 tests pass, covering builder create/edit/draft/publish, all/group/specific saved send, recipient override protection, resend, legacy Admin route, old segment preservation, customer detail/profile/reports and creation rollback. Django/JS/diff checks pass. Main MySQL80 service was stopped and Windows denied service startup; tested using an isolated temporary instance on 127.0.0.1:33307, then shut it down and removed its data. No shared database or SQL snapshot changes for this task.
+
+### Owner decision: remove Play Style from live schema and data - 2026-11-01
+- Explicit authorization supersedes prior keep-legacy policy. PLAY_STYLE was an EAV type, not a column. Added customers/0003_remove_play_style: guarded irreversible data cleanup plus enforced chk_preferences_no_play_style. Removed enum, deprecated service argument and application legacy audience bridging. Historical migrations remain unchanged.
+- Live read-only inspection found 110 style rows and no saved audience referencing them; no incoming FK references customer_preferences. Captured all physical FK source/target/nullability/delete/update rules before deletion. Migration refuses filter audiences using retired values instead of silently broadening recipients.
+- Pre-cleanup backup crm_db_20261101_153134_096575.sql verified and restored into a private DB; every table fingerprint matched. Migration rehearsed there before live apply under exclusive maintenance lock. Removed exactly 110 rows; all non-style preferences preserved byte/value-for-value, all other data tables unchanged, all FK orphan counts zero.
+- Live after: BRAND=124, CATEGORY=43, FAVORITE_BRAND=71, PLAY_STYLE=0; CHECK ENFORCED=YES. New clean backup crm_db_20261101_153139_396885.sql independently restored and matched all 22 live table fingerprints. Recovery backup retained. Re-exported crm_db.sql and idempotent seed_survey_report.sql from cleaned live DB (no style data; forbidden literal remains only in CHECK).
+- 70/70 targeted MySQL tests pass including rejected PLAY_STYLE insertion, audience migration safety guard, builder/send and Customer/Profile/report regression. Django check, migration drift/plan/SQL review and diff checks pass. Applied 0003 on crm_db; no ID renumbering or unrelated data changes.
+
+### Whole CRM business audit - 2026-11-01
+- Audit only: no product logic/schema/live data changes. Report and structured evidence: docs/crm_audit_20261101/REPORT.md. Full unmodified suite on unique test_crm_audit_756ac0f834: 456 cases, 324 PASS / 107 FAIL / 25 ERROR; raw unittest issues 127 failures/37 errors include subtests. Existing fixture/session and obsolete mock-restore issues distinguished from confirmed product defects; not all failures classified as fixture-only.
+- Real server HTTP+CSRF+MySQL clone crm_http_audit_1e356a7248: A-E pass; 13 checks total 11 PASS / 2 FAIL. Confirmed HIGH: unified /login/ stores wrong staff session; Admin+Manager without Customer cookie loses shared CRM fallback after Manager logout. No auto-fixes in audit.
+- Real restore/recovery including damaged recovery backup passed; all 22 table fingerprints verified. Live crm_db fingerprint unchanged across suite/HTTP/restore. Read-only integrity: 22 tables, 25 FK orphan counts zero, survey cross-relations zero; 38 responsive checks pass; report Edge desktop/mobile render 5/5 charts, no captured errors. Eight first-party JS syntax checks pass.
+- Business matrix 13 groups:12 PASS/1 PARTIAL; technical 10 checkpoints:6 PASS/1 FAIL/3 PARTIAL. Combined 18/23 PASS=78.26%, not a grading score. Conclusion CHUA DAT for unconditional completion until confirmed session bugs and red regression are addressed. Raw results retained; no production restore or account mutations.
+
+### Final supported preference schema cleanup - 2026-11-01
+- Live inspection confirmed no physical Play Style column/table and zero remaining style/Singles/Doubles preference rows. The remaining DDL reference was the exclusion CHECK. Owner authorized direct live schema changes; replaced it through customers/0004_supported_preference_types with chk_customer_preferences_type allowing BRAND/CATEGORY/FAVORITE_BRAND/FAVORITE_BRAND_OTHER.
+- Verified pre-backup crm_db_20261101_161901_381796.sql via disposable restore and all-table fingerprints; rehearsed 0004 before applying on crm_db under exclusive maintenance. Preserved every row/value in all business tables, all FK/index definitions and accounts.playing_level. Brand=124, Category=43, Favorite=71, Style=0.
+- Exported both current SQL sources; post-backup crm_db_20261101_161905_477173.sql restored independently and matched all 22 live tables plus new DDL. Retained historical backups and applied migration history (0003 name is historical metadata, not a field). Removed unused style text mappings; old questionnaire wording is preserved as business content.
+- 71/71 targeted MySQL tests pass; check/drift/plan/FK definition checks pass. Details, exact SQL, scope and rollback paths: docs/crm_audit_20261101/REPORT.md. Prior audit session issues remain outside this task.
+
+### CRM audit completion — 2026-11-02
+- Fixed F01/F02 role session selection, selected-cookie deletion and authenticated Manager fallback. Unified login preserves concurrent portals; password-change disambiguates portal and invalidates other hashes. CSRF/role policies retained.
+- Classified all 132 original failing cases from 164 raw subtest issues; explicit portal actor fixtures, updated restore unit boundaries and obsolete contracts, fixed CLI positional snapshot corruption using ORM generation and named SQL columns. Discovery no longer mutates shared DATABASES.
+- Browser exposed disabled-submit action loss; admin_portal.js preserves submitter name/value before disabling. Real Edge Create/Edit/add/delete/keyboard reorder/Send/Submit passed including Single/Multi/Rating10/Text/Matrix, six answer rows, five report charts and zero console errors.
+- Final full suite: 464 PASS, zero FAIL/ERROR/SKIP, all 456 original case IDs retained; isolated test_crm_audit_f9bb7c586d. HTTP 15/15 PASS including A-E, JSON account/customer mutations, CSRF and real session guards. Real restore/recovery verifies all 22 tables, damaged media fails closed, required five log events retained outside DB.
+- Added surveys/0006_reconcile_rating_constraint and aligned SQL CHECK 1–10. Private legacy upgrade with verified backup, fresh migrations and both SQL imports pass; all prior rows preserved. Live crm_db unchanged by fingerprint across audit runs.
+- [!] Live deployment condition: shared crm_db retains legacy Rating 1–5 CHECK although 0003 is recorded. 0006 deliberately NOT applied because current task forbids live DB changes. Scores 6–10 remain at risk until authorized maintenance with verified backup and migration. Report: docs/crm_audit_20261101/REPORT.md; conclusion DAT CO DIEU KIEN, 22/23 PASS and one schema PARTIAL. No unconditional completion claim.
+
+
+Live finalization 2026-11-02: owner authorized and applied surveys.0006; verified recovery backup outside backups, full dump/restore22 tables, unchanged business fingerprints, idempotent seed (0 new live rows). Prior pending-0006 statements are superseded. Evidence: docs/crm_audit_20261101/completion/finalize_database.json.
+
+
+Feedback owner decision 2026-11-02: only NEW and RESOLVED are valid. Existing IN_PROGRESS feedbacks converted to NEW by feedback.0003_two_status_feedback; note and handler retained, resolved_at cleared. Existing reopen remains RESOLVED -> NEW. Survey response IN_PROGRESS is unrelated and remains supported. Live migration and verified recovery/full backup evidence: docs/crm_audit_20261101/completion/feedback_finalization.json. Previous three-status Feedback descriptions are historical and superseded.
+
+Feedback final regression 2026-11-02: 466 PASS / zero FAIL ERROR SKIP; HTTP15/15, real Edge Feedback+Survey PASS, 12 responsive layout checks. Live counts NEW13+pending6+RESOLVED18 -> NEW19+RESOLVED18; IDs4,10,16,22,28,34 converted with exact row preservation. Verified full backup crm_db_20261102_124244_255981.sql (154495 bytes), recovery retained separately. Report current section supersedes historical three-state descriptions.

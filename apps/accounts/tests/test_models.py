@@ -1,8 +1,9 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from django.contrib.auth import authenticate, get_user, get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db import connection
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory
 
 from apps.accounts.constants import AccountRole, AccountStatus
 

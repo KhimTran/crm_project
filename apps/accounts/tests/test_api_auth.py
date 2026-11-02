@@ -1,8 +1,9 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 import json
 
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
-from django.test import Client, TestCase
+
 
 from apps.accounts.constants import AccountStatus
 
@@ -37,7 +38,7 @@ class SessionApiTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         self.assertTrue(response.json()["authenticated"])
         self.assertEqual(response.json()["account"]["role"], "ADMIN")
-        self.assertIn("sessionid", self.client.cookies)
+        self.assertIn("staff_sessionid", self.client.cookies)
         self.assertNotIn("session", response.json())
         self.assertNotIn("sessionid", response.content.decode())
         self.assertNotIn("password", response.content.decode())

@@ -1,3 +1,4 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from types import SimpleNamespace
 from unittest.mock import Mock
 from urllib.parse import parse_qs, urlsplit
@@ -6,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.http import HttpResponse
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import RequestFactory, override_settings
 
 from apps.accounts.constants import AccountRole, AccountStatus
 from apps.accounts.decorators import get_home_path, role_required

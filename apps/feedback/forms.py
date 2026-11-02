@@ -38,7 +38,7 @@ class FeedbackFilterForm(forms.Form):
 # tv4: 4.1.4 form cập nhật trạng thái và trả lời phản hồi
 class FeedbackHandleForm(forms.Form):
     status = forms.ChoiceField(label="Trạng thái xử lý",
-                               choices=[(FeedbackStatus.IN_PROGRESS, FeedbackStatus.IN_PROGRESS.label),
+                               choices=[(FeedbackStatus.NEW, FeedbackStatus.NEW.label),
                                         (FeedbackStatus.RESOLVED, FeedbackStatus.RESOLVED.label)])
     manager_note = forms.CharField(label="Trả lời khách hàng", required=False, strip=True,
                                    widget=forms.Textarea(attrs={"rows": 5}))

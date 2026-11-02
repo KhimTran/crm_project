@@ -1,10 +1,11 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 """PR #6 type, atomicity, navigation and localized statistics regressions."""
 import json
 from copy import deepcopy
 from datetime import timedelta
 
 from django.core.exceptions import ValidationError
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 

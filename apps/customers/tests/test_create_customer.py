@@ -1,5 +1,6 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from django.contrib.auth.models import Group
-from django.test import TestCase
+
 from django.urls import reverse
 
 from apps.accounts.constants import AccountRole, AccountStatus
@@ -29,7 +30,7 @@ class CreateCustomerServiceTests(TestCase):
         password = PASSWORD
         customer = create_customer(password=PASSWORD,
             email="  An.Nguyen@Example.com ", full_name="Nguyễn Văn An", phone="0901234567",
-            playing_level="BEGINNER", play_styles=["Tấn công"], brands=["Yonex", "Victor"])
+            playing_level="BEGINNER", brands=["Yonex", "Victor"])
         account = customer.account
         self.assertEqual(account.email, "an.nguyen@example.com")
         self.assertEqual(account.role, AccountRole.CUSTOMER)
@@ -40,8 +41,7 @@ class CreateCustomerServiceTests(TestCase):
         self.assertEqual(customer.customer_code, f"KH{customer.customer_id:04d}")
         prefs = set(CustomerPreference.objects.filter(customer=customer)
                     .values_list("preference_type", "preference_value"))
-        self.assertEqual(prefs, {(PreferenceType.PLAY_STYLE, "Tấn công"),
-                                 (PreferenceType.BRAND, "Yonex"), (PreferenceType.BRAND, "Victor")})
+        self.assertEqual(prefs, {(PreferenceType.BRAND, "Yonex"), (PreferenceType.BRAND, "Victor")})
 
     def test_duplicate_email_is_rejected(self):
         create_customer(password=PASSWORD, email="a@example.com", full_name="A", phone="0901111111")

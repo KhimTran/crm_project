@@ -1,6 +1,7 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from unittest.mock import patch
 
-from django.test import TestCase
+
 
 from apps.accounts.models import Account
 from apps.catalog.models import Category

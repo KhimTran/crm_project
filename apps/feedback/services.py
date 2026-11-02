@@ -7,7 +7,7 @@ from .constants import FeedbackStatus
 from .errors import FeedbackNoteRequired, FeedbackNotFound, InvalidFeedbackStatus, ProductNotAvailable
 from .models import Feedback
 
-HANDLE_STATUSES = (FeedbackStatus.IN_PROGRESS, FeedbackStatus.RESOLVED)
+HANDLE_STATUSES = (FeedbackStatus.NEW, FeedbackStatus.RESOLVED)
 
 
 # tv4: 4.2.4 khách hàng gửi phản hồi về sản phẩm, trạng thái ban đầu NEW
@@ -21,9 +21,9 @@ def create_feedback(*, customer, product, rating, content):
 # tv4: 4.1.4 cập nhật trạng thái + câu trả lời của phản hồi, ghi người xử lý và thời điểm xử lý xong
 @transaction.atomic
 def handle_feedback(feedback_id, *, status, manager_note, handled_by):
-    """4.1.4: status chỉ nhận IN_PROGRESS/RESOLVED; RESOLVED bắt buộc có manager_note.
+    """4.1.4: status chỉ nhận NEW/RESOLVED; RESOLVED bắt buộc có manager_note.
 
-    handled_by = tài khoản thao tác; resolved_at = now khi RESOLVED, mở lại (IN_PROGRESS) thì xóa resolved_at.
+    handled_by = tài khoản thao tác; resolved_at = now khi RESOLVED, mở lại (NEW) thì xóa resolved_at.
     """
     if status not in HANDLE_STATUSES:
         raise InvalidFeedbackStatus("Trạng thái xử lý không hợp lệ")

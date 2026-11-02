@@ -29,7 +29,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'apps.admin_portal.services.maintenance.DatabaseMaintenanceMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'apps.accounts.middleware.PortalSessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -113,7 +113,7 @@ LOGGING = {
     'handlers': {
         'database_operations': {
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'database' / 'backups' / 'operations.log',
+            'filename': BASE_DIR / 'database' / 'operations.log',
             'encoding': 'utf-8',
             'delay': True,
             'formatter': 'database_operation',

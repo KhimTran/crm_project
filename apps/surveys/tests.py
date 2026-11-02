@@ -1,10 +1,11 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 import json
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+
 from django.urls import reverse
 
 from apps.customers.models import Customer
@@ -28,6 +29,8 @@ class SurveyUniquenessTests(TestCase):
         self.assertEqual(send_survey(self.admin, self.survey, [self.customer.pk]), {"created": 1, "skipped": 0})
         self.assertEqual(send_survey(self.admin, self.survey, [self.customer.pk, self.customer.pk]), {"created": 0, "skipped": 1})
         self.client.force_login(self.admin)
+        self.survey.audience = {'audience': 'pick', 'customer_ids': [self.customer.pk]}
+        self.survey.save(update_fields=['audience'])
         response = self.client.post(reverse("surveys:send", args=[self.survey.pk]), {"customer_id": [self.customer.pk]})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(SurveyRecipient.objects.count(), 1)

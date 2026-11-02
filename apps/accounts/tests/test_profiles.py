@@ -1,6 +1,7 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from datetime import date
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+
 from django.urls import reverse
 
 from apps.accounts.constants import AccountRole, AccountStatus

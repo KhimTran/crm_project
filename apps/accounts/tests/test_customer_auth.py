@@ -1,3 +1,4 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 import re
 from datetime import timedelta
 from unittest.mock import patch
@@ -5,7 +6,7 @@ from unittest.mock import patch
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
-from django.test import Client, TestCase, override_settings
+from django.test import override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode

@@ -1,6 +1,6 @@
 """TEST DATA for the 8-question Customer Report demo. Never run against real data without the owner's approval.
 
-    python manage.py seed_survey_report_demo --confirm          # create (repeatable: clears old test data first)
+    python manage.py seed_survey_report_demo --confirm          # create (repeatable: recreates only marked test data)
     python manage.py seed_survey_report_demo --clear --confirm  # remove all of it
 
 Everything created is marked: survey titles start with "[DỮ LIỆU THỬ]", accounts use
@@ -19,8 +19,10 @@ from django.utils import timezone
 from apps.accounts.models import Account
 from apps.customers.models import Customer
 from apps.surveys.configuration import populate_questionnaire
-from apps.surveys.models import Survey, SurveyAnswer, SurveyRecipient, SurveyResponse
+from apps.surveys.models import Survey, SurveyAnswer, SurveyQuestion, SurveyOption, SurveyRecipient, SurveyResponse
+from apps.customers.models import CustomerPreference
 from apps.surveys.questionnaire import NOT_USED
+
 
 TITLE_MARK = "[DỮ LIỆU THỬ]"
 EMAIL_DOMAIN = "@survey-report-demo.test"
@@ -60,11 +62,11 @@ class Command(BaseCommand):
         database = settings.DATABASES["default"]["NAME"]
         if not options["confirm"]:
             raise CommandError(f"Refusing to write to database '{database}' without --confirm.")
-        surveys, customers = clear_demo_data()
-        self.stdout.write(f"Removed {surveys} test survey(s) and {customers} test customer(s) from '{database}'.")
-        if options["clear"]:
+        if options['clear']:
+            surveys, customers = clear_demo_data()
+            self.stdout.write(f'Removed {surveys} surveys and {customers} customers.')
             return
-
+        clear_demo_data()
         password = os.environ.get("CRM_DEMO_PASSWORD")
         if not password:
             if not settings.DEBUG:
@@ -82,9 +84,10 @@ class Command(BaseCommand):
 
         total = 0
         for title, days_ago, answered in ((f"{TITLE_MARK} Trải nghiệm mua sắm – đợt 1", 170, 14),
-                                          (f"{TITLE_MARK} Trải nghiệm mua sắm – đợt 2", 60, 18)):
+                                          (f"{TITLE_MARK} Trải nghiệm mua sắm – đợt 2", 60, 12)):
             survey = Survey.objects.create(title=title, status="DRAFT", created_by=creator,
                                            start_at=now - timedelta(days=days_ago), end_at=now + timedelta(days=20),
+                                           objective='SATISFACTION', audience={'audience':'pick', 'customer_ids':[c.pk for c in customers]},
                                            description="Dữ liệu thử cho báo cáo – có thể xóa bằng --clear.")
             populate_questionnaire(survey)
             Survey.objects.filter(pk=survey.pk).update(status="ACTIVE")
@@ -122,6 +125,57 @@ class Command(BaseCommand):
                                              answer_text=rng.choice(COMMENTS)))
                 SurveyAnswer.objects.bulk_create(rows)
                 total += 1
+
+        # Allocate IDs through the ORM; snapshot IDs must never bind to unrelated existing rows.
+        brand_names = ['Yonex', 'Li-Ning', 'Victor', 'Mizuno', 'Apacs', 'Kumpoo']
+        CustomerPreference.objects.bulk_create([
+            CustomerPreference(customer=customer, preference_type='BRAND', preference_value=brand_names[i % 6])
+            for i, customer in enumerate(customers)
+        ])
+        plans = [
+            ('NEW_PRODUCT', 'Thăm dò dòng vợt thiên công và giày giảm chấn mới', 'ACTIVE', 24, 20),
+            ('SHOPPING_NEEDS', 'Nhu cầu ống cầu, phụ kiện và chu kỳ đan lại cước', 'ACTIVE', 24, 18),
+            ('OTHER', 'Giải giao lưu khách hàng thân thiết và ưu đãi thành viên', 'CLOSED', 22, 17),
+            ('OTHER', 'Bản nháp ý kiến hoạt động câu lạc bộ cầu lông', 'DRAFT', 0, 0),
+        ]
+        for objective, title, status, invited, submitted in plans:
+            survey = Survey.objects.create(title=f'{TITLE_MARK} {title}', objective=objective, status=status,
+                created_by=creator, start_at=now-timedelta(days=7), end_at=now+timedelta(days=20),
+                audience={'audience':'pick','customer_ids':[c.pk for c in customers[:invited]]})
+            definitions = [
+                ('Nhóm sản phẩm bạn quan tâm nhất?', 'SINGLE_CHOICE', ['Vợt thiên công 4U', 'Giày giảm chấn', 'Ống cầu và cước']),
+                ('Thương hiệu mong muốn và phụ kiện thường mua?', 'MULTI_CHOICE', brand_names),
+                ('Mức giá phù hợp với nhu cầu của bạn?', 'SINGLE_CHOICE', ['Dưới 2.000.000đ', '2.000.000đ – 3.500.000đ', 'Trên 3.500.000đ']),
+                ('Mức độ quan tâm ưu đãi tặng cước, quấn cán và đan miễn phí?', 'RATING', []),
+                ('Bạn muốn shop cải thiện sản phẩm hoặc hoạt động nào?', 'TEXT', []),
+            ]
+            questions = []
+            for order, (text, kind, choices) in enumerate(definitions, 1):
+                question = SurveyQuestion.objects.create(survey=survey, question_text=text, question_type=kind,
+                    is_required=True, sort_order=order, config={'rating_min':1,'rating_max':5} if kind=='RATING' else {})
+                options = [SurveyOption.objects.create(question=question, option_text=text, sort_order=i)
+                           for i, text in enumerate(choices, 1)]
+                questions.append((question, options))
+            for i, customer in enumerate(customers[:invited]):
+                when = now-timedelta(days=i % 6)
+                done = i < submitted
+                recipient = SurveyRecipient.objects.create(survey=survey, customer=customer,
+                    status='COMPLETED' if done else ('SENT' if i % 2 else 'OPENED'),
+                    opened_at=when if done or not i % 2 else None, completed_at=when if done else None)
+                if not done:
+                    continue
+                response = SurveyResponse.objects.create(recipient=recipient, status='SUBMITTED', started_at=when, submitted_at=when)
+                for question, options in questions:
+                    if options:
+                        chosen = [options[i % len(options)]]
+                        if question.question_type == 'MULTI_CHOICE':
+                            chosen.append(options[(i+1) % len(options)])
+                        for option in chosen:
+                            SurveyAnswer.objects.create(response=response, question=question, option=option)
+                    else:
+                        SurveyAnswer.objects.create(response=response, question=question,
+                            **({'rating_value':3+i % 3} if question.question_type=='RATING' else
+                               {'answer_text':COMMENTS[i % len(COMMENTS)]}))
         self.stdout.write(self.style.SUCCESS(
-            f"Created TEST data in '{database}': 2 surveys, {CUSTOMERS} customers, {total} submitted responses. "
-            "Remove with: python manage.py seed_survey_report_demo --clear --confirm"))
+            f'Created 6 marked surveys, {CUSTOMERS} customers; all four objectives. '
+            'Remove only marked demo data with --clear --confirm.'))

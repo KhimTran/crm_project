@@ -1,9 +1,10 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from decimal import Decimal
 from io import StringIO
 
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase
 from django.urls import reverse
 
 from apps.accounts.models import Account

@@ -1,15 +1,16 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 """Customer Report survey metrics (apps.surveys.survey_report)."""
 import json
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from django.contrib.auth.models import Group
-from django.test import TestCase
+
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Account
-from apps.customers.models import Customer
+from apps.customers.models import Customer, CustomerPreference
 from .configuration import populate_questionnaire
 from .models import Survey, SurveyAnswer, SurveyQuestion, SurveyRecipient, SurveyResponse
 from .questionnaire import NOT_USED
@@ -277,12 +278,19 @@ class SeedSurveyReportDemoTests(TestCase):
         self.assertFalse(Survey.objects.filter(title__startswith="[DỮ LIỆU THỬ]").exists())
         call_command("seed_survey_report_demo", "--confirm", stdout=StringIO())
         call_command("seed_survey_report_demo", "--confirm", stdout=StringIO())  # repeatable
-        self.assertEqual(Survey.objects.filter(title__startswith="[DỮ LIỆU THỬ]").count(), 2)
-        self.assertEqual(build_report()["total"]["count"], 32)
+        self.assertEqual(Survey.objects.filter(title__startswith="[DỮ LIỆU THỬ]").count(), 6)
+        self.assertEqual(set(Survey.objects.filter(title__startswith="[DỮ LIỆU THỬ]").values_list("objective", flat=True)),
+                         {"SATISFACTION", "NEW_PRODUCT", "SHOPPING_NEEDS", "OTHER"})
+        self.assertEqual(build_report()["total"]["count"], 26)
+        demo = Customer.objects.filter(email__endswith='@survey-report-demo.test')
+        self.assertEqual(demo.count(), 30)
+        self.assertTrue(all(name.startswith('[Thử]') for name in demo.values_list('full_name', flat=True)))
+        self.assertEqual(CustomerPreference.objects.filter(customer__in=demo, preference_type='BRAND').count(), 30)
         call_command("seed_survey_report_demo", "--clear", "--confirm", stdout=StringIO())
-        self.assertEqual(list(Survey.objects.values_list("pk", flat=True)), [kept.pk])
-        self.assertEqual(list(Customer.objects.values_list("pk", flat=True)), [real.pk])
-        self.assertFalse(Account.objects.filter(email__endswith="@survey-report-demo.test").exists())
+        self.assertTrue(Survey.objects.filter(pk=kept.pk).exists())
+        self.assertTrue(Customer.objects.filter(pk=real.pk).exists())
+        self.assertFalse(Account.objects.filter(email__endswith="@survey-report-demo.test").exists(),
+                         list(Account.objects.filter(email__endswith="@survey-report-demo.test").values('account_id','role','full_name')))
 
 
 # tv4: test luồng cấu hình → trả lời → lưu → báo cáo

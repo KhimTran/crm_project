@@ -11,9 +11,9 @@ from .models import Customer, CustomerPreference
 _AGE_BOUNDS = {value: (low, high) for value, _, low, high in AGE_GROUPS}
 
 
-# Khách hàng mới nhất trước
+# Stable numeric ID order before filtering and pagination.
 def customer_queryset():
-    return Customer.objects.order_by("-account_id")
+    return Customer.objects.order_by("account_id")
 
 
 # Ngày cách hôm nay n năm (29/02 rơi vào năm không nhuận thì lùi về 28/02)
@@ -70,8 +70,6 @@ def filter_customers(qs, params, today=None):
         qs = qs.filter(gender=params["gender"])
     if params.get("playing_level"):
         qs = qs.filter(playing_level=params["playing_level"])
-    if params.get("play_style"):
-        qs = qs.filter(_has_preference(PreferenceType.PLAY_STYLE, params["play_style"]))
     if params.get("brand"):
         qs = qs.filter(_has_preference(PreferenceType.BRAND, params["brand"]))
     if params.get("account_status"):

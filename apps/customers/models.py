@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.accounts.models import Account
-from .constants import Gender, PlayingLevel
+from .constants import Gender, PlayingLevel, SUPPORTED_PREFERENCE_TYPES
 
 
 class CustomerQuerySet(models.QuerySet):
@@ -127,6 +127,7 @@ class CustomerPreference(models.Model):
 
     class Meta:
         db_table = "customer_preferences"
+        constraints = [models.CheckConstraint(condition=models.Q(preference_type__in=SUPPORTED_PREFERENCE_TYPES), name='chk_customer_preferences_type')]
 
     def save(self, *args, **kwargs):
         from apps.catalog.vocabulary import BRAND_PREFERENCE_TYPES, canonical_brand

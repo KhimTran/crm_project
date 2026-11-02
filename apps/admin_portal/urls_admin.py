@@ -15,6 +15,5 @@ urlpatterns = [
     path("database/backup/", views.backup_database, name="database_backup"),
     path("database/restore/", views.restore_database, name="database_restore"),
     path("database/backups/<str:filename>/download/", views.download_backup, name="database_download_backup"),
-    path("database/seed/", views.seed_data, name="seed_data"),
     path("accounts/", include("apps.accounts.urls_admin")),
 ]

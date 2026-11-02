@@ -1,5 +1,6 @@
+from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
 from django.contrib.auth.models import Group
-from django.test import Client, TestCase
+
 from django.urls import reverse
 
 from apps.accounts.models import Account

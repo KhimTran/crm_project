@@ -23,13 +23,13 @@ class PlayingLevel(models.TextChoices):
 
 # Loại sở thích lưu trong customer_preferences
 class PreferenceType(models.TextChoices):
-    PLAY_STYLE = "PLAY_STYLE", "Lối chơi"
     BRAND = "BRAND", "Thương hiệu"
     CATEGORY = "CATEGORY", "Nhóm sản phẩm"
 
 
-# Play styles are independent of the catalog; brand options come from catalog.vocabulary.
-PLAY_STYLE_CHOICES = [(v, v) for v in ("Tấn công", "Phòng thủ", "Toàn diện", "Đánh đơn", "Đánh đôi")]
+SUPPORTED_PREFERENCE_TYPES = ('BRAND', 'CATEGORY', 'FAVORITE_BRAND', 'FAVORITE_BRAND_OTHER')
+
+
 
 
 # Giá trị lọc theo trạng thái tài khoản (hoạt động / đã khóa)

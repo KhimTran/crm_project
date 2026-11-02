@@ -1,3 +1,4 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -10,7 +11,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.staticfiles import finders
 from django.template import engines
 from django.template.loader import get_template, render_to_string
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase
 from django.urls import resolve
 
 

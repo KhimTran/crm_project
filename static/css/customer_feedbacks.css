@@ -17,7 +17,6 @@
 .customer-layout .cf-stars { color: #a86b00; font-weight: 600; }
 .customer-layout .cf-status { padding: .1rem .6rem; border-radius: 999px; font-size: .85rem; }
 .customer-layout .cf-new { background: #fdf0d5; color: #7a4d00; }
-.customer-layout .cf-in_progress { background: #e1ecfa; color: #1d4a80; }
 .customer-layout .cf-resolved { background: #e3f3e9; color: #195c37; }
 .customer-layout .cf-content { overflow-wrap: anywhere; }
 .customer-layout .cf-reply { padding: .75rem 1rem; border-left: 4px solid var(--shop-orange); background: #fff7f2; }

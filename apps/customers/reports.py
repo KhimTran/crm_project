@@ -149,7 +149,7 @@ def deleted_count():
 # tv4: 4.1.5 số phản hồi theo tháng (theo created_at, giờ địa phương) và theo trạng thái xử lý hiện tại
 def feedback_by_month(months=6, today=None):
     """Phản hồi của khách chưa xóa trong `months` tháng gần nhất (kể cả tháng hiện tại).
-    Mỗi dòng: tổng và số theo trạng thái NEW / IN_PROGRESS / RESOLVED hiện tại. Không có loại phản hồi
+    Mỗi dòng: tổng và số theo trạng thái NEW / RESOLVED hiện tại. Không có loại phản hồi
     trong CSDL nên không chia theo loại."""
     today = today or timezone.localdate()
     keys = []

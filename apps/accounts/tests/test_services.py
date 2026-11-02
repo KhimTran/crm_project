@@ -1,9 +1,10 @@
+from apps.accounts.testing import PortalTestCase as TestCase
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
-from django.test import TestCase, TransactionTestCase
+from django.test import TransactionTestCase
 from django.urls import reverse
 
 from apps.accounts.constants import AccountRole, AccountStatus
