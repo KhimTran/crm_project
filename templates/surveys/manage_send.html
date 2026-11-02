@@ -1,18 +1,18 @@
 {% extends crm_layout %}
 {% load static portal_text %}
-{% block title %}{% t 'Gửi khảo sát' 'Send Survey' %}{% endblock %}
-{% block page_title %}{% t 'Gửi khảo sát' 'Send Survey' %}{% endblock %}
+{% block title %}{% if is_draft %}{% t 'Phát hành khảo sát' 'Publish Survey' %}{% else %}{% t 'Gửi cho khách chưa nhận' 'Send to New Recipients' %}{% endif %}{% endblock %}
+{% block page_title %}{% if is_draft %}{% t 'Phát hành khảo sát' 'Publish Survey' %}{% else %}{% t 'Gửi cho khách chưa nhận' 'Send to New Recipients' %}{% endif %}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
 {% block content %}
 <section class="portal-panel sv-card">
   <h2>{{ survey.title }}</h2>
   <p>{% t 'Lịch khảo sát' 'Schedule' %}: {{ survey.start_at|date:'d/m/Y H:i' }} – {{ survey.end_at|date:'d/m/Y H:i' }}</p>
-  <p>{% t 'Sử dụng đối tượng đã lưu khi tạo/chỉnh sửa khảo sát.' 'Recipients are determined by the audience saved in Create/Edit Survey.' %}</p>
-  <p><strong>{{ preview }}</strong> {% t 'khách hàng đủ điều kiện nhận.' 'eligible recipient(s).' %}</p>
+  <p>{% t 'Chỉ mời khách hợp lệ thuộc đối tượng đã lưu và chưa từng nhận khảo sát này.' 'Only eligible customers in the saved audience who have not received this survey will be invited.' %}</p>
+  <p><strong>{{ preview }}</strong> {% t 'khách hợp lệ chưa từng nhận khảo sát.' 'eligible customer(s) who have not received this survey.' %}</p>
   {% if errors %}<ul class="sv-error" role="alert">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
   <form method="post">{% csrf_token %}
     <div class="sv-actions">
-      <button class="sv-btn" type="submit" name="action" value="send" {% if errors %}disabled{% endif %}>{% t 'Xác nhận gửi khảo sát' 'Confirm Send Survey' %}</button>
+      <button class="sv-btn" type="submit" name="action" value="send" {% if errors %}disabled{% endif %}>{% if is_draft %}{% t 'Xác nhận phát hành khảo sát' 'Confirm Publish Survey' %}{% else %}{% t 'Xác nhận gửi cho khách chưa nhận' 'Confirm Send to New Recipients' %}{% endif %}</button>
       <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_detail' survey.pk %}">{% t 'Quay lại khảo sát' 'Back to survey' %}</a>
     </div>
   </form>

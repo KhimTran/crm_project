@@ -200,6 +200,7 @@ class SurveyBuilderTests(TestCase):
         self.assertEqual(survey.status, SurveyStatus.ACTIVE)
         self.assertEqual(set(SurveyRecipient.objects.filter(survey=survey).values_list("customer_id", flat=True)),
                          {self.an.pk, self.binh.pk})
+        self.assertNotContains(self.client.get(response.url), "Send to New Recipients")
 
     def test_publish_blocked_without_questions(self):
         response = self.create([], action="publish")
