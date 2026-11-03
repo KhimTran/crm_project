@@ -39,7 +39,7 @@
     </div>
     <div class="col-12 d-flex align-items-center gap-2 flex-wrap">
       <button class="btn btn-outline-primary" type="submit">Search</button>
-      <a class="btn btn-link" href="{% url 'catalog_admin:product_list' %}">Clear</a>
+      <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='{% url 'catalog_admin:product_list' %}'">Clear</button>
     </div>
   </form>
 </section>

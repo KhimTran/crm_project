@@ -13,7 +13,7 @@
     <div class="col-12 col-sm-4 col-md-2 col-lg-auto"><button class="btn btn-outline-primary w-100" type="submit">Search</button></div>
     <div class="col-6 col-sm-4 col-md-2 col-lg-2"><label class="form-label" for="id_role">Role</label>{{ filters.role }}{{ filters.role.errors }}</div>
     <div class="col-6 col-sm-4 col-md-2 col-lg-2"><label class="form-label" for="id_status">Status</label>{{ filters.status }}{{ filters.status.errors }}</div>
-    <div class="col-12 col-lg-auto"><a class="btn btn-link" href="{% url 'accounts_admin:list' %}">Clear</a></div>
+    <div class="col-12 col-lg-auto"><button type="button" class="btn btn-outline-secondary" onclick="window.location.href='{% url 'accounts_admin:list' %}'">Clear</button></div>
   </form>
 </section>
 
