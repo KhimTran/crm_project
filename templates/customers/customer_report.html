@@ -22,7 +22,7 @@
   <label><span>Period</span>{{ report_filters.days }}</label>
   <div class="rp-filter-actions">
   <button class="crm-btn" type="submit">Apply</button>
-  <a class="crm-btn" href="{{ request.path }}">Clear</a>
+  <button type="button" class="crm-btn" onclick="window.location.href='{{ request.path }}'">Clear</button>
   </div>
   <div class="rp-filter-errors" role="alert">{{ report_filters.errors }}</div>
 </form>

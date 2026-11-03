@@ -22,7 +22,7 @@
   </div>
   <div class="crm-actions">
     <button type="submit" class="crm-btn">{% t "Lọc" "Search" %}</button>
-    <a class="crm-btn crm-btn-secondary" href="{% url 'crm_feedbacks:list' %}">{% t "Xóa lọc" "Clear" %}</a>
+    <button type="button" class="crm-btn crm-btn-secondary" onclick="window.location.href='{% url 'crm_feedbacks:list' %}'">{% t "Xóa lọc" "Clear" %}</button>
   </div>
 </form>
 

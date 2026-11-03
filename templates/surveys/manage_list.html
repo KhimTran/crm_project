@@ -46,7 +46,7 @@
     </div>
     <div class="survey-list-filter-actions">
       <button class="btn btn-outline-primary" type="submit">{% t "Tìm" "Search" %}</button>
-      <a class="btn btn-outline-secondary" href="{% url 'surveys:manage_list' %}">{% t "Xóa lọc" "Clear" %}</a>
+      <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='{% url 'surveys:manage_list' %}'">{% t "Xóa lọc" "Clear" %}</button>
     </div>
   </form>
 </section>
