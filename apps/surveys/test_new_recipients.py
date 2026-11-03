@@ -12,10 +12,9 @@ from apps.accounts.errors import AccountPermissionDenied
 from apps.accounts.models import Account
 from apps.accounts.testing import PortalTestCase
 from .models import Survey, SurveyAnswer, SurveyQuestion, SurveyRecipient, SurveyResponse
-from .services import new_recipient_customers, send_saved_survey, submit_survey
+from .services import send_saved_survey, send_saved_surveys, submit_survey
 
 PW = "StrongPass!2026"
-EMPTY_MESSAGE = "No new eligible customers in the saved audience to invite."
 
 
 def make_survey(manager, audience=None):
@@ -35,12 +34,14 @@ class NewRecipientTests(PortalTestCase):
         cls.outside = Account.objects.create_user("outside@new.test", PW, playing_level="COMPETITIVE")
 
     def setUp(self):
-        # Exercise the production login path, without fixture cookie mirroring.
+        # Real login keeps production portal cookie isolation.
         self.assertEqual(self.client.post("/manager/login/", {
             "email": self.manager.email, "password": PW}).status_code, 302)
         self.survey = make_survey(self.manager)
         self.detail = reverse("surveys:manage_detail", args=[self.survey.pk])
-        self.send = reverse("surveys:manage_send", args=[self.survey.pk])
+        self.audience = reverse("surveys:manage_send", args=[self.survey.pk])
+        self.send = reverse("surveys:manage_bulk_send")
+        self.list_url = reverse("surveys:manage_list")
 
     def new_customer(self, email="new@new.test", **fields):
         return Account.objects.create_user(email, PW, playing_level="BEGINNER", **fields)
@@ -48,54 +49,91 @@ class NewRecipientTests(PortalTestCase):
     def publish(self):
         self.assertEqual(send_saved_survey(self.manager, self.survey)["created"], 1)
 
-    def test_draft_first_send_publishes_and_hides_supplemental_action(self):
+    def post_send(self, ids=None, **fields):
+        return self.client.post(self.send, {"survey_ids": ids or [self.survey.pk], **fields}, follow=True)
+
+    def test_draft_publish_still_uses_audience_page(self):
         self.assertContains(self.client.get(self.detail), "Publish Survey")
-        page = self.client.get(self.send)
+        page = self.client.get(self.audience)
         self.assertContains(page, "Confirm Publish Survey")
-        self.assertNotContains(page, "Confirm Send to New Recipients")
         self.assertEqual(page.context["preview"], 1)
-        self.assertEqual(self.client.post(self.send, {"action": "send"}).status_code, 302)
+        self.assertEqual(self.client.post(self.audience, {"action": "send"}).status_code, 302)
         self.survey.refresh_from_db()
         self.assertEqual(self.survey.status, "ACTIVE")
         self.assertEqual(list(SurveyRecipient.objects.values_list("customer_id", flat=True)), [self.first.pk])
-        page = self.client.get(self.detail)
-        self.assertFalse(page.context["can_send_new"])
-        self.assertNotContains(page, "Send to New Recipients")
-        self.assertContains(self.client.get(self.send), EMPTY_MESSAGE)
 
-    def test_new_matching_customer_enables_action_and_counts_only_uninvited(self):
+    def test_list_selection_is_based_on_readiness_not_new_recipient_count(self):
+        self.assertFalse(self.client.get(self.list_url).context["items"][0].sendable)
         self.publish()
-        new = self.new_customer()
-        self.new_customer("locked@new.test", status="LOCKED")
-        page = self.client.get(self.detail)
-        self.assertTrue(page.context["can_send_new"])
-        self.assertContains(page, "Send to New Recipients")
-        page = self.client.get(self.send)
-        self.assertEqual(page.context["preview"], 1)
-        self.assertContains(page, "Only eligible customers in the saved audience who have not received this survey will be invited.")
-        self.assertContains(page, "Confirm Send to New Recipients")
-        for field in ("audience", "customer_ids", "playing_levels", "preview"):
-            self.assertNotContains(page, f'name="{field}"')
-        with self.assertNumQueries(1):
-            self.assertEqual(new_recipient_customers(self.survey).count(), 1)
-        self.client.post(self.send, {"action": "send", "audience": "pick", "customer_ids": [self.outside.pk]})
-        self.assertEqual(set(SurveyRecipient.objects.values_list("customer_id", flat=True)), {self.first.pk, new.pk})
+        page = self.client.get(self.list_url)
+        self.assertTrue(page.context["items"][0].sendable)
+        self.assertContains(page, 'id="survey-select-all"')
+        self.assertContains(page, 'id="survey-send" class="btn btn-primary" type="submit" disabled')
+        self.assertContains(page, 'form="survey-bulk-send"')
+        self.assertContains(page, 'js/survey_list.js')
         self.assertNotContains(self.client.get(self.detail), "Send to New Recipients")
 
-    def test_completed_invitation_and_answer_unchanged_on_additional_and_repeat_send(self):
+    def test_supplemental_audience_urls_redirect_without_sending(self):
+        self.publish()
+        self.new_customer()
+        for method in (self.client.get, self.client.post):
+            self.assertRedirects(method(self.audience, {"action": "send"}), self.list_url)
+        self.assertEqual(SurveyRecipient.objects.count(), 1)
+        self.assertNotContains(self.client.get(self.detail), self.audience)
+
+    def test_multiple_surveys_use_their_own_saved_audiences_and_deduplicate_ids(self):
+        self.publish()
+        second = make_survey(self.manager, {"audience": "pick", "customer_ids": [self.outside.pk]})
+        send_saved_survey(self.manager, second)
+        new = self.new_customer()
+        page = self.post_send([second.pk, self.survey.pk, second.pk], audience="all",
+                              customer_ids=[self.outside.pk])
+        self.assertContains(page, "Successfully processed 2 survey(s). Sent to 1 new recipient(s).")
+        self.assertEqual(set(SurveyRecipient.objects.filter(survey=self.survey).values_list("customer_id", flat=True)),
+                         {self.first.pk, new.pk})
+        self.assertEqual(list(SurveyRecipient.objects.filter(survey=second).values_list("customer_id", flat=True)),
+                         [self.outside.pk])
+
+    def test_all_audience_includes_new_customer(self):
+        self.survey.audience = {"audience": "all"}
+        self.survey.save(update_fields=["audience"])
+        send_saved_survey(self.manager, self.survey)
+        new = self.new_customer()
+        self.post_send()
+        self.assertTrue(SurveyRecipient.objects.filter(survey=self.survey, customer=new).exists())
+        self.assertEqual(SurveyRecipient.objects.count(), 3)
+
+    def test_admin_and_crm_manager_keep_existing_send_permissions(self):
+        from django.contrib.auth.models import Group
+        self.publish()
+        admin = Account.objects.create_superuser("admin@new.test", PW)
+        grouped = Account.objects.create_user("grouped@new.test", PW)
+        grouped.groups.add(Group.objects.create(name="CRM_MANAGER"))
+        for actor in (admin, grouped):
+            with self.subTest(role=actor.role):
+                self.client.force_login(actor)
+                self.assertContains(self.post_send(), "Successfully processed 1 survey(s).")
+
+    def test_answers_and_all_invitation_states_survive_repeat_send(self):
         self.publish()
         recipient = SurveyRecipient.objects.get(survey=self.survey, customer=self.first)
         question = SurveyQuestion.objects.get(survey=self.survey)
         submit_survey(self.first, recipient.pk, [{"question_id": question.pk, "answer_text": "Keep my answer"}])
-        before = (list(SurveyRecipient.objects.filter(pk=recipient.pk).values()),
+        for index, state in enumerate(("SENT", "OPENED", "OTHER")):
+            customer = self.new_customer(f"state{index}@new.test")
+            SurveyRecipient.objects.create(survey=self.survey, customer=customer, status=state)
+        before = (list(SurveyRecipient.objects.order_by("pk").values()),
                   list(SurveyResponse.objects.values()), list(SurveyAnswer.objects.values()))
-        self.new_customer()
-        self.client.post(self.send, {"action": "send"})
-        repeated = self.client.post(self.send, {"action": "send"}, follow=True)
-        self.assertContains(repeated, EMPTY_MESSAGE)
-        self.assertEqual(SurveyRecipient.objects.count(), 2)
-        self.assertEqual(before, (list(SurveyRecipient.objects.filter(pk=recipient.pk).values()),
-                                 list(SurveyResponse.objects.values()), list(SurveyAnswer.objects.values())))
+        for _ in range(2):
+            page = self.post_send()
+            self.assertContains(page, "Successfully processed 1 survey(s). Sent to 0 new recipient(s).")
+            self.assertEqual(before, (list(SurveyRecipient.objects.order_by("pk").values()),
+                                     list(SurveyResponse.objects.values()), list(SurveyAnswer.objects.values())))
+        new = self.new_customer()
+        self.post_send()
+        self.assertTrue(SurveyRecipient.objects.filter(customer=new, survey=self.survey).exists())
+        self.assertEqual(before[0], list(SurveyRecipient.objects.exclude(customer=new).order_by("pk").values()))
+        self.assertEqual(before[1:], (list(SurveyResponse.objects.values()), list(SurveyAnswer.objects.values())))
 
     def test_post_rechecks_lock_role_and_saved_audience_membership(self):
         self.publish()
@@ -103,38 +141,49 @@ class NewRecipientTests(PortalTestCase):
         changed = self.new_customer("will-change@new.test")
         promoted = self.new_customer("will-promote@new.test")
         remaining = self.new_customer("remaining@new.test")
-        self.assertEqual(self.client.get(self.send).context["preview"], 4)
+        self.client.get(self.list_url)
         Account.objects.filter(pk=locked.pk).update(status="LOCKED")
         Account.objects.filter(pk=changed.pk).update(playing_level="COMPETITIVE")
         Account.objects.filter(pk=promoted.pk).update(role="MANAGER")
-        self.client.post(self.send, {"action": "send", "preview": 4})
+        self.post_send(preview=4)
         self.assertEqual(set(SurveyRecipient.objects.values_list("customer_id", flat=True)), {self.first.pk, remaining.pk})
 
-    def test_no_new_customers_at_post_is_clear_and_creates_nothing(self):
+    def test_invalid_selection_is_atomic_and_not_selectable(self):
         self.publish()
         new = self.new_customer()
-        self.assertEqual(self.client.get(self.send).context["preview"], 1)
-        Account.objects.filter(pk=new.pk).update(status="LOCKED")
-        self.assertContains(self.client.post(self.send, {"action": "send"}, follow=True), EMPTY_MESSAGE)
-        self.assertEqual(SurveyRecipient.objects.count(), 1)
+        invalid = make_survey(self.manager)
+        cases = [{"status": "DRAFT"}, {"status": "CLOSED"}, {"status": "UNKNOWN"},
+                 {"status": "ACTIVE", "end_at": timezone.now() - timedelta(minutes=1)},
+                 {"status": "ACTIVE", "end_at": timezone.now() + timedelta(days=1), "audience": {}}]
+        for fields in cases:
+            with self.subTest(fields=fields):
+                Survey.objects.filter(pk=invalid.pk).update(**fields)
+                page = self.post_send([self.survey.pk, invalid.pk])
+                self.assertNotContains(page, "Successfully processed")
+                self.assertFalse(SurveyRecipient.objects.filter(customer=new).exists())
+                self.assertFalse(next(item for item in page.context["items"] if item.pk == invalid.pk).sendable)
+        Survey.objects.filter(pk=invalid.pk).update(audience={"audience": "all"})
+        SurveyQuestion.objects.filter(survey=invalid).delete()
+        self.assertNotContains(self.post_send([self.survey.pk, invalid.pk]), "Successfully processed")
+        self.assertFalse(SurveyRecipient.objects.filter(customer=new).exists())
 
-    def test_closed_and_expired_direct_urls_cannot_send(self):
+    def test_empty_invalid_and_missing_ids_cannot_send(self):
         self.publish()
         self.new_customer()
-        for state, end in [("CLOSED", timezone.now() + timedelta(days=1)),
-                           ("ACTIVE", timezone.now() - timedelta(minutes=1))]:
-            with self.subTest(state=state):
-                Survey.objects.filter(pk=self.survey.pk).update(status=state, end_at=end)
-                for method in (self.client.get, self.client.post):
-                    page = method(self.send, {"action": "send"})
-                    self.assertTrue(page.context["errors"])
-                    self.assertContains(page, "disabled")
-                self.assertNotContains(self.client.get(self.detail), "Send to New Recipients")
+        for ids in ([], ["bad"], ["-1"], ["0"], ["1" * 100], ["2147483648"], [999999, self.survey.pk]):
+            with self.subTest(ids=ids):
+                page = self.client.post(self.send, {"survey_ids": ids}, follow=True)
+                self.assertNotContains(page, "Successfully processed")
                 self.assertEqual(SurveyRecipient.objects.count(), 1)
-                with self.assertRaises(ValidationError):
-                    send_saved_survey(self.manager, self.survey)
 
-    def test_customer_anonymous_and_locked_manager_cannot_send(self):
+    def test_no_eligible_customers_is_success_for_published_survey(self):
+        self.publish()
+        Account.objects.filter(pk=self.first.pk).update(status="LOCKED")
+        self.assertContains(self.post_send(), "Successfully processed 1 survey(s). Sent to 0 new recipient(s).")
+
+    def test_customer_anonymous_locked_and_revoked_manager_cannot_send(self):
+        self.publish()
+        self.new_customer()
         for actor in (None, self.first, self.manager):
             with self.subTest(actor=actor):
                 self.client.logout()
@@ -142,11 +191,27 @@ class NewRecipientTests(PortalTestCase):
                     self.client.force_login(actor)
                 if actor == self.manager:
                     Account.objects.filter(pk=actor.pk).update(status="LOCKED")
-                for method in (self.client.get, self.client.post):
-                    self.assertIn(method(self.send, {"action": "send"}).status_code, (302, 403))
+                self.assertIn(self.client.post(self.send, {"survey_ids": [self.survey.pk]}).status_code, (302, 403))
                 with self.assertRaises(AccountPermissionDenied):
-                    send_saved_survey(actor, self.survey)
-                self.assertFalse(SurveyRecipient.objects.exists())
+                    send_saved_surveys(actor, [self.survey.pk])
+                self.assertEqual(SurveyRecipient.objects.count(), 1)
+        Account.objects.filter(pk=self.manager.pk).update(status="ACTIVE", role="MANAGER")
+        self.client.force_login(self.manager)
+        Account.objects.filter(pk=self.manager.pk).update(role="CUSTOMER")
+        self.client.post(self.send, {"survey_ids": [self.survey.pk]})
+        self.assertEqual(SurveyRecipient.objects.count(), 1)
+
+    def test_post_only_csrf_and_filter_preservation(self):
+        from apps.accounts.testing import PortalClient
+        self.assertEqual(self.client.get(self.send).status_code, 405)
+        client = PortalClient(enforce_csrf_checks=True)
+        client.force_login(self.manager)
+        self.assertEqual(client.post(self.send, {"survey_ids": [self.survey.pk]}).status_code, 403)
+        self.publish()
+        client.get(self.list_url)
+        response = client.post(self.send, {"survey_ids": [self.survey.pk], "csrfmiddlewaretoken": client.cookies["csrftoken"].value,
+                                          "q": "New", "status": "ACTIVE", "page": "1"})
+        self.assertRedirects(response, self.list_url + "?q=New&status=ACTIVE")
 
 
 class ConcurrentNewRecipientTests(TransactionTestCase):
@@ -164,10 +229,63 @@ class ConcurrentNewRecipientTests(TransactionTestCase):
                 actor = Account.objects.get(pk=manager.pk)
                 current = Survey.objects.get(pk=survey.pk)
                 barrier.wait(timeout=10)
-                return send_saved_survey(actor, current)["created"]
+                return send_saved_surveys(actor, [current.pk])["created"]
             finally:
                 connection.close()
 
         with ThreadPoolExecutor(max_workers=2) as pool:
             self.assertEqual(sorted(pool.map(lambda _: send(), range(2))), [0, 1])
         self.assertEqual(SurveyRecipient.objects.filter(survey=survey, customer=customer).count(), 1)
+
+    @skipUnlessDBFeature("has_select_for_update")
+    def test_overlapping_batches_in_reverse_order_do_not_duplicate(self):
+        manager = Account.objects.create_user("batch-manager@new.test", PW, role="MANAGER")
+        customer = Account.objects.create_user("batch-customer@new.test", PW, playing_level="BEGINNER")
+        surveys = [make_survey(manager), make_survey(manager)]
+        ids = [survey.pk for survey in surveys]
+        Survey.objects.filter(pk__in=ids).update(status="ACTIVE")
+        barrier = Barrier(2)
+
+        def send(index):
+            close_old_connections()
+            try:
+                actor = Account.objects.get(pk=manager.pk)
+                barrier.wait(timeout=10)
+                return send_saved_surveys(actor, ids if index else ids[::-1])["created"]
+            finally:
+                connection.close()
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertEqual(sorted(pool.map(send, range(2))), [0, 2])
+        self.assertEqual(SurveyRecipient.objects.filter(survey_id__in=ids, customer=customer).count(), 2)
+
+
+from django.test import SimpleTestCase
+
+
+class SavedAudienceDisplayTests(SimpleTestCase):
+    def test_all_and_missing_audience_are_explicit(self):
+        from types import SimpleNamespace
+        from .views import saved_audience_details
+        self.assertEqual(saved_audience_details(SimpleNamespace(audience={"audience": "all"}))["label"], "All customers")
+        self.assertEqual(saved_audience_details(SimpleNamespace(audience={}))["label"], "Audience not configured")
+
+    def test_group_displays_each_saved_rule(self):
+        from types import SimpleNamespace
+        from .views import saved_audience_details
+        result = saved_audience_details(SimpleNamespace(audience={"audience": "filter", "age_groups": ["18_24"],
+                                       "playing_levels": ["BEGINNER"], "preferences": ["Yonex"]}))
+        self.assertEqual(result["label"], "Customer group")
+        self.assertEqual(len(result["rules"]), 3)
+        self.assertIn("18–24", result["rules"][0])
+        self.assertIn("Yonex", result["rules"][2])
+
+    def test_specific_customers_include_names_and_missing_accounts(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from .views import saved_audience_details
+        with patch("apps.accounts.models.Account.objects.filter", return_value=[SimpleNamespace(pk=4, full_name="Alex", email="alex@example.test")]):
+            result = saved_audience_details(SimpleNamespace(audience={"audience": "pick", "customer_ids": [4, 8, 4]}))
+        self.assertEqual(len(result["customers"]), 2)
+        self.assertIn("Alex", result["customers"][0])
+        self.assertIn("no longer available", result["customers"][1])

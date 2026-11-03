@@ -124,7 +124,6 @@
         {% if mode == "readonly" %}
         <div class="sv-cb-actions">
           <a class="sv-btn" href="{% url 'surveys:manage_detail' survey.survey_id %}">{% t "Xem chi tiết khảo sát" "View Survey Details" %}</a>
-          {% if status == "ACTIVE" %}<a class="sv-btn sv-ghost" href="{% url 'surveys:manage_send' survey.survey_id %}">{% t "Gửi thêm khách hàng" "Send to More Customers" %}</a>{% endif %}
           {% if status != "DRAFT" %}<a class="sv-btn sv-ghost" href="{% url 'surveys:manage_stats' survey.survey_id %}">{% t "Thống kê" "Statistics" %}</a>{% endif %}
         </div>
         {% else %}

@@ -90,3 +90,23 @@
 @media (max-width: 700px) { .rp-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rp-grid { grid-template-columns: minmax(0, 1fr); } }
 .brand-legend tbody tr.brand-off td { text-decoration: line-through; color: #8a99a1; }
 .brand-legend tbody tr:hover { background: #f1f7f9; }
+
+/* Scoped report controls override the portal's generic input styles. */
+.rp-toolbar { margin-bottom: 18px; font-size: .88rem; color: #637680; }
+.rp-filter-panel { padding: 18px; margin-bottom: 20px; background: #fff; border: 1px solid #dbe3e8; border-radius: 8px; }
+.rp-filter-panel .rp-date-filter { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto; gap: 16px; align-items: end; margin: 0; }
+.rp-filter-panel .rp-date-filter label { display: flex; flex-direction: column; gap: 7px; margin: 0; min-width: 0; font-size: .85rem; font-weight: 600; color: #374b57; }
+.rp-filter-panel .rp-date-filter input, .rp-filter-panel .rp-date-filter select { box-sizing: border-box; display: block; width: 100%; min-width: 0; height: 42px; min-height: 42px; padding: 8px 10px; border: 1px solid #c7d2da; border-radius: 5px; background: #fff; color: #263640; font: inherit; }
+.rp-filter-actions { display: flex; gap: 8px; align-items: center; }
+.rp-filter-panel .rp-filter-actions .crm-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 42px; min-height: 42px; padding: 8px 18px; border-radius: 5px; text-decoration: none; }
+.rp-filter-panel .rp-filter-actions a.crm-btn { background: #fff; color: #465b68; border: 1px solid #c7d2da; }
+.rp-filter-panel .rp-filter-actions a.crm-btn:hover { background: #f3f6f8; }
+.rp-filter-errors { grid-column: 1 / -1; }
+.rp-filter-errors:empty { display: none; }
+.rp-filter-panel .rp-foot { margin: 12px 0 0; line-height: 1.5; }
+.rp-kpi { min-height: 100px; padding: 16px; border-radius: 8px; }
+.rp-kpi span { letter-spacing: .02em; font-size: .72rem; line-height: 1.5; }
+.rp-kpi b { margin-top: 8px; font-size: 1.5rem; }
+@media (max-width: 1050px) { .rp-filter-panel .rp-date-filter { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 600px) { .rp-filter-panel .rp-date-filter { grid-template-columns: minmax(0,1fr); } .rp-filter-actions .crm-btn { flex: 1; } }
+@media print { .rp-filter-panel { border: 0; padding: 0; } }

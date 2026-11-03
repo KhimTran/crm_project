@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from .constants import AccountRole, AccountStatus, normalize_account_choice
 from .managers import AccountManager
 from .models import Account
+from .birth_dates import BirthDateField, minimum_age_for_role
 
 
 class CanonicalChoiceField(forms.ChoiceField):
@@ -22,12 +23,17 @@ class AccountCreateForm(forms.Form):
     # Optional profile fields
     full_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={"placeholder": "Full name..."}))
     phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={"placeholder": "Phone number..."}))
-    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    date_of_birth = BirthDateField(required=False)
     gender = forms.ChoiceField(
         choices=[("", "-- Select gender --"), ("MALE", "Male"), ("FEMALE", "Female"), ("OTHER", "Other")],
         required=False,
     )
     address = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={"placeholder": "Address..."}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        role = self.data.get("role") if self.is_bound else self.initial.get("role", self.fields["role"].choices[0][0])
+        self.fields["date_of_birth"].set_minimum_age(minimum_age_for_role(role))
 
     def clean_email(self):
         email = AccountManager.normalize_account_email(self.cleaned_data["email"])
@@ -53,7 +59,7 @@ class AccountProfileEditForm(forms.Form):
     full_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
     email = forms.EmailField(max_length=255, required=False, widget=forms.EmailInput(attrs={"class": "form-control"}))
     phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}))
+    date_of_birth = BirthDateField(required=False, widget=forms.DateInput(attrs={"class": "form-control"}))
     gender = forms.ChoiceField(
         choices=[("", "-- Select gender --"), ("MALE", "Male"), ("FEMALE", "Female"), ("OTHER", "Other")],
         required=False,
@@ -74,6 +80,9 @@ class AccountProfileEditForm(forms.Form):
     def __init__(self, *args, account_id=None, **kwargs):
         self.account_id = account_id
         super().__init__(*args, **kwargs)
+        if account_id:
+            role = Account.objects.filter(pk=account_id).values_list("role", flat=True).first()
+            self.fields["date_of_birth"].set_minimum_age(minimum_age_for_role(role))
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
@@ -122,7 +131,8 @@ class PersonalProfileEditForm(forms.Form):
         label="Phone Number",
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter phone number"}),
     )
-    date_of_birth = forms.DateField(
+    date_of_birth = BirthDateField(
+        minimum_age=18,
         required=False,
         label="Date of Birth",
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),

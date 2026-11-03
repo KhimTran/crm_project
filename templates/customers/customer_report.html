@@ -5,7 +5,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">
 <link rel="stylesheet" href="{% static 'css/crm_feedbacks.css' %}">
-<link rel="stylesheet" href="{% static 'css/crm_reports.css' %}">
+<link rel="stylesheet" href="{% static 'css/crm_reports.css' %}?v=report-layout-3">
 {% endblock %}
 
 {% block content %}
@@ -15,6 +15,19 @@
   <button type="button" class="crm-btn report-no-print rp-print" id="report-print">{% t "In báo cáo" "Print Report" %}</button>
 </div>
 
+<section class="rp-filter-panel">
+<form method="get" class="rp-date-filter report-no-print">
+  <label><span>From Date</span>{{ report_filters.date_from }}</label>
+  <label><span>To Date</span>{{ report_filters.date_to }}</label>
+  <label><span>Period</span>{{ report_filters.days }}</label>
+  <div class="rp-filter-actions">
+  <button class="crm-btn" type="submit">Apply</button>
+  <a class="crm-btn" href="{{ request.path }}">Clear</a>
+  </div>
+  <div class="rp-filter-errors" role="alert">{{ report_filters.errors }}</div>
+</form>
+<p class="rp-foot">{% if report_filters.cleaned_data.date_from or report_filters.cleaned_data.date_to %}{{ report_filters.cleaned_data.date_from|date:"Y-m-d"|default:"…" }} – {{ report_filters.cleaned_data.date_to|date:"Y-m-d"|default:"…" }} · {% endif %}{% t 'Lọc khách hàng theo ngày tạo hồ sơ (bao gồm hai ngày đầu/cuối).' 'Filter customers by profile creation date (inclusive). ' %}</p>
+</section>
 <div class="rp-kpis">
   <div class="rp-kpi"><span>{% t "Tổng khách hàng" "Total Customers" %}</span><b>{{ summary.total }}</b></div>
   <div class="rp-kpi"><span>{% t "Khách hàng mới tháng này" "New Customers This Month" %}</span><b>{{ summary.new_this_month }}</b></div>
