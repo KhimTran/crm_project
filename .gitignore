@@ -3,8 +3,6 @@ __pycache__/
 *.pyc
 .env
 media/
-database/backups/
-database/backup_metadata/
 .vscode/
 # Byte-compiled / optimized / DLL files
 __pycache__/

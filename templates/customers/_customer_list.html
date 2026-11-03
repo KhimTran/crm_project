@@ -13,7 +13,7 @@
   {% endfor %}
   <div class="crm-actions">
     <button type="submit" class="{% if in_admin_portal %}btn btn-outline-primary{% else %}crm-btn{% endif %}">{% t "Lọc" "Search" %}</button>
-    <a class="{% if in_admin_portal %}btn btn-outline-secondary{% else %}crm-btn crm-btn-secondary{% endif %}" href="{% url 'customers:list' %}">{% t "Xóa lọc" "Clear" %}</a>
+    <button type="button" class="{% if in_admin_portal %}btn btn-outline-secondary{% else %}crm-btn crm-btn-secondary{% endif %}" onclick="window.location.href='{% url 'customers:list' %}'">{% t "Xóa lọc" "Clear" %}</button>
   </div>
 </form>
 

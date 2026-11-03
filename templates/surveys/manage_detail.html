@@ -67,7 +67,7 @@
   <div class="d-flex gap-2 flex-wrap align-items-center sv-no-print">
     <button type="button" class="btn btn-outline-secondary" id="survey-print">Print</button>
     {% if is_draft %}<a class="btn btn-primary" href="{% url 'surveys:manage_send' survey.survey_id %}">Publish Survey</a>
-    {% elif can_send_new %}<a class="btn btn-primary" href="{% url 'surveys:manage_send' survey.survey_id %}">{% t 'Gửi cho khách chưa nhận' 'Send to New Recipients' %}</a>{% endif %}
+    {% endif %}
     <form method="post" action="{% url 'surveys:manage_clone' survey.survey_id %}">{% csrf_token %}
       <button class="btn btn-outline-secondary" type="submit">Duplicate</button></form>
     {% if survey.status == 'ACTIVE' %}
@@ -101,6 +101,18 @@
       <div><span>Questions</span><b>{{ stats.items|length }}</b></div>
     </div>
   </div>
+</section>
+
+<section class="portal-panel" aria-labelledby="survey-audience-heading">
+  <h2 id="survey-audience-heading" class="h5">{% t 'Đối tượng nhận đã lưu' 'Saved audience' %}</h2>
+  <p><strong>{{ saved_audience.label }}</strong></p>
+  {% for rule in saved_audience.rules %}<p>{{ rule }}</p>{% endfor %}
+  {% if saved_audience.customers %}
+  <details><summary>{{ saved_audience.customers|length }} {% t 'khách hàng được chọn — xem danh sách' 'selected customers — view list' %}</summary>
+    <ul>{% for customer in saved_audience.customers %}<li>{{ customer }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+  <p class="text-muted small mb-0">{% t 'Chỉ gửi tới khách hàng hợp lệ thuộc đối tượng này và chưa từng nhận khảo sát. Số đã gửi được hiển thị bên dưới.' 'Only eligible customers in this saved audience who have never received the survey are invited. Actual sent counts are shown below.' %}</p>
 </section>
 
 <div class="sv-kpis">

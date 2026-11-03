@@ -1,4 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const createRole = document.getElementById('id_create_role');
+    const birthDate = createRole && createRole.form.querySelector('[name="date_of_birth"]');
+    if (birthDate) {
+        const updateBirthDateLimit = () => {
+            const role = createRole.value.trim().toUpperCase();
+            birthDate.max = ['ADMIN', 'MANAGER'].includes(role)
+                ? birthDate.dataset.adultMax : birthDate.dataset.customerMax;
+        };
+        createRole.addEventListener('change', updateBirthDateLimit);
+        updateBirthDateLimit();
+    }
     document.querySelectorAll('.portal-restore-form').forEach((form) => {
         const button = form.querySelector('button[type="submit"]');
         const checkbox = form.querySelector('[name="maintenance_ack"]');

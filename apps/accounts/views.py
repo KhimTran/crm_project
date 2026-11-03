@@ -29,7 +29,7 @@ def _run_action(request, account_id, service, success_message, *args):
         raise Http404("Account not found") from exc
     except AccountPermissionDenied:
         return HttpResponseForbidden("Account administration is restricted")
-    except AccountServiceError as exc:
+    except (AccountServiceError, ValidationError) as exc:
         messages.error(request, str(exc))
     else:
         messages.success(request, success_message)

@@ -110,7 +110,7 @@ class CustomerCreateViewTests(TestCase):
         response = self.client.post(self.url, bad)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Invalid phone number")
-        self.assertContains(response, "Invalid date of birth")
+        self.assertContains(response, "Date of birth cannot be in the future.")
         self.assertFalse(Customer.objects.filter(email=bad["email"]).exists())
 
     def test_duplicate_email_and_phone_show_form_errors(self):

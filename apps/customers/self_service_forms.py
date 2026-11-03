@@ -1,6 +1,7 @@
 import re
 
 from django import forms
+from apps.accounts.birth_dates import BirthDateField
 from django.utils import timezone
 
 from apps.catalog.models import Category, Status
@@ -12,6 +13,7 @@ from .self_service_choices import CATEGORY_PREFERENCE_TYPE, GENDER_CHOICES, PLAY
 
 
 class CustomerProfileForm(forms.ModelForm):
+    date_of_birth = BirthDateField(required=False, label="Ngày sinh")
     gender = forms.ChoiceField(label="Giới tính", required=False)
     playing_level = forms.ChoiceField(label="Trình độ chơi", required=False)
     # tv4: thương hiệu cầu lông yêu thích (không bắt buộc); "Other" mở thêm ô nhập tên hãng

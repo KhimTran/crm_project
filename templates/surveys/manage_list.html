@@ -7,7 +7,14 @@
 
 <div class="portal-section-intro d-flex justify-content-between align-items-center gap-3 flex-wrap">
   <p class="text-muted mb-0">{% t "Quản lý các khảo sát gửi đến khách hàng." "Manage the surveys sent to customers." %}</p>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+  <form id="survey-bulk-send" method="post" action="{% url 'surveys:manage_bulk_send' %}">
+    {% csrf_token %}
+    {% for field in filters %}<input type="hidden" name="{{ field.name }}" value="{{ field.value|default_if_none:'' }}">{% endfor %}
+    <button id="survey-send" class="btn btn-primary" type="submit" disabled>Send Survey</button>
+  </form>
   <a class="btn btn-primary" href="{% url 'surveys:manage_create' %}">{% t "Tạo khảo sát" "Create Survey" %}</a>
+  </div>
 </div>
 
 <section class="portal-panel">
@@ -39,7 +46,7 @@
     </div>
     <div class="survey-list-filter-actions">
       <button class="btn btn-outline-primary" type="submit">{% t "Tìm" "Search" %}</button>
-      <a class="btn btn-outline-secondary" href="{% url 'surveys:manage_list' %}">{% t "Xóa lọc" "Clear" %}</a>
+      <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='{% url 'surveys:manage_list' %}'">{% t "Xóa lọc" "Clear" %}</button>
     </div>
   </form>
 </section>
@@ -54,6 +61,7 @@
     <table class="table portal-table align-middle mb-0">
       <thead>
         <tr>
+          <th scope="col"><input type="checkbox" id="survey-select-all" aria-label="Select all eligible surveys"></th>
           <th scope="col">ID</th>
           <th scope="col">{% t "Tên khảo sát" "Name" %}</th>
           <th scope="col">{% t "Mô tả" "Description" %}</th>
@@ -65,6 +73,7 @@
       <tbody>
         {% for item in items %}
         <tr>
+          <td><input type="checkbox" name="survey_ids" value="{{ item.survey_id }}" form="survey-bulk-send" data-survey-select aria-label="Select survey {{ item.survey_id }}" {% if not item.sendable %}disabled{% endif %}></td>
           <td>{{ item.survey_id }}</td>
           <td>{{ item.title }}</td>
           <td class="portal-description" {% if item.description %}title="{{ item.description }}"{% endif %}>{{ item.description|truncatechars:80|default:'—' }}</td>
@@ -103,3 +112,5 @@
 </nav>
 
 {% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/survey_list.js' %}"></script>{% endblock %}

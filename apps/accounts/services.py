@@ -14,6 +14,7 @@ from .models import Account
 from .permissions import require_active_admin
 from .selectors import account_data
 from .managers import AccountManager
+from .birth_dates import minimum_age_for_role, validate_birth_date
 
 
 def _locked_target(account_id):
@@ -158,6 +159,8 @@ def change_account_role(actor, account_id, role):
 
     if role != AccountRole.ADMIN:
         _protect_final_admin(account, active_admin_ids)
+    # This action uses QuerySet.update, so it must validate the new role explicitly.
+    validate_birth_date(account.date_of_birth, minimum_age_for_role(role))
     Account.objects.filter(pk=account.pk).update(role=role)
     account.refresh_from_db()
     return account_data(account)

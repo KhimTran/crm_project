@@ -1,6 +1,7 @@
 import json
 import re
 import uuid
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -22,7 +23,8 @@ from apps.customers.portal_text import localize_form, localize_rows, portal_engl
 from .constants import BUILDER_TYPES, CHOICE_TYPES, RECIPIENT_COMPLETED, SHOP_NAME, QuestionType, SurveyStatus
 from .forms import AudienceForm, BuilderQuestionForm, SurveyBuilderForm, SurveyListFilterForm
 from .selectors import survey_list_queryset
-from .services import NO_NEW_RECIPIENTS_MESSAGE, new_recipient_customers, resolve_audience, send_saved_survey
+from .services import (NO_NEW_RECIPIENTS_MESSAGE, check_ready_for_additional_send, new_recipient_customers,
+                       resolve_audience, send_saved_survey, send_saved_surveys)
 from .configuration import populate_questionnaire, prepare_questions
 from .questionnaire import TEMPLATE_KEY
 from .models import Survey, SurveyQuestion, SurveyRecipient
@@ -112,6 +114,32 @@ def result(request, recipient_id):
 
 
 # ───────────────────────── TV5: CRM – manage surveys (4.1.6, 4.1.7) ─────────────────────────
+def saved_audience_details(survey):
+    """Describe saved targeting rules independently of historical invitation counts."""
+    from .constants import AGE_GROUPS
+    from apps.accounts.models import Account
+    try:
+        resolve_audience(survey.audience)
+    except ValidationError:
+        return {"label": "Audience not configured", "rules": ["No valid saved audience is available."], "customers": []}
+    data = survey.audience
+    mode = data["audience"]
+    result = {"label": {"all": "All customers", "filter": "Customer group", "pick": "Specific customers"}[mode],
+              "rules": [], "customers": []}
+    if mode == "filter":
+        age_labels = {key: tr(label) for key, label, *_ in AGE_GROUPS}
+        for key, label in (("age_groups", "Age groups"), ("playing_levels", "Playing levels"), ("preferences", "Preferences")):
+            values = data.get(key, [])
+            if values:
+                result["rules"].append(label + ": " + ", ".join(age_labels.get(value, value) if key == "age_groups" else tr(value) for value in values))
+    elif mode == "pick":
+        ids = list(dict.fromkeys(int(value) for value in data["customer_ids"]))
+        accounts = {account.pk: account for account in Account.objects.filter(pk__in=ids)}
+        result["customers"] = [f"#{pk} · {accounts[pk].full_name or accounts[pk].email} · {accounts[pk].email}"
+                               if pk in accounts else f"#{pk} · Account no longer available" for pk in ids]
+    return result
+
+
 # tv4: dịch lỗi "chưa thể gửi" sang tiếng Anh khi Admin xem trong Admin Portal (câu có tên câu hỏi xử lý riêng)
 def _send_error(message):
     match = re.fullmatch(r'Câu "(.*)" cần ít nhất 2 lựa chọn\.', message, re.S)
@@ -142,6 +170,7 @@ def manage_list(request):
     items = list(survey_list_queryset(filters.cleaned_data)) if filters.is_valid() else []
     for survey in items:  # chỉ Nháp chưa gửi cho ai mới sửa/xóa được (cùng quy tắc với manage_delete)
         survey.editable = survey.status == SurveyStatus.DRAFT and not survey.sent
+        survey.sendable = not check_ready_for_additional_send(survey)
         done = survey.surveyrecipient_set.filter(status=RECIPIENT_COMPLETED).count()
         survey.pending = max(survey.sent - done, 0)
         survey.rate = round(done * 100 / survey.sent, 1) if survey.sent else None
@@ -152,6 +181,32 @@ def manage_list(request):
         "surveys": items,
         "overview": survey_overview(),
     })
+
+
+@manager_required
+@require_POST
+@portal_english
+def manage_bulk_send(request):
+    try:
+        raw_ids = request.POST.getlist("survey_ids")
+        if any(len(value) > 10 or not value.isascii() or not value.isdecimal() or not 1 <= int(value) <= 2147483647
+               for value in raw_ids):
+            raise ValidationError("Select valid survey IDs.")
+        result = send_saved_surveys(request.user, [int(value) for value in raw_ids])
+    except ValidationError as exc:
+        messages.error(request, " ".join(_send_error(message) for message in exc.messages))
+    except AccountPermissionDenied:
+        return HttpResponseForbidden("Survey management permission is required.")
+    else:
+        messages.success(request, f"Successfully processed {result['surveys']} survey(s). "
+                         f"Sent to {result['created']} new recipient(s).")
+    target = reverse("surveys:manage_list")
+    filters = SurveyListFilterForm(request.POST)
+    if filters.is_valid():
+        query = urlencode({key: request.POST[key] for key in filters.fields if request.POST.get(key)})
+        if query:
+            target += "?" + query
+    return redirect(target)
 
 
 # tv4: 4.1.7 trang Survey Results riêng (tách khỏi Customer Report), số liệu từ bộ 8 câu hỏi đã phát hành.
@@ -551,14 +606,8 @@ def manage_detail(request, survey_id):
                                       .order_by("sort_order", "question_id")))
     recipients = SurveyRecipient.objects.filter(survey=survey)
     stats = _localized_stats(build_stats(survey))
-    can_send_new = False
-    if survey.status == SurveyStatus.ACTIVE and not check_ready_to_send(survey):
-        try:
-            can_send_new = new_recipient_customers(survey).exists()
-        except ValidationError:
-            pass  # Invalid saved audiences must be corrected before sending.
     return render(request, "surveys/manage_detail.html", {
-        "can_send_new": can_send_new,
+        "saved_audience": saved_audience_details(survey),
         "stats": stats, "charts": _question_charts(stats),
         "survey": survey, "questions": questions, "is_draft": survey.status == SurveyStatus.DRAFT and not recipients.exists(),
         "status_label": tr(SurveyStatus(survey.status).label) if survey.status in SurveyStatus.values else survey.status,
@@ -571,6 +620,8 @@ def manage_detail(request, survey_id):
 @require_http_methods(['GET', 'POST'])
 def manage_send(request, survey_id):
     survey = get_object_or_404(Survey, pk=survey_id)
+    if survey.status != SurveyStatus.DRAFT:
+        return redirect('surveys:manage_list')
     errors = [_send_error(e) for e in check_ready_to_send(survey)]
     preview = 0
     try:

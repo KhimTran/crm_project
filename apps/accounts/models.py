@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.auth.hashers import identify_hasher, is_password_usable
 from django.core.exceptions import ValidationError
@@ -7,6 +9,7 @@ from django.utils import timezone
 from .constants import AccountRole, AccountStatus, normalize_account_role, normalize_account_status
 from .errors import InvalidAccountRole
 from .managers import AccountManager
+from .birth_dates import minimum_age_for_role, validate_birth_date
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
@@ -140,6 +143,19 @@ class Account(AbstractBaseUser, PermissionsMixin):
                 raise ValidationError({"password": "Use set_password() to assign a password"}) from exc
         self.full_clean()
         return super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if self.pk:
+            saved = Account.objects.filter(pk=self.pk).values("date_of_birth", "role").first()
+            if saved and saved["date_of_birth"] == self.date_of_birth and saved["role"] == self.role:
+                return  # Preserve unrelated operations on historical profiles.
+        # Invalid date strings are reported by DateField.clean during full_clean.
+        if isinstance(self.date_of_birth, date):
+            try:
+                validate_birth_date(self.date_of_birth, minimum_age_for_role(self.role))
+            except ValidationError as exc:
+                raise ValidationError({"date_of_birth": exc.messages}) from exc
 
     def __str__(self):
         return self.email

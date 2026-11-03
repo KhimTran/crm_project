@@ -324,6 +324,36 @@ def new_recipient_customers(survey):
     return resolve_audience(survey.audience).filter(~Exists(invited))
 
 
+def check_ready_for_additional_send(survey):
+    """Published surveys may invite saved-audience newcomers, even when none exist yet."""
+    errors = check_ready_to_send(survey)
+    if survey.status != SurveyStatus.ACTIVE:
+        errors.append("Only published surveys can be sent from the survey list.")
+    try:
+        resolve_audience(survey.audience)
+    except ValidationError as exc:
+        errors.extend(exc.messages)
+    return errors
+
+
+@transaction.atomic
+def send_saved_surveys(actor, survey_ids):
+    """Validate the entire selection before sending; lock in ID order for overlapping batches."""
+    require_survey_manager(actor)
+    ids = sorted(set(survey_ids))
+    if not ids:
+        raise ValidationError("Select at least one survey.")
+    surveys = list(Survey.objects.select_for_update().filter(pk__in=ids).order_by("pk"))
+    if len(surveys) != len(ids):
+        raise ValidationError("One or more selected surveys no longer exist.")
+    for survey in surveys:
+        errors = check_ready_for_additional_send(survey)
+        if errors:
+            raise ValidationError([f"{survey.title}: {error}" for error in errors])
+    return {"surveys": len(surveys),
+            "created": sum(send_saved_survey(actor, survey)["created"] for survey in surveys)}
+
+
 @transaction.atomic
 def send_saved_survey(actor, survey):
     require_survey_manager(actor)

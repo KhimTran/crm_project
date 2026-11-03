@@ -18,7 +18,7 @@ from apps.feedback.models import Feedback
 
 from .constants import CustomerStatus, PreferenceType
 from .errors import CustomerNotFound, CustomerServiceError, DuplicateCustomerEmail, DuplicateCustomerPhone
-from .forms import CustomerCreateForm, CustomerEditForm, CustomerFilterForm, CustomerLockForm
+from .forms import CustomerCreateForm, CustomerEditForm, CustomerFilterForm, CustomerLockForm, CustomerReportFilterForm
 from .models import Customer, CustomerPreference
 from . import reports
 from .portal_text import localize_form, localize_rows, portal_english, say, tr
@@ -259,12 +259,23 @@ def customer_delete(request, customer_id):
 @role_required("ADMIN", "MANAGER", "CRM_MANAGER", "CUSTOMER_SERVICE")
 @portal_english
 def customer_report(request):
+    from datetime import datetime, time, timedelta
+    filters = CustomerReportFilterForm(request.GET)
+    customers = customer_queryset()
+    if filters.is_valid():
+        start, end = filters.cleaned_data.get("date_from"), filters.cleaned_data.get("date_to")
+        if start:
+            customers = customers.filter(created_at__gte=timezone.make_aware(datetime.combine(start, time.min)))
+        if end:
+            customers = customers.filter(created_at__lt=timezone.make_aware(datetime.combine(end + timedelta(days=1), time.min)))
+    else:
+        customers = customers.none()
     # Chỉ báo cáo khách hàng 4.1.5; kết quả khảo sát 4.1.7 thuộc TV5 (surveys:manage_stats).
     customer_charts = {
-        "age": localize_rows(reports.age_group_report()),
-        "gender": localize_rows(reports.gender_report()),
-        "level": localize_rows(reports.playing_level_report()),
-        "monthly": reports.new_customers_by_month(),
+        "age": localize_rows(reports.age_group_report(customers=customers)),
+        "gender": localize_rows(reports.gender_report(customers=customers)),
+        "level": localize_rows(reports.playing_level_report(customers=customers)),
+        "monthly": reports.new_customers_by_month(customers=customers),
         "labels": {"customers": say("Số khách hàng", "Customers"),
                    "new_customers": say("Khách hàng mới", "New customers"),
                    "total": say("Tổng", "Total"),
@@ -273,20 +284,20 @@ def customer_report(request):
                    "avg_rating": say("Điểm hài lòng TB", "Avg. satisfaction")},
     }
     customer_extra = {
-        "accounts": reports.account_status_report(),
+        "accounts": reports.account_status_report(customers=customers),
         "deleted": reports.deleted_count(),
     }
     # tv4: thương hiệu yêu thích; lỗi truy vấn chỉ làm hỏng card này (error state), không làm hỏng cả báo cáo
     try:
-        customer_charts["favorite_brands"] = reports.favorite_brand_report()
+        customer_charts["favorite_brands"] = reports.favorite_brand_report(customers=customers)
         favorite_brand_error = False
     except DatabaseError:
         customer_charts["favorite_brands"] = None
         favorite_brand_error = True
 
     return render(request, "customers/customer_report.html", {
-        "generated_at": timezone.localtime(),
-        "summary": reports.summary(), "customer_charts": customer_charts, "customer_extra": customer_extra,
+        "generated_at": timezone.localtime(), "report_filters": filters,
+        "summary": reports.summary(customers=customers), "customer_charts": customer_charts, "customer_extra": customer_extra,
         "favorite_brand_error": favorite_brand_error,
     })
 

@@ -1,7 +1,7 @@
 {% extends crm_layout %}
 {% load static portal_text %}
-{% block title %}{% if is_draft %}{% t 'Phát hành khảo sát' 'Publish Survey' %}{% else %}{% t 'Gửi cho khách chưa nhận' 'Send to New Recipients' %}{% endif %}{% endblock %}
-{% block page_title %}{% if is_draft %}{% t 'Phát hành khảo sát' 'Publish Survey' %}{% else %}{% t 'Gửi cho khách chưa nhận' 'Send to New Recipients' %}{% endif %}{% endblock %}
+{% block title %}{% t 'Phát hành khảo sát' 'Publish Survey' %}{% endblock %}
+{% block page_title %}{% t 'Phát hành khảo sát' 'Publish Survey' %}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/surveys.css' %}">{% endblock %}
 {% block content %}
 <section class="portal-panel sv-card">
@@ -12,7 +12,7 @@
   {% if errors %}<ul class="sv-error" role="alert">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
   <form method="post">{% csrf_token %}
     <div class="sv-actions">
-      <button class="sv-btn" type="submit" name="action" value="send" {% if errors %}disabled{% endif %}>{% if is_draft %}{% t 'Xác nhận phát hành khảo sát' 'Confirm Publish Survey' %}{% else %}{% t 'Xác nhận gửi cho khách chưa nhận' 'Confirm Send to New Recipients' %}{% endif %}</button>
+      <button class="sv-btn" type="submit" name="action" value="send" {% if errors %}disabled{% endif %}>{% t 'Xác nhận phát hành khảo sát' 'Confirm Publish Survey' %}</button>
       <a class="sv-btn sv-ghost" href="{% url 'surveys:manage_detail' survey.pk %}">{% t 'Quay lại khảo sát' 'Back to survey' %}</a>
     </div>
   </form>

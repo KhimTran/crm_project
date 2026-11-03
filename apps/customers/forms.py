@@ -2,6 +2,7 @@ import re
 from datetime import date
 
 from django import forms
+from apps.accounts.birth_dates import BirthDateField
 from django.contrib.auth.password_validation import password_validators_help_text_html, validate_password
 
 from apps.accounts.managers import AccountManager
@@ -21,7 +22,7 @@ class CustomerCreateForm(forms.Form):
     password = forms.CharField(label="Password", strip=False,
                                widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "crm-input"}))
     phone = forms.CharField(label="Phone", max_length=20, strip=True)
-    date_of_birth = forms.DateField(label="Date of Birth", required=False,
+    date_of_birth = BirthDateField(label="Date of Birth", required=False,
                                     widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"))
     gender = forms.ChoiceField(label="Gender", required=False, choices=[("", "-- Select --"), *Gender.choices])
     address = forms.CharField(label="Address", required=False, max_length=255, strip=True)
@@ -66,7 +67,7 @@ class CustomerEditForm(forms.Form):
     full_name = forms.CharField(label="Full Name", max_length=150, strip=True, widget=forms.TextInput(attrs={"class": "crm-input"}))
     email = forms.EmailField(label="Email", max_length=255, widget=forms.EmailInput(attrs={"class": "crm-input"}))
     phone = forms.CharField(label="Phone", max_length=20, required=False, strip=True, widget=forms.TextInput(attrs={"class": "crm-input"}))
-    date_of_birth = forms.DateField(label="Date of Birth", required=False,
+    date_of_birth = BirthDateField(label="Date of Birth", required=False,
                                     widget=forms.DateInput(attrs={"type": "date", "class": "crm-input"}, format="%Y-%m-%d"))
     gender = forms.ChoiceField(label="Gender", required=False, choices=[("", "-- Select --"), *Gender.choices],
                                widget=forms.Select(attrs={"class": "crm-select"}))
@@ -121,3 +122,20 @@ class CustomerFilterForm(forms.Form):
     playing_level = forms.ChoiceField(label="Playing Level", required=False, choices=[("", "All"), *PlayingLevel.choices])
     account_status = forms.ChoiceField(label="Account", required=False,
                                        choices=[("", "All"), *AccountStatusFilter.choices])
+
+
+class CustomerReportFilterForm(forms.Form):
+    date_from = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    date_to = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    days = forms.ChoiceField(required=False, choices=[("", "Custom / All time"), ("7", "7 days"), ("15", "15 days"), ("30", "30 days")])
+
+    def clean(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        data = super().clean()
+        if data.get("days"):
+            data["date_to"] = timezone.localdate()
+            data["date_from"] = data["date_to"] - timedelta(days=int(data["days"]) - 1)
+        if data.get("date_from") and data.get("date_to") and data["date_from"] > data["date_to"]:
+            self.add_error("date_to", "From Date must be on or before To Date.")
+        return data

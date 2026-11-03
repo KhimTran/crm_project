@@ -179,3 +179,28 @@ class CustomerReportBoundaryTests(TestCase):
         SurveyAnswer.objects.create(response=response, question=question, option=option)
         groups = {g["type"]: counts(g["rows"]) for g in reports.preference_report()}
         self.assertEqual(groups, {"BRAND": {"Li-Ning": 1}})
+
+
+from django.test import SimpleTestCase
+
+
+class CustomerReportDateFilterTests(SimpleTestCase):
+    def test_presets_include_today_and_exact_day_count(self):
+        from datetime import timedelta
+        from unittest.mock import patch
+        from apps.customers.forms import CustomerReportFilterForm
+        for days in (7, 15, 30):
+            with patch("django.utils.timezone.localdate", return_value=TODAY):
+                form = CustomerReportFilterForm({"days": str(days)})
+                self.assertTrue(form.is_valid(), form.errors)
+                self.assertEqual(form.cleaned_data["date_to"], TODAY)
+                self.assertEqual(form.cleaned_data["date_from"], TODAY - timedelta(days=days - 1))
+
+    def test_custom_invalid_and_open_ranges(self):
+        from apps.customers.forms import CustomerReportFilterForm
+        for data in ({}, {"date_from": "2026-11-01"}, {"date_to": "2026-11-03"},
+                     {"date_from": "2026-11-03", "date_to": "2026-11-03"}):
+            self.assertTrue(CustomerReportFilterForm(data).is_valid())
+        for data in ({"date_from": "bad"}, {"days": "99"},
+                     {"date_from": "2026-11-04", "date_to": "2026-11-03"}):
+            self.assertFalse(CustomerReportFilterForm(data).is_valid())
