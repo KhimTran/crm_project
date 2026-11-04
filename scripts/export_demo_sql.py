@@ -47,8 +47,10 @@ def inspect_source(connection):
 
     from apps.accounts.models import Account
     from apps.catalog.models import Brand, Category, Product
-    from apps.customers.seed import DEMO_CUSTOMER_COUNT, demo_email
-    from apps.surveys.models import Survey
+    from apps.catalog.management.commands.seed_catalog import PRODUCTS, IMAGES, INACTIVE_PRODUCTS
+    from apps.catalog.management.commands.seed_demo import demo_emails, TITLES, PASSWORD, validate_demo_surveys
+    from apps.feedback.models import Feedback
+    from apps.surveys.models import Survey, SurveyResponse
 
     executor = MigrationExecutor(connection)
     executor.loader.check_consistent_history(connection)
@@ -81,27 +83,33 @@ def inspect_source(connection):
             if cursor.fetchone()[0]:
                 raise ExportError(f"Demo export requires an empty {table} table")
         for model in apps.get_models():
-            if model._meta.app_label in {"accounts", "catalog", "customers", "feedback", "surveys"}:
+            if not model._meta.proxy and model._meta.app_label in {"accounts", "catalog", "customers", "feedback", "surveys"}:
                 cursor.execute(f"SELECT COUNT(*) FROM {connection.ops.quote_name(model._meta.db_table)}")
                 if not cursor.fetchone()[0]:
-                    raise ExportError(f"Run seed_data on the disposable source before export: {model._meta.db_table} is empty")
+                    raise ExportError(f"Run seed_demo on the disposable source before export: {model._meta.db_table} is empty")
 
-    expected_emails = {"demo-admin@example.test", "demo-customer@example.test"} | {
-        demo_email(index) for index in range(1, DEMO_CUSTOMER_COUNT + 1)
-    }
+    expected_emails = set(demo_emails())
     if set(Account.objects.values_list("email", flat=True)) != expected_emails:
-        raise ExportError("Source accounts differ from seed_data; refusing possible personal data")
-    if set(Product.objects.values_list("product_name", flat=True)) != {
-        f"Demo racket {index}" for index in range(1, 9)
-    }:
-        raise ExportError("Source products differ from seed_data")
-    for queryset, expected in (
-        (Category.objects.values_list("category_name", flat=True), {"Badminton rackets"}),
-        (Brand.objects.values_list("brand_name", flat=True), {"Demo brand"}),
-        (Survey.objects.values_list("title", flat=True), {"Demo badminton survey"}),
-    ):
-        if set(queryset) != expected:
-            raise ExportError("Source catalog/survey data differs from seed_data")
+        raise ExportError("Source accounts differ from seed_demo; refusing possible personal data")
+    if any(not account.check_password(PASSWORD) for account in Account.objects.all()):
+        raise ExportError("Demo password verification failed")
+    if {role: Account.objects.filter(role=role, status='ACTIVE').count() for role in ('ADMIN','MANAGER','CUSTOMER')} != {'ADMIN':2,'MANAGER':3,'CUSTOMER':15}:
+        raise ExportError("Demo role counts differ")
+    if set(Product.objects.values_list("product_name", flat=True)) != {row[2] for row in PRODUCTS}:
+        raise ExportError("Source products differ from the real seed_catalog")
+    for product in Product.objects.select_related('category','brand'):
+        expected = next(row for row in PRODUCTS if row[2] == product.product_name)
+        if product.status != ('INACTIVE' if product.product_name in INACTIVE_PRODUCTS else 'ACTIVE'):
+            raise ExportError('Catalog availability differs from the preserved baseline')
+        if (product.category.category_name, product.brand.brand_name, str(int(product.price)), product.image_url) != (expected[0], expected[1], expected[4], IMAGES.get(expected[2], '')):
+            raise ExportError("Catalog prices, images or relations differ")
+    if set(Survey.objects.values_list('title',flat=True)) != set(TITLES):
+        raise ExportError("Survey titles differ from seed_demo")
+    if Feedback.objects.count()!=20 or Feedback.objects.filter(status='NEW').count()!=8 or Feedback.objects.filter(status='RESOLVED').count()!=12:
+        raise ExportError("Feedback counts differ")
+    if {s:Survey.objects.filter(status=s).count() for s in ('DRAFT','ACTIVE','CLOSED')} != {'DRAFT':3,'ACTIVE':7,'CLOSED':8} or SurveyResponse.objects.filter(status='SUBMITTED').count()!=61:
+        raise ExportError("Survey counts differ")
+    validate_demo_surveys()
     return tables, len(expected_migrations)
 
 
@@ -139,6 +147,16 @@ def export_demo(config, tables, migration_count):
         ):
             raise ExportError("Dump content validation failed; canonical SQL has not been replaced")
         digest = hashlib.sha256(data).hexdigest()
+        # Generate the data-only companion from the same inspected source. Explicit
+        # columns support migration-created schemas; ignored duplicate PKs make a
+        # second import leave every existing row unchanged. Fresh demo DBs only.
+        seed_result = subprocess.run([*argv[:-1], '--no-create-info', '--complete-insert',
+            '--insert-ignore', '--skip-add-locks', '--skip-disable-keys', config['NAME']],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=environment, timeout=300, check=False)
+        if seed_result.returncode or not re.search(rb'INSERT\s+IGNORE\s+INTO `accounts`', seed_result.stdout):
+            raise ExportError('Data-only export failed; canonical SQL has not been replaced')
+        (ROOT / 'database' / 'seed_survey_report.sql').write_bytes(
+            b'-- DEMO ONLY: import after migrations into an empty dedicated database; never into real data.\n' + seed_result.stdout)
         temporary_path.replace(output_path)
     finally:
         if temporary_path is not None and temporary_path.exists():

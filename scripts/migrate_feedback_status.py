@@ -70,9 +70,8 @@ try:
                 actual=[dict(zip([v[0] for v in q.description],r)) for r in q.fetchall()]
                 assert actual==expected_rows
         log.info('FEEDBACK_MIGRATION_STARTED operator=%s database=crm_db converted_ids=%s',operator,result['converted_ids'])
-        recovery=Path('database/recovery')/uuid4().hex; recovery.mkdir(parents=True)
         pre=create_database_backup(purpose='finalize_pre_migration')
-        saved=recovery/pre.name; shutil.copy2(pre,saved); shutil.copy2(backup_manifest_path(pre),backup_manifest_path(saved))
+        saved=pre  # Keep the verified snapshot and sidecar in the single backup directory.
         verify_database_backup(saved); clone_verify(saved,before)
         result['recovery_backup']=str(saved)
         log.info('FEEDBACK_FINALIZE_PRE_BACKUP SUCCESS operator=%s path=%s restore_verified=true',operator,saved)

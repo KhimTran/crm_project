@@ -63,9 +63,7 @@ def _inspect_dump(path):
 
 
 def backup_manifest_path(path: Path):
-    directory = path.parent.parent / 'backup_metadata'
-    directory.mkdir(parents=True, exist_ok=True)
-    return directory / (path.name + '.json')
+    return path.with_suffix(path.suffix + '.json')
 
 
 def verify_database_backup(path: Path):
@@ -99,11 +97,21 @@ def create_database_backup(*, actor_id=None, purpose="manual") -> Path:
         raise RuntimeError("mysqldump executable is unavailable on the system.")
 
     directory = get_backup_dir()
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
-    filename = f"{config['NAME']}_{timestamp}.sql"
+    timestamp = datetime.now(timezone.utc).strftime("%y%m%d_%H%M%S")
+    filename = f"crm_{timestamp}.sql"
     final_path = directory / filename
     temporary_path = directory / f"{filename}.partial"
     manifest_path = backup_manifest_path(final_path)
+    # Reserve the name exclusively, including across processes. A collision must
+    # never replace or clean up another operation's SQL/manifest/partial file.
+    try:
+        reservation = temporary_path.open("xb")
+    except FileExistsError:
+        raise RuntimeError("A backup is already running for this second. Retry in the next second.") from None
+    if final_path.exists() or manifest_path.exists():
+        reservation.close()
+        temporary_path.unlink()
+        raise RuntimeError("A backup already exists for this second. Retry in the next second.")
 
     environment = os.environ.copy()
     environment["MYSQL_PWD"] = config.get("PASSWORD", "") or ""
@@ -133,7 +141,7 @@ def create_database_backup(*, actor_id=None, purpose="manual") -> Path:
     logger.info("database_backup start actor_id=%s database=%s purpose=%s", actor_id, db_name, purpose)
     published = False
     try:
-        with temporary_path.open("wb") as output:
+        with reservation as output:
             result = subprocess.run(
                 argv,
                 stdout=output,

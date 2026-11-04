@@ -62,6 +62,9 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        from apps.catalog.management.commands.seed_demo import demo_emails
+        if Account.objects.filter(email__in=demo_emails()).exists():
+            raise CommandError("Final demo dataset detected. Use seed_demo; legacy seed_surveys would add extra accounts.")
         password = os.environ.get("CRM_DEMO_PASSWORD")
         if not password:
             if not settings.DEBUG:

@@ -25,6 +25,23 @@ from .middleware import select_login_session
 logger = logging.getLogger(__name__)
 
 
+@never_cache
+def csrf_failure(request, reason=""):
+    """Reject the POST, offering a fresh, empty login form without replaying it."""
+    if request.path_info not in ('/login/', '/admin/login/', '/manager/login/'):
+        from django.views.csrf import csrf_failure as default_failure
+        return default_failure(request, reason=reason)
+    if request.path_info == '/login/':
+        form = CustomerLoginForm(request)
+        template = 'accounts/customer/login.html'
+    else:
+        from apps.admin_portal.views import PortalLoginForm
+        form = PortalLoginForm()
+        template = 'admin/portal/login.html'
+    return render(request, template, {'form': form, 'csrf_retry': True,
+                  'next': request.POST.get('next', request.GET.get('next', ''))}, status=403)
+
+
 def safe_login_destination(request, account):
     fallback = get_home_path(account)
     destination = request.POST.get("next") or request.GET.get("next") or ""

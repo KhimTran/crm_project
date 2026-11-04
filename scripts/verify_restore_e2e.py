@@ -1,5 +1,6 @@
 """Real Admin POST verification on a disposable MySQL database."""
-import os,json,subprocess,tempfile,logging.config
+import os,json,subprocess,tempfile,logging.config,time
+from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 from unittest.mock import patch
@@ -40,8 +41,11 @@ try:
         client=Client(enforce_csrf_checks=True)
         def login():
             client.get('/admin/login/')
-            assert client.post('/admin/login/',{'email':'demo-admin@example.test','password':'DemoPass!2026','csrfmiddlewaretoken':client.cookies['csrftoken'].value}).status_code==302
+            assert client.post('/admin/login/',{'email':os.environ.get('CRM_DEMO_ADMIN_EMAIL','admin1@demo.test'),'password':os.environ.get('CRM_DEMO_PASSWORD','Crm@2026'),'csrfmiddlewaretoken':client.cookies['csrftoken'].value}).status_code==302
         def restore(filename):
+            # Each independent restore needs its own second-resolution recovery snapshot.
+            while (backups / f"crm_{datetime.now(timezone.utc):%y%m%d_%H%M%S}.sql").exists():
+                time.sleep(0.05)
             return client.post('/admin/database/restore/',{'filename':filename,'target_database':name,'restore_confirm':f'RESTORE {filename} TO {name}','maintenance_ack':'on','csrfmiddlewaretoken':client.cookies['csrftoken'].value})
         login()
         with connection.cursor() as c: c.execute("UPDATE brands SET brand_name='RESTORE_SENTINEL' WHERE brand_id=1")
@@ -107,5 +111,5 @@ finally:
     connection.close(); db['NAME']=original; connection.settings_dict['NAME']=original
     cursor.execute(f'DROP DATABASE `{name}`')
     assert database_fingerprint(root)==production_before, 'Shared database changed during test'
-    print('Shared crm_db fingerprint unchanged')
+    print('Configured source database fingerprint unchanged:', original)
     cursor.close(); root.close()

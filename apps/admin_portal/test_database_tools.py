@@ -90,6 +90,35 @@ class DatabaseToolsServiceTests(SimpleTestCase):
         self.assertEqual(verify_database_backup(backup)["sha256"], hashlib.sha256(DUMP).hexdigest())
         self.assertFalse(list(get_backup_dir().glob("*.partial")))
         self.assertNotIn("MYSQL_PWD", process.call_args.kwargs["env"])
+        self.assertRegex(backup.name, r'^crm_\d{6}_\d{6}\.sql$')
+        self.assertEqual(backup_manifest_path(backup), backup.parent / (backup.name + '.json'))
+        self.assertEqual({p.name for p in (self.directory / 'database').iterdir()}, {'backups'})
+
+    @patch("apps.admin_portal.services.backup_service.subprocess.run")
+    def test_same_second_collision_never_overwrites_existing_backup(self, process):
+        from datetime import datetime, timezone
+        process.side_effect = self.successful_process
+        with patch('apps.admin_portal.services.backup_service.datetime') as clock:
+            clock.now.return_value = datetime(2026, 11, 4, 12, 30, 0, tzinfo=timezone.utc)
+            backup = create_database_backup()
+            original = (backup.read_bytes(), backup_manifest_path(backup).read_bytes())
+            with self.assertRaisesRegex(RuntimeError, 'already exists'):
+                create_database_backup()
+            self.assertEqual((backup.read_bytes(), backup_manifest_path(backup).read_bytes()), original)
+            self.assertEqual(process.call_count, 1)
+            verify_database_backup(backup)
+
+    @patch("apps.admin_portal.services.backup_service.subprocess.run")
+    def test_inflight_collision_preserves_partial(self, process):
+        from datetime import datetime, timezone
+        with patch('apps.admin_portal.services.backup_service.datetime') as clock:
+            clock.now.return_value = datetime(2026, 11, 4, 12, 30, 0, tzinfo=timezone.utc)
+            partial = get_backup_dir() / 'crm_261104_123000.sql.partial'
+            partial.write_bytes(b'in-flight backup')
+            with self.assertRaisesRegex(RuntimeError, 'already running'):
+                create_database_backup()
+            self.assertEqual(partial.read_bytes(), b'in-flight backup')
+            process.assert_not_called()
 
     @patch("apps.admin_portal.services.backup_service.subprocess.run")
     def test_backup_failure_timeout_and_incomplete_dump_are_not_published(self, process):
@@ -124,6 +153,8 @@ class DatabaseToolsServiceTests(SimpleTestCase):
             recovery = self.restore()
         self.assertEqual(order, ["dump", "import"])
         self.assertTrue(recovery.is_file())
+        self.assertEqual(recovery.parent, get_backup_dir())
+        self.assertEqual({p.name for p in (self.directory / 'database').iterdir()}, {'backups'})
         self.assertFalse(recovery_marker_path().exists())
         self.assertIn("RESTORE_SUCCESS", " ".join(logs.output))
         self.assertEqual(self.permission.call_count, 2)
@@ -144,6 +175,7 @@ class DatabaseToolsServiceTests(SimpleTestCase):
 
     @patch("apps.admin_portal.services.restore_service.subprocess.run")
     def test_import_exit_failure_and_timeout_retain_snapshot_and_block_access(self, process):
+        from datetime import datetime, timezone
         for timeout in (False, True):
             with self.subTest(timeout=timeout):
                 recovery_marker_path().unlink(missing_ok=True)
@@ -156,7 +188,8 @@ class DatabaseToolsServiceTests(SimpleTestCase):
                     return SimpleNamespace(returncode=1, stderr=b"sensitive-unit-password raw SQL")
 
                 process.side_effect = execute
-                with self.assertLogs("apps.admin_portal.services.restore_service", level="ERROR") as logs:
+                with patch('apps.admin_portal.services.backup_service.datetime') as clock, self.assertLogs("apps.admin_portal.services.restore_service", level="ERROR") as logs:
+                    clock.now.return_value = datetime(2026, 11, 4, 12, 30, int(timeout), tzinfo=timezone.utc)
                     with self.assertRaises(RestoreFailed) as error:
                         self.restore()
                 message = str(error.exception)

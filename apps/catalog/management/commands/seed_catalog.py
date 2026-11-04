@@ -11,6 +11,8 @@ CATEGORIES = (
     ("Badminton shoes", "Giày cầu lông"),
     ("Shuttlecocks", "Cầu lông thi đấu và tập luyện"),
     ("Badminton apparel", "Quần áo cầu lông"),
+    ("Badminton bags", "Túi và balo đựng vợt"),
+    ("Accessories", "Quấn cán, dây cước và phụ kiện"),
 )
 
 BRANDS = (
@@ -19,7 +21,11 @@ BRANDS = (
     ("Victor", "Thương hiệu cầu lông Đài Loan"),
     ("Mizuno", "Thương hiệu thể thao Nhật Bản"),
     ("Apacs", "Thương hiệu cầu lông Malaysia"),
+    ("Kumpoo", None),
 )
+
+# Preserve the existing canonical catalog's availability, including hidden items.
+INACTIVE_PRODUCTS = frozenset({"Mizuno Cầu tập luyện", "Apacs Cầu lông vũ"})
 
 # (danh mục, thương hiệu, tên sản phẩm, mô tả, giá VND)
 PRODUCTS = (
@@ -35,7 +41,7 @@ PRODUCTS = (
     # --- Lining ---
     ("Badminton rackets", "Li-Ning", "Li-Ning Axforce 80", "Vợt thiên công, khung cứng", "3300000"),
     ("Badminton rackets", "Li-Ning", "Li-Ning Windstorm 72", "Vợt nhẹ, linh hoạt, phù hợp người mới chơi", "1900000"),
-    ("Badminton rackets", "Li-Ning", "Li-Ning Aeronaut 9000", "Vợt thiên công, đầu nặng", "3000000"),
+    ("Badminton rackets", "Li-Ning", "Li-Ning Aeronaut 9000", "Vợt thiên công, đầu nặng", "4000000"),
     ("Badminton rackets", "Li-Ning", "Li-Ning Turbocharging 75", "Vợt thiên tốc độ, nhẹ", "2400000"),
     ("Badminton rackets", "Li-Ning", "Li-Ning Bladex 900", "Vợt cân bằng, bền", "2800000"),
     ("Badminton shoes", "Li-Ning", "Li-Ning Saga II", "Giày nhẹ, hỗ trợ di chuyển nhanh", "1800000"),
@@ -56,9 +62,9 @@ PRODUCTS = (
     ("Badminton rackets", "Mizuno", "Mizuno Altius 01 Speed", "Vợt nhẹ, linh hoạt", "2500000"),
     ("Badminton rackets", "Mizuno", "Mizuno Altius 03 Feel", "Vợt cân bằng, cảm giác cầu tốt", "2600000"),
     ("Badminton rackets", "Mizuno", "Mizuno Acrospeed 5.0", "Vợt tầm trung cho người mới", "1800000"),
-    ("Badminton shoes", "Mizuno", "Mizuno Wave Claw 2", "Giày nhẹ, linh hoạt", "2200000"),
+    ("Badminton shoes", "Mizuno", "Mizuno Wave Claw 2", "Giày nhẹ, linh hoạt", "3200000"),
     ("Shuttlecocks", "Mizuno", "Mizuno Cầu tập luyện", "Cầu tập luyện, hộp 12 quả", "600000"),
-    ("Badminton apparel", "Mizuno", "Mizuno Áo thi đấu nam", "Áo thun thoáng khí, thấm hút tốt", "550000"),
+    ("Badminton apparel", "Mizuno", "Mizuno Áo thi đấu nam", "Áo thun thoáng khí, thấm hút tốt", "450000"),
     # --- Apacs ---
     ("Badminton rackets", "Apacs", "Apacs Nano Fusion Speed 722", "Vợt tầm trung, thiên tốc độ", "2200000"),
     ("Badminton rackets", "Apacs", "Apacs Feather Weight 55", "Vợt siêu nhẹ cho người mới", "1600000"),
@@ -141,7 +147,7 @@ class Command(BaseCommand):
                 "brand": brands[brand_name],
                 "description": description,
                 "price": Decimal(price),
-                "status": Status.ACTIVE,
+                "status": Status.INACTIVE if name in INACTIVE_PRODUCTS else Status.ACTIVE,
             }
             if name in IMAGES:
                 defaults["image_url"] = IMAGES[name]

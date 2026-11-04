@@ -59,6 +59,9 @@ class Command(BaseCommand):
     # tv4: tạo hoặc xóa dữ liệu thử
     @transaction.atomic
     def handle(self, *args, **options):
+        from apps.catalog.management.commands.seed_demo import demo_emails
+        if Account.objects.filter(email__in=demo_emails()).exists():
+            raise CommandError("Final demo dataset detected. Use seed_demo; legacy report fixtures are separate.")
         database = settings.DATABASES["default"]["NAME"]
         if not options["confirm"]:
             raise CommandError(f"Refusing to write to database '{database}' without --confirm.")

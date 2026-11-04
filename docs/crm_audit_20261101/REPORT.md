@@ -71,11 +71,11 @@ Bằng chứng: [Feedback finalization](completion/feedback_finalization.json), 
 
 ## 7. Backup/Restore và bảo toàn dữ liệu
 
-Backup hiện hành: `database/backups/crm_db_20261102_124244_255981.sql`, **154.495 bytes**. SHA-256: `121c245af8d2f39288410e8fb7b660c4fec48bee25567519823c908d439bc598`. Manifest tương ứng phục vụ Admin Restore.
+Backup hiện hành sau thay dữ liệu local được chủ dự án phê duyệt ngày 2026-11-04: `database/backups/crm_261104_135013.sql`, **181.755 bytes**. SHA-256: `b0234fd76d0158879ee6edac2c154252bdb034097d2190e3f7173df8ae5fadeb`. Manifest `.sql.json` nằm cạnh file SQL, phục vụ Admin Restore. Các số liệu audit trước đó bên dưới là ghi chép lịch sử.
 
 Restore clone khớp 22 bảng, row counts, fingerprints và SHOW CREATE TABLE, gồm constraints/indexes/AUTO_INCREMENT; FK integrity đạt. SQL lỗi ghi partial state rồi tự recovery khớp fingerprint trước request. Recovery media hỏng giữ maintenance/503; không báo restore thành công giả. [Restore console](feedback_restore.log), [test Operations Log](feedback_final/restore_operations.log).
 
-Recovery trước Feedback migration vẫn giữ tại `database/recovery/4cb885ae9598495d80072aebd88eae31/crm_db_20261102_124234_093410.sql`. Cleanup không đụng SQL dump, backup, recovery hoặc database; hashes file và live fingerprint trước/sau cleanup khớp.
+Ghi chép recovery trước Feedback migration là lịch sử. Ngày 2026-11-04, chủ dự án cho phép thay dữ liệu `crm_db` cục bộ và xóa toàn bộ snapshot cũ sau restore thành công. Backup hiện hành và kết quả thay thế local được ghi trong plans.md và hướng dẫn setup; chỉ còn một cặp SQL/manifest trong thư mục backup chính.
 
 ## 8. Seed Data
 

@@ -21,6 +21,9 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        from .seed_demo import demo_emails
+        if Account.objects.filter(email__in=demo_emails()).exists():
+            raise CommandError("Final demo dataset detected. Use seed_demo; legacy seed_data would add extra accounts.")
         demo_password = os.environ.get("CRM_DEMO_PASSWORD")
         if not demo_password:
             if not settings.DEBUG:
