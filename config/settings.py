@@ -91,6 +91,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 AUTH_USER_MODEL = 'accounts.Account'
+CSRF_FAILURE_VIEW = 'apps.accounts.customer_views.csrf_failure'
 LOGIN_URL = 'customer_auth:login'
 
 # Console mail is for local development; configure SMTP for shared deployment.

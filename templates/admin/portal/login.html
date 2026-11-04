@@ -13,6 +13,7 @@
     <p class="portal-eyebrow">CRM STAFF PORTAL</p>
     <h1 class="h3 mb-1">Staff Login</h1>
     <p class="text-muted mb-4">Sign in to access admin or manager portals.</p>
+    {% if csrf_retry %}<div class="alert alert-warning" role="alert">Your sign-in form has expired, possibly after signing in in another tab. Please enter your credentials again and retry.</div>{% endif %}
     {% if access_denied %}<div class="alert alert-danger" role="alert">{{ access_denied }}</div>{% endif %}
     {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>{% endif %}
     <form class="portal-login-form" method="post" action="" novalidate>
@@ -22,6 +23,6 @@
       <button class="btn btn-primary w-100" type="submit">Login</button>
     </form>
   </main>
-  <script src="{% static 'js/admin_portal.js' %}"></script>
+  <script src="{% static 'js/admin_portal.js' %}?v=csrf-20261104"></script>
 </body>
 </html>

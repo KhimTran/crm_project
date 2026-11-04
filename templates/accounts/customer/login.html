@@ -5,6 +5,7 @@
   <div class="customer-auth-card form-panel">
     <h1 id="login-title">Đăng nhập</h1>
     <p>Đăng nhập để quản lý hồ sơ và tài khoản của bạn.</p>
+    {% if csrf_retry %}<p role="alert">Biểu mẫu đăng nhập đã hết hạn, có thể do bạn vừa đăng nhập ở tab khác. Vui lòng nhập lại thông tin và thử lại.</p>{% endif %}
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ next }}">

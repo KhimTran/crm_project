@@ -1,123 +1,142 @@
-# Hướng dẫn chạy đồ án CRM Shop cầu lông X
+# Thiết lập bộ demo CRM cuối cùng
 
-Công nghệ: Django 5.2 + MySQL 8.4 + Python 3.12. Chạy bằng **PowerShell** trên Windows.
+Django 5.2 + MySQL 8.x. Chỉ dùng database phát triển mới, trống, đã cấu hình
+trong `.env`. Không commit `.env`, mật khẩu MySQL hoặc dữ liệu thật.
+Không chạy migrate/seed/import/restore/reset trên database dùng chung hoặc có dữ liệu thật.
+Chọn **một** trong hai cách dưới đây, không kết hợp hai cách nạp trên cùng database.
 
-## A. Cài đặt lần đầu (chỉ làm một lần)
+## A. Migrations + Seed (khuyến nghị)
 
-### 1. Chuẩn bị
-- MySQL Server đang chạy (`services.msc` → tìm `MySQL80`/`MySQL84` → Start).
-- Trong `crm_project\.env` có đủ các dòng sau (điền mật khẩu thật của bạn):
-  ```
-  DB_NAME=crm_db
-  DB_USER=crm_user
-  DB_PASSWORD=<mật khẩu crm_user>
-  DB_HOST=127.0.0.1
-  DB_PORT=3306
-  MYSQL_BIN=C:\Program Files\MySQL\MySQL Server 8.4\bin
-  ```
-
-### 2. Bật môi trường ảo
 ```powershell
-cd D:\DoAn_HTTTDN\crm_project
+git pull origin develop
 .\venv\Scripts\Activate.ps1
-```
-Đầu dòng lệnh hiện `(venv)` là thành công.
-- Lỗi "running scripts is disabled": chạy `Set-ExecutionPolicy -Scope Process Bypass` rồi bật lại.
-- Nếu `venv` hỏng: `python -m venv venv`, bật lại, rồi `pip install -r requirements.txt`.
-
-### 3. Tạo database trống (nếu chưa có `crm_db`)
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe" -u root -p
-```
-Trong dấu nhắc `mysql>`:
-```sql
-CREATE DATABASE IF NOT EXISTS crm_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'crm_user'@'localhost' IDENTIFIED BY '<mật khẩu>';
-GRANT ALL PRIVILEGES ON crm_db.* TO 'crm_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-### 4. Tạo bảng và nạp dữ liệu mẫu
-```powershell
+python -m pip install -r requirements.txt
 python manage.py migrate
-python manage.py seed_catalog
-python manage.py seed_data
-python manage.py seed_surveys
-```
-**Phải chạy đúng thứ tự trên** (mỗi lệnh chạy lại được, không tạo trùng):
-
-| Lệnh | Tạo ra |
-|---|---|
-| `seed_catalog` | 40 sản phẩm thật (4 danh mục, 5 thương hiệu). Ảnh là link imgur, máy demo cần có mạng. |
-| `seed_data` | 2 tài khoản demo, 8 sản phẩm "Demo racket", 40 khách hàng `kh01…kh40` và 36 phản hồi gắn với sản phẩm thật. |
-| `seed_surveys` | 3 khảo sát (nháp / đang chạy 8 trên 20 trả lời / đã đóng 24 trên 24), 24 khách "Khách hàng mẫu", và tài khoản `demo-manager@example.test`. |
-
-Lưu ý:
-- Chạy `seed_data` **trước** `seed_catalog` thì phản hồi sẽ gắn với "Demo racket". Muốn sửa thì phải tạo lại DB rồi chạy lại các lệnh.
-- `seed_surveys` phải chạy sau `seed_data` (cần tài khoản `demo-admin`).
-- Chạy lại `seed_catalog` sẽ **ghi đè** giá, mô tả, trạng thái và ảnh của 40 sản phẩm thật về giá trị mặc định.
-- Nếu `DEBUG=False` trong `.env`, cần đặt trước `$env:CRM_DEMO_PASSWORD = "DemoPass!2026"` thì `seed_data` và `seed_surveys` mới chạy.
-- Sau khi seed đủ, danh sách khách hàng có từ 65 người trở lên (40 + 24 + các tài khoản demo).
-
-### 5. Đăng nhập thử
-Không cần cấp quyền thêm. Tài khoản `demo-admin@example.test` đã vào được các trang CRM. Xem mục C.
-
-## B. Chạy hằng ngày
-```powershell
-cd D:\DoAn_HTTTDN\crm_project
-.\venv\Scripts\Activate.ps1
+python manage.py seed_demo
+python manage.py check
 python manage.py runserver
 ```
-Dừng server: `Ctrl+C`.
 
-Web **không có trang chủ ở `/`** (báo 404 là bình thường). Hãy vào thẳng đường dẫn bên dưới.
+Tạo database MySQL rỗng bằng tài khoản quản trị của bạn, charset `utf8mb4`,
+collation `utf8mb4_unicode_ci`, rồi cấu hình DB_NAME/DB_HOST/DB_PORT/DB_USER/DB_PASSWORD
+và MYSQL_BIN trong `.env` trước khi chạy. Không dùng `CREATE DATABASE IF NOT EXISTS`
+để bỏ qua việc xác minh database có thực sự rỗng hay không.
 
-## C. Tài khoản và đường dẫn
+`seed_demo` là lệnh setup duy nhất. Không chạy thêm `seed_data`, `seed_surveys`,
+`seed_survey_report_demo`: đây là các bộ fixture lịch sử độc lập, tạo thêm khách hàng/khảo sát.
+Seed không chạy khi khởi động server. Seed chạy lại giữ nguyên bản ghi đã có và
+Catalog hiện tại, không reset mật khẩu hay xóa dữ liệu ngoài bộ demo. Email demo
+xung đột role/status/password sẽ làm lệnh thất bại và rollback, không ghi đè account.
+Số lượng toàn DB chỉ đúng trên database demo sạch; seed không xóa dữ liệu ngoài phạm vi để ép số lượng.
 
-| Vai trò | Tài khoản | Mật khẩu |
-|---|---|---|
-| Admin | `demo-admin@example.test` | `DemoPass!2026` |
-| Quản lý (nhóm CRM_MANAGER) | `demo-manager@example.test` (tạo bởi `seed_surveys`) | `DemoPass!2026` |
-| Khách hàng demo | `demo-customer@example.test` | `DemoPass!2026` |
-| 40 khách hàng mẫu | `kh01@example.test` … `kh40@example.test` (kh40 bị khóa) | `Khach@123` |
+## B. Restore Full Backup
 
-Nhân viên đăng nhập ở `/manager/login/`, khách hàng đăng nhập ở `/login/`.
-`demo-manager` có thể bị chặn ở trang nhân viên ("Access Denied: Staff only") vì vai trò của tài khoản này là khách hàng. Khi đó hãy dùng `demo-admin`.
+Pull source và cài dependencies như cách A. Tạo một database **mới, rỗng**, cấu hình
+`.env` trỏ đúng database đó. Không chạy migrations + seed trước khi restore full dump.
+Full dump đã chứa schema, indexes, constraints, dữ liệu và migration history.
 
-| Chức năng | Địa chỉ |
-|---|---|
-| Đăng nhập nhân viên | http://127.0.0.1:8000/manager/login/ |
-| Đăng nhập khách hàng | http://127.0.0.1:8000/login/ |
-| Danh sách sản phẩm (cửa hàng) | http://127.0.0.1:8000/products/ |
-| Danh sách khách hàng | http://127.0.0.1:8000/crm/customers/ |
-| Thêm khách hàng | http://127.0.0.1:8000/crm/customers/new/ |
-| Quản lý phản hồi | http://127.0.0.1:8000/crm/feedbacks/ |
-| Báo cáo khách hàng | http://127.0.0.1:8000/crm/reports/customers/ |
-| Khách gửi phản hồi | http://127.0.0.1:8000/feedbacks/new/?product=<id> |
-| Phản hồi của tôi (khách) | http://127.0.0.1:8000/feedbacks/mine/ |
+File Full Backup chuẩn: `database/backups/crm_YYMMDD_HHMMSS.sql`; manifest nằm ngay cạnh,
+tên `crm_YYMMDD_HHMMSS.sql.json`. Chỉ dùng file đã VERIFIED và đối chiếu checksum:
 
-Các trang `/crm/...` dành cho Admin, Quản lý (`MANAGER`) hoặc nhóm `CRM_MANAGER` / `CUSTOMER_SERVICE`.
+Bản bàn giao đã restore kiểm chứng: `crm_261104_135013.sql`, 181755 bytes.
+SHA-256: `b0234fd76d0158879ee6edac2c154252bdb034097d2190e3f7173df8ae5fadeb`.
+Chỉ dùng `database/backups/` cho SQL backup và manifest. Các snapshot cũ đã được
+xóa sau khi chủ dự án cho phép thay toàn bộ dữ liệu local và restore thành công.
+Backup trước restore cũng nằm tại đây; chỉ dọn sau khi đã xác minh restore/recovery.
 
-### Dữ liệu có sau khi seed đủ 4 lệnh
-- **Khách hàng:** khoảng 65–70 (kh01…kh40, 24 khách mẫu và các tài khoản demo).
-- **Phản hồi:** 38, đủ 3 trạng thái (mới, đang xử lý, đã xử lý), phần lớn gắn với sản phẩm thật.
-- **Khảo sát:** 7 khảo sát, trong đó "Hài lòng dịch vụ căng cước" có 24 trên 24 người trả lời.
-- **Báo cáo khách hàng:** đủ biểu đồ tuổi, giới tính, trình độ, sở thích, khách mới theo tháng, điểm hài lòng theo sản phẩm.
+```powershell
+Get-FileHash database/backups/crm_YYMMDD_HHMMSS.sql -Algorithm SHA256
+Get-Content database/backups/crm_YYMMDD_HHMMSS.sql.json
+& "$env:MYSQL_BIN/mysql.exe" -h 127.0.0.1 -u <your-user> -p <new-database>
+```
 
-## D. Lỗi thường gặp
+Trong MySQL prompt (thay đường dẫn bằng file thực tế, dùng `/`):
 
-| Thông báo | Cách xử lý |
-|---|---|
-| `Can't connect to MySQL server` | MySQL chưa chạy → Start dịch vụ trong `services.msc`. |
-| `Access denied for user` | Sai `DB_USER`/`DB_PASSWORD` trong `.env`. |
-| `Unknown database 'crm_db'` | Chưa tạo database → làm mục A.3. |
-| `Table 'crm_db.accounts' doesn't exist` | Chưa chạy `python manage.py migrate`. |
-| `Table '...' already exists` khi migrate | DB đang dở dang → xóa và tạo lại `crm_db` (mất dữ liệu trong DB), rồi chạy lại `migrate` và 3 lệnh seed ở mục A.4. |
-| `No module named ...` | Chưa bật `venv` hoặc chưa `pip install -r requirements.txt`. |
-| `Page not found` ở `/` | Bình thường, vào đường dẫn ở mục C. |
-| Vào `/crm/...` bị đẩy đi hoặc "không có quyền" | Đang đăng nhập bằng tài khoản khách hàng. Đăng xuất, rồi đăng nhập `demo-admin` ở `/manager/login/`. |
-| `CommandError: Set CRM_DEMO_PASSWORD...` | `DEBUG=False` → đặt `$env:CRM_DEMO_PASSWORD = "DemoPass!2026"` rồi chạy lại. |
-| `CommandError: Run seed_data first` | Chạy `seed_data` trước `seed_surveys`. |
-| `backup.bat` báo "not a valid application" trong PowerShell | Thử chạy bằng `cmd /c scripts\backup.bat`, hoặc dùng chức năng sao lưu trong trang Admin. |
-| `IndentationError: unexpected indent` trong shell | Dòng lệnh bị thụt đầu dòng → gõ lại sát mép trái. |
+```sql
+SOURCE E:/path/crm_project/database/backups/crm_YYMMDD_HHMMSS.sql;
+```
+
+`database/crm_db.sql` là canonical full dump cùng dataset, có thể dùng thay backup.
+`database/seed_survey_report.sql` là data-only tương thích schema đã migrate, chỉ
+dành cho DB demo trống; không cần import file này sau `seed_demo` hoặc full restore.
+Không import data-only vào DB chứa dữ liệu khác vì SQL snapshot dùng IDs của bản xuất.
+Import seed SQL lần hai giữ nguyên dữ liệu, nhưng không phải công cụ hợp nhất dữ liệu người dùng.
+
+Sau restore:
+
+```powershell
+python manage.py check
+python manage.py showmigrations
+python manage.py migrate --plan
+python manage.py runserver
+```
+
+Migration plan phải không còn thao tác. Không dùng `--fake` hoặc sửa migration history.
+Admin Backup/Restore UI ở `/admin/database/` yêu cầu Admin, CSRF và xác nhận chính xác
+database đích; restore tạo recovery backup trước khi import. Không thực hiện trên DB thật để thử demo.
+Hai backup cùng giây bị từ chối an toàn; đợi sang giây tiếp theo rồi thử lại.
+
+## Tài khoản demo công khai
+
+Mật khẩu chung: **`Crm@2026`**, chỉ dành cho demo giả lập. Database lưu Django hash.
+
+| Email | Role | URL đăng nhập |
+| --- | --- | --- |
+| `admin1@demo.test` | ADMIN | `/admin/login/` |
+| `admin2@demo.test` | ADMIN | `/admin/login/` |
+| `manager1@demo.test` | MANAGER | `/manager/login/` |
+| `manager2@demo.test` | MANAGER | `/manager/login/` |
+| `manager3@demo.test` | MANAGER | `/manager/login/` |
+| `cus1@demo.test` | CUSTOMER | `/login/` |
+| `cus2@demo.test` | CUSTOMER | `/login/` |
+| `cus3@demo.test` | CUSTOMER | `/login/` |
+| `cus4@demo.test` | CUSTOMER | `/login/` |
+| `cus5@demo.test` | CUSTOMER | `/login/` |
+| `cus6@demo.test` | CUSTOMER | `/login/` |
+| `cus7@demo.test` | CUSTOMER | `/login/` |
+| `cus8@demo.test` | CUSTOMER | `/login/` |
+| `cus9@demo.test` | CUSTOMER | `/login/` |
+| `cus10@demo.test` | CUSTOMER | `/login/` |
+| `cus11@demo.test` | CUSTOMER | `/login/` |
+| `cus12@demo.test` | CUSTOMER | `/login/` |
+| `cus13@demo.test` | CUSTOMER | `/login/` |
+| `cus14@demo.test` | CUSTOMER | `/login/` |
+| `cus15@demo.test` | CUSTOMER | `/login/` |
+
+Mọi account ACTIVE. Manager có role MANAGER thật; không dùng Customer gắn nhóm để thay thế.
+
+## Số liệu và kiểm tra
+
+2 Admin + 3 Manager + 15 Customer = 20 Account; 45 preferences; Catalog chuẩn
+40 sản phẩm (38 ACTIVE, 2 INACTIVE), 6 danh mục, 6 thương hiệu; giá, ảnh và trạng thái
+giữ theo Catalog của commit nguồn, đã đồng bộ định nghĩa `seed_catalog`.
+20 Feedback = 8 NEW + 12 RESOLVED, rating 1–5.
+18 Survey = 3 DRAFT + 7 ACTIVE + 8 CLOSED; 144 Questions, 432 Options;
+91 Recipients, 61 SUBMITTED Responses, 854 Answers.
+Mỗi ACTIVE có 5 lời mời/3 hoàn thành; mỗi CLOSED có 7/5; DRAFT không có lời mời/trả lời.
+Mọi survey có Single/Multi/Rating5/Rating10/Text/Matrix. Tất cả người nhận thuộc 15 Customer trên.
+Customer là proxy trên Account theo schema hiện hành, không có bảng Customer riêng.
+
+Chạy trong MySQL prompt của database demo:
+
+```sql
+SELECT role, status, COUNT(*) FROM accounts GROUP BY role, status;
+SELECT status, COUNT(*) FROM feedbacks GROUP BY status;
+SELECT status, COUNT(*) FROM surveys GROUP BY status;
+SELECT s.title, s.status, COUNT(DISTINCT r.recipient_id) AS invited,
+       COUNT(DISTINCT CASE WHEN p.status='SUBMITTED' THEN p.response_id END) AS submitted
+FROM surveys s LEFT JOIN survey_recipients r ON r.survey_id=s.survey_id
+LEFT JOIN survey_responses p ON p.recipient_id=r.recipient_id
+GROUP BY s.survey_id, s.title, s.status;
+```
+
+Đăng nhập đúng từng portal, kiểm tra `/crm/reports/customers/`, Feedback và
+`/surveys/manage/<survey_id>/stats/` cho từng Survey ACTIVE/CLOSED.
+
+```powershell
+python manage.py makemigrations --check --dry-run
+python manage.py test --settings=config.test_settings
+```
+
+Tests phải dùng database test riêng và tài khoản có quyền tạo/xóa database test.
+Không trỏ test runner vào database chứa dữ liệu cần giữ. Không commit/push tự động.

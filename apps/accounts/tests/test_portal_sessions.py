@@ -4,6 +4,118 @@ from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Cl
 from apps.accounts.models import Account
 
 
+class CrossPortalCsrfTests(TestCase):
+    password = 'StrongPass!2026'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.actors = {
+            '/admin/login/': Account.objects.create_superuser('csrf-admin@portal.test', cls.password),
+            '/manager/login/': Account.objects.create_user('csrf-manager@portal.test', cls.password, role='MANAGER'),
+            '/login/': Account.objects.create_user('csrf-customer@portal.test', cls.password),
+        }
+        cls.cookies = {'/admin/login/': 'staff_sessionid', '/manager/login/': 'manager_sessionid', '/login/': 'sessionid'}
+        cls.homes = {'/admin/login/': '/admin/', '/manager/login/': '/manager/', '/login/': '/account/profile/'}
+
+    def browser(self):
+        from django.test import Client as BrowserClient
+        return BrowserClient(enforce_csrf_checks=True)
+
+    def token(self, response):
+        import re
+        return re.search(r'name="csrfmiddlewaretoken" value="([A-Za-z0-9]+)"', response.content.decode())[1]
+
+    def sign_in(self, browser, path, token):
+        return browser.post(path, {'email': self.actors[path].email, 'password': self.password,
+                                   'csrfmiddlewaretoken': token})
+
+    def test_all_six_login_orders_rotate_csrf_and_preserve_sessions_and_logout(self):
+        from itertools import permutations
+        for order in permutations(self.actors):
+            with self.subTest(order=order):
+                browser = self.browser()
+                for path in order:
+                    browser.get(path)
+                    old_csrf = browser.cookies['csrftoken'].value
+                    sessions = {name: cookie.value for name, cookie in browser.cookies.items() if name in self.cookies.values()}
+                    # The capture handler supplies the current shared cookie secret.
+                    self.assertEqual(self.sign_in(browser, path, old_csrf).status_code, 302)
+                    self.assertNotEqual(browser.cookies['csrftoken'].value, old_csrf)
+                    for name, value in sessions.items():
+                        self.assertEqual(browser.cookies[name].value, value)
+                    self.assertEqual(browser.get(self.homes[path]).wsgi_request.user.pk, self.actors[path].pk)
+                for path in order:
+                    logout = {'/admin/login/':'/admin/logout/', '/manager/login/':'/manager/logout/', '/login/':'/logout/'}[path]
+                    before = {name: browser.cookies[name].value for name in self.cookies.values()}
+                    response = browser.post(logout, {'csrfmiddlewaretoken':browser.cookies['csrftoken'].value})
+                    self.assertEqual(response.status_code, 302)
+                    self.assertEqual(response.cookies[self.cookies[path]]['max-age'], 0)
+                    for other in set(self.cookies.values()) - {self.cookies[path]}:
+                        self.assertEqual(browser.cookies[other].value, before[other])
+
+    def test_preopened_stale_forms_get_safe_empty_retry_without_authentication(self):
+        from itertools import permutations
+        from unittest.mock import patch
+        for first, stale in permutations(self.actors, 2):
+            with self.subTest(first=first, stale=stale):
+                browser = self.browser()
+                old_forms = {path:self.token(browser.get(path)) for path in self.actors}
+                self.assertEqual(self.sign_in(browser, first, old_forms[first]).status_code, 302)
+                first_key = browser.cookies[self.cookies[first]].value
+                with patch('apps.admin_portal.views.authenticate') as staff_auth, patch('apps.accounts.customer_forms.authenticate') as customer_auth:
+                    rejected = self.sign_in(browser, stale, old_forms[stale])
+                    self.assertEqual(rejected.status_code, 403)
+                    staff_auth.assert_not_called()
+                    customer_auth.assert_not_called()
+                self.assertNotContains(rejected, self.password, status_code=403)
+                self.assertNotContains(rejected, f'value="{self.actors[stale].email}"', status_code=403)
+                self.assertContains(rejected, 'role="alert"', status_code=403)
+                self.assertIn('no-store', rejected['Cache-Control'])
+                self.assertNotIn(self.cookies[stale], browser.cookies)
+                self.assertEqual(browser.cookies[self.cookies[first]].value, first_key)
+                self.assertEqual(self.sign_in(browser, stale, self.token(rejected)).status_code, 302)
+                self.assertEqual(browser.cookies[self.cookies[first]].value, first_key)
+
+    def test_missing_forged_tokens_cookie_and_foreign_origin_remain_forbidden(self):
+        for path in self.actors:
+            for mode in ('missing_token', 'forged_token', 'missing_cookie', 'origin', 'referer'):
+                with self.subTest(path=path, mode=mode):
+                    browser = self.browser()
+                    token = self.token(browser.get(path))
+                    data = {'email': self.actors[path].email, 'password': self.password, 'csrfmiddlewaretoken':token}
+                    kwargs = {}
+                    if mode == 'missing_token': data.pop('csrfmiddlewaretoken')
+                    if mode == 'forged_token': data['csrfmiddlewaretoken'] = 'A' * 32
+                    if mode == 'missing_cookie': browser.cookies.clear()
+                    if mode == 'origin': kwargs['HTTP_ORIGIN'] = 'https://attacker.example'
+                    if mode == 'referer': kwargs.update(secure=True, HTTP_REFERER='https://attacker.example/')
+                    response = browser.post(path, data, **kwargs)
+                    self.assertEqual(response.status_code, 403)
+                    self.assertFalse(any(name in browser.cookies for name in self.cookies.values()))
+                    self.assertNotContains(response, self.password, status_code=403)
+
+    def test_stale_logout_is_not_replayed_and_other_portals_remain_authenticated(self):
+        browser = self.browser()
+        stale = self.token(browser.get('/admin/login/'))
+        self.assertEqual(self.sign_in(browser, '/admin/login/', stale).status_code, 302)
+        self.assertEqual(self.sign_in(browser, '/manager/login/', browser.cookies['csrftoken'].value).status_code, 302)
+        keys = {name:browser.cookies[name].value for name in ('staff_sessionid','manager_sessionid')}
+        self.assertEqual(browser.post('/admin/logout/', {'csrfmiddlewaretoken':stale}).status_code, 403)
+        for name,value in keys.items(): self.assertEqual(browser.cookies[name].value, value)
+        self.assertEqual(browser.post('/admin/logout/', {'csrfmiddlewaretoken':browser.cookies['csrftoken'].value}).status_code, 302)
+        self.assertEqual(browser.get('/manager/').wsgi_request.user.pk, self.actors['/manager/login/'].pk)
+
+    def test_httponly_cookie_stale_form_can_retry_with_fresh_rendered_token(self):
+        from django.test import override_settings
+        with override_settings(CSRF_COOKIE_HTTPONLY=True):
+            browser = self.browser()
+            stale = self.token(browser.get('/manager/login/'))
+            self.assertEqual(self.sign_in(browser, '/admin/login/', browser.cookies['csrftoken'].value).status_code, 302)
+            response = self.sign_in(browser, '/manager/login/', stale)
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(self.sign_in(browser, '/manager/login/', self.token(response)).status_code, 302)
+
+
 class PortalSessionTests(TestCase):
     def test_unified_login_selects_role_cookie_without_overwriting_other_portals(self):
         from django.test import Client as BrowserClient

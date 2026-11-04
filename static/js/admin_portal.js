@@ -1,3 +1,25 @@
+// Django rotates the shared CSRF cookie on every login, including other tabs.
+// Refresh existing same-origin POST fields; the server still validates each POST.
+(() => {
+    const refresh = (form) => {
+        if (!(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post' ||
+            new URL(form.action, location.href).origin !== location.origin) return;
+        const field = form.querySelector('input[name="csrfmiddlewaretoken"]');
+        const cookie = document.cookie.split(';').map(value => value.trim())
+            .find(value => value.startsWith('csrftoken='));
+        if (!field || !cookie) return; // HttpOnly/session-based CSRF uses the rendered token.
+        const token = cookie.slice('csrftoken='.length);
+        if (/^[a-zA-Z0-9]{32}$/.test(token)) field.value = token;
+    };
+    const refreshAll = () => document.querySelectorAll('form').forEach(refresh);
+    document.addEventListener('submit', event => refresh(event.target), true);
+    window.addEventListener('pageshow', refreshAll);
+    window.addEventListener('focus', refreshAll);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) refreshAll();
+    });
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
     const createRole = document.getElementById('id_create_role');
     const birthDate = createRole && createRole.form.querySelector('[name="date_of_birth"]');

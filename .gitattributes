@@ -1,0 +1,3 @@
+# Backup manifests verify exact bytes on every operating system.
+database/backups/*.sql -text
+database/backups/*.sql.json -text

@@ -1,5 +1,44 @@
 # crm_project
 
+## Bộ demo cuối cùng — 2026-11-04
+
+Hướng dẫn hiện hành: [Thiết lập demo và 20 tài khoản](docs/HUONG_DAN_CHAY_DO_AN.md).
+Ngày 2026-11-04, theo phê duyệt của chủ dự án, database **cục bộ**
+`127.0.0.1:3306/crm_db` đã được thay bằng Full Backup demo chuẩn sau khi restore
+clone thành công. Máy này có thể chạy server trực tiếp, không seed/import lại.
+Chỉ dùng `database/backups/` cho Backup/Restore; các snapshot cũ đã được dọn sau xác minh.
+
+Chỉ dùng database phát triển mới, rỗng, cấu hình đúng trong `.env`:
+
+```powershell
+git pull origin develop
+python manage.py migrate
+python manage.py seed_demo
+python manage.py runserver
+```
+
+Dataset: **2 Admin, 3 Manager, 15 Customer, 20 Feedback, 18 Survey**, 61 lượt trả lời
+SUBMITTED trên cả 15 Survey ACTIVE/CLOSED. DRAFT không có lời mời/trả lời.
+Catalog giữ 40 sản phẩm thực tế, giá và ảnh chuẩn; seed không ghi đè Catalog hiện có.
+Account: `admin1..2@demo.test`, `manager1..3@demo.test`, `cus1..15@demo.test`;
+mật khẩu công khai demo **`Crm@2026`** (Django hash). Đăng nhập tương ứng:
+`/admin/login/`, `/manager/login/`, `/login/`. Bảng đầy đủ trong hướng dẫn trên.
+
+Cách thay thế: restore `database/backups/crm_YYMMDD_HHMMSS.sql` hoặc canonical
+`database/crm_db.sql` vào database mới rỗng. Manifest `.sql.json` nằm cạnh backup;
+đối chiếu SHA-256 trước restore. Full dump đã có migration history.
+`database/seed_survey_report.sql` là data-only cho schema đã migrate, không cần
+import sau seed_demo/full restore. Chọn một cách nạp; không kết hợp trên cùng DB.
+Không chạy các seed lịch sử `seed_data`, `seed_surveys`, `seed_survey_report_demo`
+trong setup chuẩn. Không migrate/reset/seed/restore lên database thật hoặc dùng chung.
+Không commit `.env`, MySQL credentials hoặc dữ liệu cá nhân thật.
+
+## Ghi chép lịch sử (không dùng làm hướng dẫn setup hiện hành)
+
+Các số lượng, seed commands và điều kiện triển khai bên dưới là lịch sử của từng
+revision; hướng dẫn demo ở đầu file và tài liệu thiết lập ở trên có hiệu lực hiện tại.
+
+
 ## CRM completion verification — 2026-11-02
 
 Current verification and remaining deployment condition: [audit report](docs/crm_audit_20261101/REPORT.md).

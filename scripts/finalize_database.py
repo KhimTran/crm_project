@@ -56,9 +56,8 @@ def clone_verify(path,expected,seed=False):
 try:
     with database_access(exclusive=True):
         before=fp(); result['before']=before
-        recovery=Path('database/recovery')/uuid4().hex; recovery.mkdir(parents=True)
         pre=create_database_backup(purpose='finalize_pre_migration')
-        saved=recovery/pre.name; shutil.copy2(pre,saved); shutil.copy2(backup_manifest_path(pre),backup_manifest_path(saved))
+        saved=pre  # Keep the verified snapshot and sidecar in the single backup directory.
         verify_database_backup(saved); clone_verify(saved,before)
         result['recovery_backup']=str(saved)
         log.info('FINALIZE_PRE_BACKUP SUCCESS operator=%s path=%s restore_verified=true',operator,saved)

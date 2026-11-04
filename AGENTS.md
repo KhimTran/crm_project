@@ -1,5 +1,21 @@
 # Project Overview
 
+## CURRENT LOCAL DEMO DATABASE — owner decision 2026-11-04
+
+The owner authorized replacing all old data in local `127.0.0.1:3306/crm_db`
+on DESKTOP-HE9BDKO. The verified full dump `crm_261104_135013.sql` was restored
+to a clone first, then to the recreated local database: 20 Accounts
+(2 ADMIN, 3 MANAGER, 15 CUSTOMER), 40 Products, 20 Feedback, 18 Survey,
+61 SUBMITTED Responses and 854 Answers. All 20 demo logins passed.
+Migration history matches this working tree, including surveys.0006 and the
+two-status Feedback constraint. Earlier statements about leaving this local
+database unchanged describe earlier tasks and are superseded by this decision.
+
+Use only `database/backups/` for backup SQL and sidecar manifests. Keep the
+verified canonical demo pair; the owner also authorized deleting old snapshots
+after successful restore. Do not recreate separate archival/metadata directories.
+This authorization does not extend to shared/production databases or future resets.
+
 ## CURRENT VERIFIED SESSION / SQL CONTRACT — 2026-11-02
 
 Unified login selects a role-specific session before Django login; portal logout
