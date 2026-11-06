@@ -105,7 +105,7 @@ class CustomerAccountLifecycleTests(TestCase):
             brands=["Forged brand"], role="ADMIN", status="LOCKED"))
         self.assertEqual(response.status_code, 302)
         customer = Customer.objects.get(email="new@lifecycle.test")
-        self.assertEqual(customer.role, "CUSTOMER")
+        self.assertEqual(customer.role_code, "CUSTOMER")
         self.assertEqual(customer.status, "ACTIVE")
         self.assertFalse(customer.customerpreference_set.exists())
         response = self.client.post(reverse("customers:create"), self.customer_payload())
@@ -138,7 +138,7 @@ class CustomerAccountLifecycleTests(TestCase):
         first.refresh_from_db()
         self.assertEqual(first.full_name, "Own update")
         self.assertEqual(other.full_name, "New Customer")
-        self.assertEqual(first.account.role, "CUSTOMER")
+        self.assertEqual(first.account.role_code, "CUSTOMER")
         for actor in (first.account, self.manager, self.staff):
             self.client.force_login(actor)
             response = self.client.delete(f"/api/accounts/{other.account_id}")

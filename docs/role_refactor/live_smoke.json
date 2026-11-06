@@ -1,0 +1,61 @@
+{
+  "authenticated": 20,
+  "read_only_views": [
+    {
+      "role": "ADMIN",
+      "path": "/admin/accounts/",
+      "status": 200
+    },
+    {
+      "role": "ADMIN",
+      "path": "/admin/database/",
+      "status": 200
+    },
+    {
+      "role": "MANAGER",
+      "path": "/manager/profile/",
+      "status": 200
+    },
+    {
+      "role": "MANAGER",
+      "path": "/crm/customers/",
+      "status": 200
+    },
+    {
+      "role": "MANAGER",
+      "path": "/crm/feedbacks/",
+      "status": 200
+    },
+    {
+      "role": "MANAGER",
+      "path": "/surveys/manage/",
+      "status": 200
+    },
+    {
+      "role": "CUSTOMER",
+      "path": "/account/profile/",
+      "status": 200
+    },
+    {
+      "http_get": "/",
+      "status": 200
+    },
+    {
+      "http_get": "/products/",
+      "status": 200
+    },
+    {
+      "http_get": "/login/",
+      "status": 200
+    },
+    {
+      "http_get": "/admin/login/",
+      "status": 200
+    },
+    {
+      "http_get": "/manager/login/",
+      "status": 200
+    }
+  ],
+  "all_table_fingerprints_unchanged": true
+}

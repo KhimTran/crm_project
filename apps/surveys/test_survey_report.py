@@ -290,7 +290,7 @@ class SeedSurveyReportDemoTests(TestCase):
         self.assertTrue(Survey.objects.filter(pk=kept.pk).exists())
         self.assertTrue(Customer.objects.filter(pk=real.pk).exists())
         self.assertFalse(Account.objects.filter(email__endswith="@survey-report-demo.test").exists(),
-                         list(Account.objects.filter(email__endswith="@survey-report-demo.test").values('account_id','role','full_name')))
+                         list(Account.objects.filter(email__endswith="@survey-report-demo.test").values('account_id','role__role_code','full_name')))
 
 
 # tv4: test luồng cấu hình → trả lời → lưu → báo cáo

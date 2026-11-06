@@ -13,7 +13,7 @@ def crm_layout(request):
     account = None
     if is_auth and getattr(user, "pk", None):
         account = Account.objects.filter(pk=user.pk, status=AccountStatus.ACTIVE).only("role").first()
-    role = account.role if account else None
+    role = account.role_code if account else None
     in_portal = role in (AccountRole.ADMIN, AccountRole.MANAGER)
     if is_auth and role == AccountRole.ADMIN:
         layout = ADMIN_PORTAL_LAYOUT

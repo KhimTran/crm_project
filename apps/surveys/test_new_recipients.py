@@ -110,7 +110,7 @@ class NewRecipientTests(PortalTestCase):
         grouped = Account.objects.create_user("grouped@new.test", PW)
         grouped.groups.add(Group.objects.create(name="CRM_MANAGER"))
         for actor in (admin, grouped):
-            with self.subTest(role=actor.role):
+            with self.subTest(role=actor.role_code):
                 self.client.force_login(actor)
                 self.assertContains(self.post_send(), "Successfully processed 1 survey(s).")
 

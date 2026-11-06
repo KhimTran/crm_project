@@ -1,0 +1,2549 @@
+{
+  "results": [
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_all_routes_reject_anonymous_customer_and_locked_admin",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_case_insensitive_create_role_status_and_filters",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_create_and_validation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_csrf_session_mutations",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_customer_delete_preserves_business_data_and_locks_account",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_delete_other_admin_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_delete_self_final_admin_and_safe_delete",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_email_patch_is_removed_and_role_is_dedicated",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_list_detail_and_missing",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_lock_unlock_and_password_reset",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_openapi_and_swagger_paths",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_role_action_normalizes_case",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_admin_login_me_accounts_logout_sequence",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_bad_credentials_and_locked_account_fail_safely",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_csrf_header_alone_does_not_authenticate",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_customer_can_log_in_but_cannot_manage_accounts",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_login_and_logout_require_csrf",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_openapi_lists_auth_operations",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_admin_edit_uses_target_account_role_not_posted_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_create_form_uses_target_role_and_normalizes_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_customer_forms_registration_and_own_profile_require_fourteen",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_historical_birth_dates_do_not_block_lock_or_password_operations",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_model_and_services_cannot_bypass_age_validation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_staff_personal_profiles_reject_underage_and_future_without_writes",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_underage_customer_cannot_be_promoted_to_manager",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_crm_authorization_and_old_sessions_after_lock_or_group_revocation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_csrf_for_login_register_logout_profile_password_change_and_reset",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_customer_denied_from_staff_portal_login",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_customer_login_route_and_staff_portal_separation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_login_redirects_by_role_and_groups_without_modifying_roles",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_next_accepts_local_authorized_get_destinations_with_filters",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_next_blocks_external_auth_loops_unknown_paths_and_unowned_area",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_password_change_requires_current_password_preserves_current_session_invalidates_other",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_registration_field_errors_and_privilege_payload",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_reset_confirm_requires_csrf",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_reset_invalid_expired_and_locked_tokens_are_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_reset_response_does_not_disclose_email_and_skips_locked_accounts",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_reset_token_changes_password_invalidates_sessions_and_cannot_be_reused",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_wrong_password_never_discloses_locked_status_or_updates_last_login",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.ManagerPasswordChangeTests.test_anonymous_password_change_requires_login",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.ManagerPasswordChangeTests.test_locked_manager_cannot_change_password_from_existing_session",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.ManagerPasswordChangeTests.test_manager_changes_only_self_and_preserves_current_session_invalidates_others",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.ManagerPasswordChangeTests.test_manager_login_redirects_and_password_change_next",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.ManagerPasswordChangeTests.test_manager_password_change_requires_csrf_and_post_to_write",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.ManagerPasswordChangeTests.test_manager_password_change_requires_current_password_and_valid_new_password",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_admin_and_other_groups_have_no_implicit_crm_bypass",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_admin_can_access_admin_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_anonymous_redirect_accepts_named_login_url",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_anonymous_redirect_honors_overridden_settings",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_anonymous_redirect_uses_login_url_and_preserves_full_next",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_anonymous_unknown_and_inactive_home_fall_back_to_root",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_crm_manager_group_allows_manager_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_customer_can_access_customer_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_customer_service_group_allows_service_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_decorator_preserves_view_metadata_and_passes_arguments",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_deleted_account_is_forbidden_and_has_safe_home",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_denied_home_does_not_loop_even_without_trailing_slash",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_group_revocation_blocks_prefetched_membership",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_home_mapping_and_group_priority_over_customer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_invalid_or_empty_permission_configuration_raises_value_error",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_lock_in_database_blocks_stale_active_user",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_locked_accounts_cannot_run_any_protected_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_multiple_allowed_groups_accept_either_membership",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_multiple_allowed_roles_accept_role_or_group",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_role_input_is_trimmed_case_insensitive_and_accepts_constants",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_role_revocation_in_database_blocks_stale_admin",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_decorators.RoleRequiredTests.test_wrong_role_adds_vietnamese_message_and_redirects_home",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_identifiers.IdentifierTypeTests.test_business_models_use_autofield",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_identifiers.IdentifierTypeTests.test_physical_business_ids_and_referencing_fks_are_int",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.RoleLayoutIntegrationTests.test_admin_crm_url_keeps_admin_shell",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.RoleLayoutIntegrationTests.test_manager_crm_and_catalog_urls_keep_manager_shell_and_active_navigation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_admin_creation_has_framework_permissions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_admin_creation_rejects_customer_role_or_locked_status",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_customer_creation_normalizes_email_and_hashes_password",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_direct_raw_password_assignment_cannot_be_saved",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_duplicate_email_is_rejected_after_normalization",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_locked_account_cannot_authenticate",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_login_updates_last_login_and_lock_invalidates_existing_session",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_manager_requires_email_and_password",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_physical_account_columns_match_official_schema",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_role_and_status_choices_are_enforced",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_models.AccountFoundationTests.test_role_status_are_canonical_and_email_is_immutable",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.CrossPortalCsrfTests.test_all_six_login_orders_rotate_csrf_and_preserve_sessions_and_logout",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.CrossPortalCsrfTests.test_httponly_cookie_stale_form_can_retry_with_fresh_rendered_token",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.CrossPortalCsrfTests.test_missing_forged_tokens_cookie_and_foreign_origin_remain_forbidden",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.CrossPortalCsrfTests.test_preopened_stale_forms_get_safe_empty_retry_without_authentication",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.CrossPortalCsrfTests.test_stale_logout_is_not_replayed_and_other_portals_remain_authenticated",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.PortalSessionTests.test_admin_manager_customer_sessions_and_logout_are_independent",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.PortalSessionTests.test_expired_revoked_locked_and_changed_role_manager_cannot_mask_valid_admin",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.PortalSessionTests.test_manager_logout_without_customer_cookie_retains_admin_shared_crm",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.PortalSessionTests.test_staff_and_customer_login_and_logout_are_independent",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_portal_sessions.PortalSessionTests.test_unified_login_selects_role_cookie_without_overwriting_other_portals",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_post_refactor_verification.AdminCustomerEditTests.test_admin_can_edit_customer_profile_and_read_back",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_post_refactor_verification.AdminCustomerEditTests.test_admin_edit_validates_email_uniqueness",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_post_refactor_verification.AdminCustomerEditTests.test_customer_cannot_edit_other_customer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_post_refactor_verification.AdminCustomerEditTests.test_manager_blocked_from_admin_account_management",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_post_refactor_verification.AdminCustomerEditTests.test_manager_can_edit_customer_within_crm_scope",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_post_refactor_verification.PostRefactorSchemaTests.test_position_and_hire_date_not_in_model_or_db_schema",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_post_refactor_verification.PostRefactorSchemaTests.test_suppliers_table_and_model_completely_removed",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_profiles.ProfileModelAndServiceTests.test_account_detail_view_renders_profile_info",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_profiles.ProfileModelAndServiceTests.test_admin_profile_provisioning_and_properties",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_profiles.ProfileModelAndServiceTests.test_create_account_with_profile_data",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_profiles.ProfileModelAndServiceTests.test_profile_update_service_and_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_profiles.ProfileModelAndServiceTests.test_role_model_and_constraints",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_profiles.ProfileModelAndServiceTests.test_selectors_and_search_by_profile",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_profiles.ProfileModelAndServiceTests.test_staff_profile_provisioning_and_no_department",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_role_foreign_key.RoleForeignKeyTests.test_database_rejects_orphan_null_and_extra_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_role_foreign_key.RoleForeignKeyTests.test_mapping_uses_code_instead_of_fixed_ids",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_role_foreign_key.RoleForeignKeyTests.test_real_relation_and_string_contract_for_each_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_role_foreign_key.RoleForeignKeyTests.test_referenced_role_cannot_be_deleted_by_orm_or_sql",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_role_foreign_key.RoleForeignKeyTests.test_single_unique_code_index_and_no_legacy_column",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_admin_log_reference_is_preserved",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_create_account_auto_creates_customer_profile",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_direct_services_and_selector_normalize_role_status",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_final_admin_cannot_be_deleted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_lock_unlock_and_duplicate_actions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_password_reset_validates_hashes_and_returns_only_id",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_permission_guard_uses_current_database_status_and_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_read_selectors_exclude_password_hash",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_role_change_and_invalid_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_safe_delete_and_missing_target",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountServiceTests.test_self_protection_and_final_admin_lock",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_anonymous_customer_and_locked_admin_are_denied",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_create_customer_and_admin_hashes_password",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_create_rejects_duplicate_invalid_role_status_mismatch_and_weak_password",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_csrf_is_enabled_for_mutations",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_delete_is_post_only_and_self_delete_denied",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_detail_is_safe_and_missing_account_is_404",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_email_edit_route_and_link_are_removed",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_email_search_combines_with_role_and_status_filters",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_email_search_exact_partial_case_and_empty_query",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_email_search_pagination_preserves_search_and_filters",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_empty_post_payloads_are_validated",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_html_create_role_and_filter_normalize_case",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_lock_unlock_post_only_and_self_lock_denied",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_mutations_require_active_admin",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_reset_form_validation_and_password_change",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_role_action_is_post_only_and_preserves_final_admin",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_views.AccountAdminViewTests.test_routes_and_list_are_safe_paginated_and_filterable",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseRestoreHttpTests.test_backup_and_restore_scripts_exist_and_non_empty",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseRestoreHttpTests.test_backup_http_view_rejects_get_and_requires_active_admin",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseRestoreHttpTests.test_confirmation_page_identifies_file_database_and_maintenance",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseRestoreHttpTests.test_download_backup_http_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseRestoreHttpTests.test_restore_failure_response_has_recovery_instructions_and_no_success",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseRestoreHttpTests.test_restore_requires_admin_post_csrf_and_exact_confirmation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseRestoreHttpTests.test_success_when_import_replaced_the_current_session_returns_result_without_session_save",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_list_ordering.ListOrderingTests.test_accounts_filtered_pages_are_numeric_ascending",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_list_ordering.ListOrderingTests.test_catalog_defaults_and_manual_sort",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_list_ordering.ListOrderingTests.test_customers_preserve_order_after_search_and_pagination",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_list_ordering.ListOrderingTests.test_feedback_filters_and_pages_preserve_numeric_order",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_staff_login.StaffLoginCustomerSessionTests.test_anonymous_staff_login_get_has_no_required_field_errors",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_staff_login.StaffLoginCustomerSessionTests.test_anonymous_staff_login_post_preserves_csrf_and_role_destinations",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_staff_login.StaffLoginCustomerSessionTests.test_authenticated_customer_denial_post_still_requires_csrf",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_staff_login.StaffLoginCustomerSessionTests.test_authenticated_customer_get_and_post_receive_denial_without_form_errors",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_staff_login.StaffLoginCustomerSessionTests.test_authenticated_customer_post_cannot_switch_to_submitted_admin_identity",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_staff_login.StaffLoginCustomerSessionTests.test_customer_remains_forbidden_from_protected_admin_and_manager_routes",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.AdminPortalUiTests.test_account_page_sidebar_modals_and_safe_content",
+      "state": "FAIL",
+      "detail": "Traceback (most recent call last):\n  File \"E:\\CNTT_Code\\HTTT\\crm_project\\apps\\admin_portal\\tests.py\", line 144, in test_account_page_sidebar_modals_and_safe_content\n    self.assertIn(\".portal-badge.role_code-manager\", css_content)\nAssertionError: '.portal-badge.role_code-manager' not found in ':root { --portal-accent: #176b86; --portal-border: #dbe3e8; --portal-bg: #f7f9fa; --portal-text: #263640; }\\n.portal-shell { display: flex; min-height: 100vh; color: var(--portal-text); background: var(--portal-bg); font-family: system-ui, -apple-system, \"Segoe UI\", sans-serif; }\\n.portal-shell .portal-sidebar { width: 240px; flex: 0 0 240px; background: #fff; border-right: 1px solid var(--portal-border); }\\n.portal-shell .portal-mobile-sidebar { max-width: 280px; }\\n.portal-brand { padding: 1.5rem 1.25rem 1.25rem; font-size: 1.15rem; font-weight: 750; color: var(--portal-accent); letter-spacing: -.02em; }\\n.portal-brand span { font-weight: 500; color: var(--portal-text); }\\n.portal-nav { padding: 0 0.75rem 1.5rem; }\\n.portal-nav-heading { margin: 1.1rem .75rem .45rem; color: #71808a; font-size: .68rem; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }\\n.portal-nav-link { display: flex; align-items: center; justify-content: space-between; min-height: 42px; padding: .55rem .75rem; border-left: 3px solid transparent; border-radius: .4rem; color: #40545f; font-size: .91rem; line-height: 1.35; text-decoration: none; }\\n.portal-nav-link:hover { background: #f2f6f8; color: #174e62; }\\n.portal-nav-link.active { background: #eaf4f7; border-left-color: var(--portal-accent); color: #15526a; font-weight: 700; }\\n.portal-nav-link:focus-visible { outline: 3px solid rgb(23 107 134 / 28%); outline-offset: 2px; }\\n.portal-nav-link.disabled { color: #87969e; cursor: default; }\\n.portal-nav-link small { font-size: .68rem; }\\n.portal-main { width: 100%; min-width: 0; padding: 0 2rem 3rem; }\\n.portal-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.2rem 0 1.15rem; border-bottom: 1px solid var(--portal-border); }\\n.portal-header h1 { color: #1e2e39; font-size: clamp(1.55rem, 2.5vw, 1.85rem); font-weight: 650; line-height: 1.25; }\\n.portal-eyebrow { color: var(--portal-accent); font-size: .68rem; font-weight: 750; letter-spacing: .12em; }\\n.portal-user { display: flex; align-items: center; gap: 1rem; }\\n.portal-user span { overflow-wrap: anywhere; text-align: right; }\\n.portal-user-email { color: #637680; line-height: 1.25; }\\n.portal-user-id-badge {\\n  display: inline-flex;\\n  align-items: center;\\n  gap: 0.35rem;\\n  padding: 0.12rem 0.55rem;\\n  margin-top: 0.2rem;\\n  font-family: var(--bs-font-monospace, \"SF Mono\", Monaco, Consolas, monospace);\\n  font-size: 0.72rem;\\n  font-weight: 650;\\n  letter-spacing: 0.04em;\\n  line-height: 1.3;\\n  border-radius: 999px;\\n  background-color: #ebf3f7;\\n  color: #17546d;\\n  border: 1px solid #c7dbe4;\\n  box-shadow: 0 1px 2px rgba(23, 107, 134, 0.05);\\n  text-align: center;\\n  white-space: nowrap;\\n}\\n.portal-user-id-badge::before {\\n  content: \"ID\";\\n  font-size: 0.6rem;\\n  font-weight: 750;\\n  letter-spacing: 0.06em;\\n  padding: 0.06rem 0.32rem;\\n  border-radius: 999px;\\n  background: #176b86;\\n  color: #ffffff;\\n  line-height: 1;\\n}\\n.manager-portal .portal-user-id-badge {\\n  background-color: #f4eef9;\\n  color: #57317e;\\n  border-color: #decfe9;\\n  box-shadow: 0 1px 2px rgba(87, 49, 126, 0.05);\\n}\\n.manager-portal .portal-user-id-badge::before {\\n  background: #6e439b;\\n}\\n.portal-section-intro { margin: 1.35rem 0 1.1rem; }\\n.portal-panel { background: #fff; border: 1px solid var(--portal-border); border-radius: .65rem; margin-bottom: 1.1rem; padding: 1.25rem; }\\n.portal-panel h2 { font-weight: 700; }\\n.portal-messages { margin-top: 1.25rem; }\\n.portal-table { --bs-table-bg: transparent; white-space: nowrap; }\\n.portal-table thead th { background: #f5f8f9; color: #637680; font-size: .72rem; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; padding: .8rem 1rem; border-bottom: 1px solid var(--portal-border); }\\n.portal-table td { padding: .8rem 1rem; border-color: #edf1f3; font-size: .87rem; vertical-align: middle; }\\n.portal-table tbody tr:hover { --bs-table-bg: #f8fbfc; }\\n.portal-table .portal-description { min-width: 16rem; max-width: 24rem; white-space: normal; line-height: 1.6; overflow-wrap: anywhere; }\\n.portal-actions { min-width: 360px; }\\n.portal-actions .btn { margin: .1rem .2rem .1rem 0; }\\n.portal-badge { display: inline-block; padding: .22rem .55rem; border-radius: .35rem; font-size: .72rem; font-weight: 750; letter-spacing: .025em; }\\n.portal-badge.role-admin { background: #e7f1f5; color: #145974; }\\n.portal-badge.role-manager { background: #f0eaf8; color: #5c3882; }\\n.portal-badge.role-customer { background: #edf1f3; color: #43545e; }\\n.portal-badge.status-active { background: #e8f5ec; color: #246f3b; }\\n.portal-badge.status-locked { background: #fff1dc; color: #8a5b11; }\\n.portal-empty { padding: 2.5rem 1.25rem; text-align: center; }\\n.portal-shell .portal-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem 1rem; margin-top: -.25rem; padding: .85rem 1rem; border: 1px solid var(--portal-border); border-radius: .55rem; background: #fff; }\\n.portal-shell .portal-pagination > div { display: flex; flex-wrap: wrap; gap: .45rem; }\\n.portal-shell .portal-pagination > span { color: #637680 !important; font-size: .85rem; }\\n.portal-shell .portal-pagination a.btn { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; border-color: var(--portal-border); background: #fff; color: var(--portal-text); text-decoration: none; }\\n.portal-shell .portal-pagination a.btn:hover { border-color: var(--portal-accent); background: #eaf4f7; color: #15526a; }\\n.portal-shell .portal-pagination a.btn:focus-visible { outline: 3px solid rgb(23 107 134 / 28%); outline-offset: 2px; box-shadow: none; }\\n.portal-login-page { min-height: 100vh; display: grid; place-items: center; padding: 1.25rem; }\\n.portal-login-card { width: min(100%, 420px); padding: 2rem; background: #fff; border: 1px solid var(--portal-border); border-radius: .6rem; }\\n.portal-shell .portal-login-card input:not([type=\"hidden\"]):not([type=\"checkbox\"]), .portal-shell .modal-body input:not([type=\"hidden\"]):not([type=\"checkbox\"]), .portal-shell .modal-body select, .portal-shell .portal-panel input:not([type=\"hidden\"]):not([type=\"checkbox\"]):not([name=\"maintenance_ack\"]), .portal-shell .portal-panel select { display: block; width: 100%; min-height: 42px; padding: .55rem .75rem; border: 1px solid #c7d2da; border-radius: .4rem; background: #fff; color: var(--portal-text); }\\n.portal-shell .portal-login-card input:not([type=\"checkbox\"]):focus, .portal-shell .modal-body input:not([type=\"checkbox\"]):focus, .portal-shell .modal-body select:focus, .portal-shell .portal-panel input:not([type=\"checkbox\"]):focus, .portal-shell .portal-panel select:focus { border-color: #3284a0; outline: 0; box-shadow: 0 0 0 3px rgb(50 132 160 / 16%); }\\n.portal-shell .portal-panel textarea { display: block; width: 100%; min-height: 140px; box-sizing: border-box; padding: .55rem .75rem; border: 1px solid #c7d2da; border-radius: .4rem; color: var(--portal-text); font: inherit; line-height: 1.55; resize: vertical; }\\n.portal-shell input[type=\"checkbox\"] { width: 18px; height: 18px; min-height: 0; padding: 0; box-shadow: none; }\\n.portal-shell .portal-panel p:has(> textarea) > label { display: block; margin-bottom: .4rem; font-weight: 600; }\\n.portal-shell .portal-panel textarea:focus { border-color: #3284a0; outline: 0; box-shadow: 0 0 0 3px rgb(50 132 160 / 16%); }\\n.portal-shell .errorlist { margin: .3rem 0 0; padding-left: 1.1rem; color: #a93333; font-size: .82rem; }\\n.portal-confirm-input { max-width: 220px; }\\n.portal-shell .portal-restore-ack { display: flex; align-items: center; gap: 8px; }\\n.portal-shell .portal-panel .portal-restore-ack input[type=\"checkbox\"][name=\"maintenance_ack\"] {\\n  box-sizing: border-box;\\n  display: inline-block;\\n  width: 16px;\\n  height: 16px;\\n  min-width: 16px;\\n  min-height: 16px;\\n  max-width: 16px;\\n  max-height: 16px;\\n  flex: 0 0 16px;\\n  padding: 0;\\n  margin: 0;\\n  transform: none;\\n  scale: none;\\n  appearance: auto;\\n}\\n@media (max-width: 991.98px) { .portal-main { padding: 0 1rem 2rem; } .portal-header { padding: 1rem 0; } }\\n@media (max-width: 575.98px) { .portal-header { align-items: flex-start; } .portal-user { flex-direction: column; align-items: flex-end; gap: .3rem; } .portal-pagination { align-items: flex-start; flex-direction: column; } .portal-login-card { padding: 1.35rem; } }\\n\\n@media (max-width: 767.98px) { .portal-header { flex-wrap: wrap; } .portal-user { flex-wrap: wrap; } .portal-user span { max-width: 100%; text-align: left; } }\\n\\n/* Shared ADMIN / MANAGER staff sign-in. Scoped so portal and customer screens are unaffected. */\\n.portal-login-page,\\n.portal-login-page * {\\n  box-sizing: border-box;\\n}\\n\\n.portal-login-page {\\n  display: grid;\\n  min-height: 100vh;\\n  min-height: 100svh;\\n  place-items: center;\\n  overflow-x: hidden;\\n  padding: 24px;\\n  background: #f7f9fa;\\n  color: #263640;\\n  font-family: system-ui, -apple-system, \"Segoe UI\", sans-serif;\\n}\\n\\n.portal-login-page .portal-login-card {\\n  width: 100%;\\n  max-width: 420px;\\n  padding: 32px;\\n  border: 1px solid #d9e2ec;\\n  border-radius: 10px;\\n  background: #fff;\\n  box-shadow: 0 12px 32px rgb(29 54 69 / 8%);\\n}\\n\\n.portal-login-page .portal-eyebrow {\\n  margin: 0 0 8px;\\n  color: var(--portal-accent);\\n  font-size: 12px;\\n  font-weight: 700;\\n  letter-spacing: .12em;\\n}\\n\\n.portal-login-page .portal-login-card h1 {\\n  margin: 0 0 8px !important;\\n  color: #1f2d36;\\n  font-size: 28px;\\n  font-weight: 650;\\n  line-height: 1.25;\\n}\\n\\n.portal-login-page .portal-login-card > p.text-muted {\\n  margin: 0 0 24px !important;\\n  color: #667784 !important;\\n  font-size: 15px;\\n  line-height: 1.5;\\n}\\n\\n.portal-login-page .portal-login-form > .portal-login-field {\\n  display: grid;\\n  grid-template-columns: minmax(0, 1fr);\\n  gap: 7px;\\n  margin-bottom: 18px !important;\\n}\\n\\n.portal-login-page .portal-login-card .form-label {\\n  margin: 0;\\n  color: #344854;\\n  font-size: 14px;\\n  font-weight: 600;\\n}\\n\\n.portal-login-page .portal-login-card input:not([type=\"hidden\"]):not([type=\"checkbox\"]) {\\n  display: block;\\n  width: 100%;\\n  min-width: 0;\\n  height: 42px;\\n  padding: 9px 12px;\\n  border: 1px solid #cbd5df;\\n  border-radius: 6px;\\n  background: #fff;\\n  color: #263640;\\n  font: inherit;\\n  font-size: 15px;\\n  transition: border-color .15s ease, box-shadow .15s ease;\\n}\\n\\n.portal-login-page .portal-login-card input:not([type=\"hidden\"]):not([type=\"checkbox\"]):focus {\\n  border-color: #3182a1;\\n  outline: 0;\\n  box-shadow: 0 0 0 3px rgb(49 130 161 / 18%);\\n}\\n\\n.portal-login-page .portal-login-card .errorlist {\\n  margin: 0;\\n  padding-left: 18px;\\n  color: #a93232;\\n  font-size: 13px;\\n  line-height: 1.45;\\n  overflow-wrap: anywhere;\\n}\\n\\n.portal-login-page .portal-login-card .alert {\\n  margin-bottom: 18px;\\n  overflow-wrap: anywhere;\\n}\\n\\n.portal-login-page .portal-login-card button[type=\"submit\"] {\\n  display: block;\\n  width: 100%;\\n  min-height: 40px;\\n  margin-top: 4px;\\n  border: 1px solid #176b86;\\n  border-radius: 6px;\\n  background: #176b86;\\n  color: #fff;\\n  font-size: 15px;\\n  font-weight: 650;\\n  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .1s ease;\\n}\\n\\n.portal-login-page .portal-login-card button[type=\"submit\"]:hover:not(:disabled) {\\n  border-color: #125b73;\\n  background: #125b73;\\n}\\n\\n.portal-login-page .portal-login-card button[type=\"submit\"]:focus-visible {\\n  outline: 0;\\n  box-shadow: 0 0 0 3px rgb(49 130 161 / 25%);\\n}\\n\\n.portal-login-page .portal-login-card button[type=\"submit\"]:active:not(:disabled) {\\n  transform: translateY(1px);\\n}\\n\\n.portal-login-page .portal-login-card button[type=\"submit\"]:disabled {\\n  cursor: not-allowed;\\n  opacity: .65;\\n}\\n\\n@media (max-width: 575.98px) {\\n  .portal-login-page {\\n    padding: 16px;\\n  }\\n\\n  .portal-login-page .portal-login-card {\\n    padding: 24px;\\n  }\\n}\\n\\n@media (max-height: 520px) {\\n  .portal-login-page {\\n    align-items: start;\\n  }\\n}\\n'\n"
+    },
+    {
+      "test": "apps.admin_portal.tests.AdminPortalUiTests.test_create_validation_and_account_actions_return_to_list",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.AdminPortalUiTests.test_customer_manager_and_locked_admin_cannot_access_portal",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.AdminPortalUiTests.test_database_backup_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.AdminPortalUiTests.test_database_restore_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.AdminPortalUiTests.test_login_rejects_invalid_customer_locked_and_unsafe_next",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.AdminPortalUiTests.test_login_root_and_safe_next",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.AdminPortalUiTests.test_logout_is_post_csrf_and_invalidates_session",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.ManagerPortalUiTests.test_manager_login_and_home_routing",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.ManagerPortalUiTests.test_manager_login_rejects_customer_and_locked_manager",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.ManagerPortalUiTests.test_manager_logout_is_post_csrf",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.tests.ManagerPortalUiTests.test_manager_ui_has_catalog_and_crm_modules_and_no_admin_tools",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.CatalogNormalizationTests.test_active_choices_saved_inactive_and_unmatched_values_survive",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.CatalogNormalizationTests.test_favorite_merge_preserves_latest_choice_with_interleaved_history",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.CatalogNormalizationTests.test_new_brand_alias_and_preference_input_canonicalized",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.CatalogNormalizationTests.test_preview_apply_preserves_ids_fks_prices_and_unknowns",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.CatalogNormalizationTests.test_product_price_roundtrip_error_redisplay_numeric_filter_sort",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.CatalogNormalizationTests.test_repair_refuses_ambiguous_brand_ids_atomically",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.CatalogNormalizationTests.test_search_filters_and_reports_accept_both_aliases_before_and_after",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.CatalogNormalizationTests.test_seed_reuses_legacy_brand_and_product_ids",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.tests.CatalogTests.test_category_protected_and_product_crud",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.tests.CatalogTests.test_product_create_and_validation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.tests.CatalogTests.test_seed_is_repeatable",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.tests.ProductListUiTests.test_product_forms_have_only_editable_fields_and_readable_selects",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.tests.ProductListUiTests.test_product_list_shows_all_sql_fields_and_readable_relationships",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.tests.ProductListUiTests.test_product_search_and_brand_filter",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_profile_views.OwnProfileViewTests.test_category_disabled_between_form_validation_and_service_is_form_error",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_profile_views.OwnProfileViewTests.test_invalid_profile_or_category_does_not_partially_save",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_profile_views.OwnProfileViewTests.test_legacy_dropdown_values_preserved_then_change_to_tv4_values",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_profile_views.OwnProfileViewTests.test_missing_or_deleted_customer_not_created_implicitly",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_profile_views.OwnProfileViewTests.test_multiple_sync_remove_repeat_and_privilege_fields_ignored",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_profile_views.OwnProfileViewTests.test_no_active_categories_preserves_saved_data_and_displays_empty_state",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_profile_views.OwnProfileViewTests.test_profile_page_owned_preselects_names_and_uses_customer_labels",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_profile_views.OwnProfileViewTests.test_removal_explicit_and_foreign_or_other_type_ids_cannot_be_deleted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_category_sync_multiple_remove_and_repeat_without_duplicates",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_duplicate_and_invalid_password_leave_no_partial_rows",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_duplicate_existing_rows_and_duplicate_category_names_store_one_name",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_foreign_preference_and_invalid_category_roll_back",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_inactive_forged_category_rejected_and_create_failure_atomic",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_locked_deleted_and_admin_cannot_update_customer_profile",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_profile_and_preferences_never_modify_account_or_other_customer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_profile_failure_rolls_back_account_creation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_profile_validation_phone_future_date_and_lengths",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_registration_normalizes_email_hashes_password_and_whitelists_profile",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_registration_rejects_legacy_choices_not_owned_by_new_customer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_tv4_choices_reject_unknown_and_preserve_then_update_legacy",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.test_self_services.CustomerSelfServiceTests.test_unmatched_inactive_and_other_types_preserved_and_explicit_removal_scoped",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_account_lifecycle.CustomerAccountLifecycleTests.test_admin_html_and_api_create_both_appear_for_manager_and_have_profile",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_account_lifecycle.CustomerAccountLifecycleTests.test_creation_and_deletion_still_require_csrf",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_account_lifecycle.CustomerAccountLifecycleTests.test_form_contract_password_errors_and_removed_fields_ignored",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_account_lifecycle.CustomerAccountLifecycleTests.test_manager_create_login_profile_then_admin_delete_from_accounts",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_account_lifecycle.CustomerAccountLifecycleTests.test_own_profile_ignores_foreign_ids_and_customer_cannot_manage_accounts",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_account_lifecycle.CustomerAccountLifecycleTests.test_service_password_validation_and_profile_failure_roll_back_account",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_account_lifecycle.RepairCustomerProfilesTests.test_preview_apply_repeat_preserves_existing_profiles_staff_and_credentials",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_access.AdminAccessTests.test_admin_can_open_customer_and_feedback_pages",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_access.AdminAccessTests.test_admin_portal_content_is_english",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_access.AdminAccessTests.test_admin_portal_sidebar_links_customers_and_feedback",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_access.AdminAccessTests.test_admin_sees_manage_actions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_access.AdminAccessTests.test_layout_follows_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_customer_sync.AdminCustomerSyncTests.test_admin_can_delete_customer_created_by_manager",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_customer_sync.AdminCustomerSyncTests.test_admin_creates_customer_account_auto_creates_profile",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_customer_sync.AdminCustomerSyncTests.test_admin_delete_customer_with_business_history_preserves_history",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_customer_sync.AdminCustomerSyncTests.test_admin_protection_rules",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_admin_customer_sync.AdminCustomerSyncTests.test_cross_visibility_admin_and_manager",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CreateCustomerServiceTests.test_creates_account_customer_and_preferences",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CreateCustomerServiceTests.test_deleted_customer_phone_can_be_reused",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CreateCustomerServiceTests.test_duplicate_email_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CreateCustomerServiceTests.test_duplicate_phone_is_rejected_and_nothing_is_created",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CustomerCreateViewTests.test_anonymous_is_redirected_to_login",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CustomerCreateViewTests.test_customer_and_customer_service_cannot_open_form",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CustomerCreateViewTests.test_duplicate_email_and_phone_show_form_errors",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CustomerCreateViewTests.test_invalid_input_shows_errors_and_creates_nothing",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CustomerCreateViewTests.test_list_searches_and_hides_deleted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CustomerCreateViewTests.test_manager_creates_customer_without_disclosing_password",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_create_customer.CustomerCreateViewTests.test_manager_sees_form",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_detail.CustomerDetailViewTests.test_customer_account_cannot_view",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_detail.CustomerDetailViewTests.test_customer_service_can_view_but_manage_buttons_are_hidden",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_detail.CustomerDetailViewTests.test_deleted_or_unknown_customer_returns_404",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_detail.CustomerDetailViewTests.test_lock_from_detail_returns_to_detail",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_detail.CustomerDetailViewTests.test_manager_sees_profile_preferences_and_feedback_history",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportBoundaryTests.test_age_group_boundaries",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportBoundaryTests.test_empty_report_has_no_fake_numbers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportBoundaryTests.test_preferences_come_from_profile_not_survey_answers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportTests.test_age_gender_level_exclude_deleted_and_count_unknown",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportTests.test_customer_cannot_open_report",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportTests.test_extended_customer_metrics",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportTests.test_new_customers_by_month_fills_empty_months",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportTests.test_preferences_grouped_by_type",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportTests.test_report_page_renders_charts_data_and_print_button",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportTests.test_same_name_products_are_not_merged",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportTests.test_satisfaction_and_summary",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_favorite_brand.FavoriteBrandTests.test_other_requires_name_and_invalid_brand_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_favorite_brand.FavoriteBrandTests.test_profile_update_changes_value_without_duplicates",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_favorite_brand.FavoriteBrandTests.test_register_with_brand_and_other_name",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_favorite_brand.FavoriteBrandTests.test_register_without_brand_still_works",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_favorite_brand.FavoriteBrandTests.test_report_counts_each_customer_once_current_value_only",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_favorite_brand.FavoriteBrandTests.test_report_empty_state",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_filter_customers.CustomerListFilterViewTests.test_filter_form_narrows_list_and_shows_labels",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_filter_customers.CustomerListFilterViewTests.test_invalid_choice_does_not_filter",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_filter_customers.FilterCustomersTests.test_age_group_boundary_on_birthday",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_filter_customers.FilterCustomersTests.test_age_helpers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_filter_customers.FilterCustomersTests.test_filters_combine_without_duplicate_rows",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_filter_customers.FilterCustomersTests.test_no_params_returns_all_non_deleted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_filter_customers.FilterCustomersTests.test_profile_and_preference_filters",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.DeleteServiceTests.test_delete_with_history_is_rejected_and_without_history_is_hard_deleted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockDeleteViewTests.test_customer_service_and_customer_cannot_lock_or_delete",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockDeleteViewTests.test_delete_confirm_page_then_post_soft_deletes",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockDeleteViewTests.test_lock_and_unlock_reject_get",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockDeleteViewTests.test_locked_customer_session_is_cut_off",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockDeleteViewTests.test_locking_twice_shows_error_message",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockDeleteViewTests.test_manager_locks_with_reason_then_unlocks",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockDeleteViewTests.test_unknown_customer_returns_404",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockUnlockServiceTests.test_deleted_customer_cannot_be_locked_or_unlocked",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockUnlockServiceTests.test_double_lock_and_double_unlock_are_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockUnlockServiceTests.test_lock_blocks_login_and_unlock_restores_it",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_lock_delete_customer.LockUnlockServiceTests.test_lock_does_not_touch_other_customers_or_data",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_save_customer.SaveCustomerTests.test_create_uses_catalog_panel_and_keeps_html_fallback",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_save_customer.SaveCustomerTests.test_database_failure_rolls_back_and_retry_succeeds",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_save_customer.SaveCustomerTests.test_json_requires_existing_permissions_active_session_and_csrf",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_save_customer.SaveCustomerTests.test_list_response_failure_also_rolls_back",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_save_customer.SaveCustomerTests.test_missing_invalid_and_duplicate_data_return_field_errors",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_save_customer.SaveCustomerTests.test_save_persists_hash_profile_and_returns_fresh_list_without_password",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_save_customer.SaveCustomerTests.test_service_duplicate_races_are_field_errors",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_seed_demo.FinalDemoContractTests.test_final_dataset_idempotence_real_logins_statistics_and_preservation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_seed_demo.SeedDemoDataTests.test_demo_accounts_login_and_kh40_is_locked",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_seed_demo.SeedDemoDataTests.test_feedbacks_use_real_catalog_products_when_available",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_seed_demo.SeedDemoDataTests.test_reseed_does_not_relock_kh40",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_seed_demo.SeedDemoDataTests.test_seed_covers_every_age_group_and_spreads_months",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_seed_demo.SeedDemoDataTests.test_seed_creates_customers_and_feedbacks_without_duplicates",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.CustomerFeedbackTests.test_customer_sees_only_own_feedbacks_and_reply",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.CustomerFeedbackTests.test_customer_submission_crm_reply_and_customer_view_through_http",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.CustomerFeedbackTests.test_customer_submits_feedback_as_new",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.CustomerFeedbackTests.test_customer_without_profile_is_redirected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.CustomerFeedbackTests.test_feedback_menu_preserves_storefront_navigation_and_search",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.CustomerFeedbackTests.test_form_preselects_product_from_query_string",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.CustomerFeedbackTests.test_invalid_submission_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.CustomerFeedbackTests.test_staff_or_anonymous_cannot_use_customer_pages",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_customer_feedback.FeedbackBadgeTests.test_menu_shows_new_feedback_count",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FeedbackViewTests.test_customer_and_anonymous_cannot_handle",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FeedbackViewTests.test_list_filter_by_query_string",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FeedbackViewTests.test_manager_and_staff_can_open_list_and_detail",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FeedbackViewTests.test_resolve_without_reply_shows_error",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FeedbackViewTests.test_reversed_date_range_shows_error",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FeedbackViewTests.test_staff_replies_and_resolves",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FeedbackViewTests.test_unknown_feedback_returns_404",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FilterFeedbackTests.test_date_range_is_inclusive_by_day",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.FilterFeedbackTests.test_filters",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.HandleFeedbackServiceTests.test_database_rejects_retired_status",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.HandleFeedbackServiceTests.test_editing_reply_keeps_first_resolved_at_and_reopen_clears_it",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.HandleFeedbackServiceTests.test_form_rejects_retired_status",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.HandleFeedbackServiceTests.test_invalid_input_is_rejected_without_changes",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.HandleFeedbackServiceTests.test_new_sets_handler_without_resolved_at",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.feedback.tests.test_handle_feedback.HandleFeedbackServiceTests.test_resolved_sets_reply_handler_and_resolved_at",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.test_shop_ui.ShopNavigationTests.test_active_categories_appear_on_store_auth_and_detail_pages_without_brand_links",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.test_shop_ui.ShopNavigationTests.test_active_product_with_inactive_category_does_not_link_to_invalid_filter",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.test_shop_ui.ShopNavigationTests.test_admin_login_remains_outside_customer_styles",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.test_shop_ui.ShopNavigationTests.test_category_and_brand_filter_choices_remain_separate_and_search_form_has_real_target",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.test_shop_ui.ShopNavigationTests.test_category_navigation_updates_between_requests_and_handles_empty_database",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.test_shop_ui.ShopNavigationTests.test_demo_labels_are_preserved_and_searchable",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.test_shop_ui.ShopNavigationTests.test_price_and_honest_missing_image_label_match_on_cards_and_detail",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.tests.ShopTests.test_combined_filters_use_decimal_price_and_match_category_brand",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.tests.ShopTests.test_detail_is_read_only_and_hides_missing_or_inactive_products",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.tests.ShopTests.test_home_and_list_are_public_show_only_active_products_and_local_assets",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.tests.ShopTests.test_invalid_filters_are_field_errors_instead_of_unfiltered_results",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.tests.ShopTests.test_pagination_preserves_filters_and_stable_order",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_admin_portal.SurveyAdminPortalTests.test_admin_sees_survey_pages_in_admin_portal_english",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_admin_portal.SurveyAdminPortalTests.test_crm_manager_keeps_vietnamese_crm_layout",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_admin_portal.SurveyAdminPortalTests.test_form_errors_and_messages_are_english",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_audit_edges.SurveyAuditEdgesTests.test_customer_cannot_read_manager_reports_or_foreign_recipient",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_audit_edges.SurveyAuditEdgesTests.test_empty_reports_and_stats_render_without_inventing_responses",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_audit_edges.SurveyAuditEdgesTests.test_invalid_report_and_stats_identifiers_are_safe",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_audit_edges.SurveyAuditEdgesTests.test_schedule_start_and_end_are_inclusive_with_outside_instants_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_audience_count_endpoint",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_audience_is_saved_with_the_draft",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_choice_question_needs_two_options",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_closed_survey_is_view_only",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_dd_mm_yyyy_dates_are_accepted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_draft_can_be_saved_without_questions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_duplicate_or_empty_options_are_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_edit_page_loads_saved_data_and_reorder_is_saved",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_end_date_before_start_date_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_errors_keep_every_question_the_user_typed",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_locked_customers_are_not_listed_or_accepted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_max_selections_must_not_exceed_option_count",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_publish_blocked_without_questions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_publish_blocked_without_recipients_keeps_typed_data",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_publish_existing_draft_from_edit_page",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_publish_sends_to_audience_and_opens_survey",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_question_order_and_settings_are_saved",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_questions_cannot_be_edited_after_answers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_rating_needs_min_below_max",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_repeated_submit_with_same_form_token_creates_one_survey",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_required_fields",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_same_start_and_end_day_is_allowed_and_covers_the_whole_day",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_save_add_returns_to_editor_with_new_question_flag",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_builder.SurveyBuilderTests.test_start_date_in_the_past_is_rejected_when_creating",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_closed_survey_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_customer_cannot_open_management",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_draft_survey_is_never_exposed",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_expired_survey_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_locked_account_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_manager_cannot_answer_as_customer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_not_yet_open_survey_is_rejected_and_labelled",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_other_customers_invitation_is_forbidden",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_two_submissions_store_one_response",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.CustomerAccessTests.test_uninvited_customer_sees_nothing",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_close_draft_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_create_with_template_checkbox_creates_eight_questions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_full_flow_create_invite_publish_answer_report",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_individual_pick_lists_only_eligible_customers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_manual_close_and_clone_copy_questions_only",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_publish_blocked_when_closed_or_expired",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_publish_blocked_without_questions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_publish_blocked_without_recipients",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_questions_locked_after_publish_and_answers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.LifecycleTests.test_send_rejects_locked_or_deleted_and_never_duplicates",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.StatisticsTests.test_answers_of_later_locked_customer_still_count",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.StatisticsTests.test_empty_survey_has_no_fake_percentages",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.StatisticsTests.test_matrix_not_used_is_excluded_from_average",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.StatisticsTests.test_multi_choice_can_exceed_100_percent_and_rating_average",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.StatisticsTests.test_overview_counts_only_published_surveys",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.ValidationTests.test_missing_required_question",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.ValidationTests.test_multi_choice_over_limit",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.ValidationTests.test_option_from_another_question",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.ValidationTests.test_rating_outside_scale",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.ValidationTests.test_single_choice_accepts_exactly_one",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.ValidationTests.test_text_too_long",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_business_rules.ValidationTests.test_valid_answer_is_saved",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_list_filters.SurveyListFilterTests.test_default_search_status_and_clear",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_list_filters.SurveyListFilterTests.test_existing_survey_pages_and_access_guard",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_list_filters.SurveyListFilterTests.test_invalid_dates_and_status",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_list_filters.SurveyListFilterTests.test_manager_filter_state_errors_and_existing_actions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_list_filters.SurveyListFilterTests.test_one_sided_ranges_and_missing_schedule",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_list_filters.SurveyListFilterTests.test_overlap_inclusive_boundaries_and_combination",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_cannot_edit_questions_after_survey_is_active",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_choice_question_needs_two_distinct_options",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_close_expired",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_create_survey_as_draft",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_filter_by_playing_level",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_manager_and_admin_can_open_list_customer_cannot",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_multi_choice_and_rating_answers_are_saved",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_my_surveys_groups_by_state",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_not_ready_without_questions_or_with_one_option",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_question_reorder_renumbers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_send_opens_survey_and_skips_duplicates",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_service_rejects_plain_customer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_single_choice_cannot_have_two_answers_and_rating_range",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_manage.SurveyManageTests.test_stats_counts_and_rate",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_admin_and_crm_manager_keep_existing_send_permissions",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_all_audience_includes_new_customer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_answers_and_all_invitation_states_survive_repeat_send",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_customer_anonymous_locked_and_revoked_manager_cannot_send",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_draft_publish_still_uses_audience_page",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_empty_invalid_and_missing_ids_cannot_send",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_invalid_selection_is_atomic_and_not_selectable",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_list_selection_is_based_on_readiness_not_new_recipient_count",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_multiple_surveys_use_their_own_saved_audiences_and_deduplicate_ids",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_no_eligible_customers_is_success_for_published_survey",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_post_only_csrf_and_filter_preservation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_post_rechecks_lock_role_and_saved_audience_membership",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.NewRecipientTests.test_supplemental_audience_urls_redirect_without_sending",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_configuration_edit_and_fixed_order_preserve_the_version",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_customer_service_opens_report_without_survey_results",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_json_submission_errors_csrf_and_ownership",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_legacy_surveys_keep_one_to_five_and_are_not_relabelled",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_manager_create_stores_eight_questions_and_three_sections",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_matrix_rejects_missing_duplicate_foreign_and_ambiguous_criteria",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_max_three_and_integral_one_to_ten_are_enforced_by_server",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_other_requires_text_and_rejects_stale_text_on_another_option",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_reports_use_correct_denominators_matrix_averages_and_escaped_text",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_questionnaire.QuestionnaireTests.test_valid_answers_distinct_matrix_states_optional_text_and_repeat_submit",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_already_open_form_cannot_submit_after_manager_closes_survey",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_choices_require_integer_options_from_the_correct_question",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_closed_survey_rejects_http_submission",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_customer_crm_and_admin_menus_preserve_integrated_routes",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_duplicates_missing_required_fields_and_foreign_questions_are_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_each_type_rejects_mixed_and_unknown_fields_even_if_null",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_future_survey_rejects_get_and_post_without_creating_response",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_http_invalid_answers_return_400_without_partial_writes",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_malformed_payloads_and_question_identifiers_are_validation_errors",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_optional_questions_can_be_omitted_but_submitted_blank_text_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_rating_requires_an_integer_from_one_to_five",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_statistics_have_a_printable_survey_title",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_statistics_keep_decimal_points_in_css_and_correct_counts",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_text_requires_a_nonempty_string_after_strip",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_regressions.SurveyRegressionTests.test_valid_types_strip_text_and_keep_one_submission",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_saved_audience.SavedAudienceTests.test_all_group_and_specific_send_without_recipient_payload",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_saved_audience.SavedAudienceTests.test_builder_label_and_saved_audience_edit",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_saved_audience.SavedAudienceTests.test_cleanup_refuses_to_broaden_a_saved_style_segment",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_saved_audience.SavedAudienceTests.test_customer_pages_hide_style_but_keep_brand_and_category",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_saved_audience.SavedAudienceTests.test_database_rejects_retired_style_type",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_saved_audience.SavedAudienceTests.test_legacy_admin_send_route_also_uses_saved_rules",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_saved_audience.SavedAudienceTests.test_missing_audience_cannot_silently_send_to_everyone",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_saved_audience.SavedAudienceTests.test_supported_preference_types_remain_writable",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SeedSurveyReportDemoTests.test_seed_requires_confirm_and_clear_removes_only_marked_rows",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportFlowTests.test_end_to_end_numbers_match_stored_answers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_brands_donut_shares_other_slice_and_respondent_pct",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_comments_tags_order_and_anonymous_customer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_csat_trend_leaves_empty_months_blank",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_in_progress_responses_are_not_counted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_legacy_surveys_are_never_mixed_and_scope_filters_one_survey",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_matrix_excludes_not_used_and_unanswered",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_month_change_up_down_and_flat",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_no_data_returns_none_not_zero_division",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_nps_boundaries_9_8_7_6",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_nps_from_stored_answers",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_previous_month_zero_shows_no_comparison",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_purchases_use_respondents_and_are_sorted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_survey_report.SurveyReportTests.test_segment_is_most_chosen_question_2_option",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.tests.SurveyUniquenessTests.test_answer_option_must_belong_to_question",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.tests.SurveyUniquenessTests.test_recipients_unique_and_send_skips_existing",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.tests.SurveyUniquenessTests.test_response_unique_and_double_submit_keeps_one_answer",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.tests.SurveyUniquenessTests.test_wrong_customer_cannot_take_or_submit",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateBoundaryTests.test_exact_birthday_and_one_day_underage",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateBoundaryTests.test_leap_day_uses_completed_calendar_years",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateBoundaryTests.test_optional_invalid_and_calendar_bounds",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.PortalTemplateResolutionTests.test_custom_portal_templates_resolve_from_the_portal_subdirectory",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.PortalTemplateResolutionTests.test_django_admin_templates_resolve_from_the_framework",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.PortalTemplateResolutionTests.test_shared_staff_login_and_manager_alias_render_one_independent_login_page",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.SharedLayoutTests.test_authenticated_email_and_messages_render_and_escape_content",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.SharedLayoutTests.test_crm_child_can_override_all_shared_blocks",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.SharedLayoutTests.test_crm_layout_renders_for_anonymous_without_missing_urls",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.SharedLayoutTests.test_customer_child_can_override_all_shared_blocks",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.SharedLayoutTests.test_customer_layout_renders_for_anonymous_without_missing_urls",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.SharedLayoutTests.test_layout_static_assets_are_available",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_layouts.SharedLayoutTests.test_tv1_registers_shop_and_crm_home_without_admin_route_changes",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountForeignKeyDeleteTests.test_customer_with_history_raises_protected_error",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_services.AccountForeignKeyDeleteTests.test_customer_without_history_is_hard_deleted",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_backup_failure_timeout_and_incomplete_dump_are_not_published",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_backup_is_published_only_with_verified_manifest",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_import_exit_failure_and_timeout_retain_snapshot_and_block_access",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_inflight_collision_preserves_partial",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_invalid_source_confirmation_target_ack_and_permission_do_not_run_tools",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_missing_and_malformed_manifests_are_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_pre_restore_backup_failure_or_failed_verification_stops_import",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_requests_use_shared_lock_and_restore_requires_exclusivity",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_restore_snapshots_and_verifies_before_import_then_retains_backup",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_same_second_collision_never_overwrites_existing_backup",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_database_tools.DatabaseToolsServiceTests.test_unsafe_dump_missing_tool_and_non_mysql_backend_stop_before_import",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_seed_removal.AdminSeedRemovalTests.test_database_tools_renders_backup_restore_download_without_seed",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_seed_removal.AdminSeedRemovalTests.test_database_tools_routes_are_preserved",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.admin_portal.test_seed_removal.AdminSeedRemovalTests.test_seed_endpoint_and_name_are_removed",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.MoneyTests.test_decimal_parsing_and_grouping",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.MoneyTests.test_rejects_bad_groups_junk_precision_and_bounds",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.catalog.test_money_catalog.MoneyTests.test_widget_preserves_invalid_input_and_does_not_round",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportDateFilterTests.test_custom_invalid_and_open_ranges",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.customers.tests.test_customer_report.CustomerReportDateFilterTests.test_presets_include_today_and_exact_day_count",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.shop.test_shop_ui.ShopDisplayFilterTests.test_vnd_price_preserves_decimal_precision_independent_of_language",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.ConcurrentNewRecipientTests.test_overlapping_batches_in_reverse_order_do_not_duplicate",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.ConcurrentNewRecipientTests.test_two_simultaneous_sends_create_one_invitation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.SavedAudienceDisplayTests.test_all_and_missing_audience_are_explicit",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.SavedAudienceDisplayTests.test_group_displays_each_saved_rule",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.surveys.test_new_recipients.SavedAudienceDisplayTests.test_specific_customers_include_names_and_missing_accounts",
+      "state": "PASS",
+      "detail": ""
+    }
+  ]
+}

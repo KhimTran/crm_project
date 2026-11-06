@@ -1,0 +1,14 @@
+{
+  "database": "crm_db_role_clone_v2_20261106",
+  "accounts_preserved": 20,
+  "mapping": {
+    "ADMIN": 2,
+    "CUSTOMER": 15,
+    "MANAGER": 3
+  },
+  "tables": 22,
+  "foreign_keys_checked": 25,
+  "all_account_and_unrelated_values_preserved": true,
+  "role_names_normalized": true,
+  "orphan_records": 0
+}

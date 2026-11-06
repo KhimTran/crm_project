@@ -73,18 +73,18 @@ try:
             def account_flow():
                 data={'email':'audit-created@audit.test','password':PW,'password_confirm':PW,'role':'MANAGER','status':'ACTIVE'}
                 a.post('/admin/accounts/create/',data)
-                target=Account.objects.get(email=data['email']); assert target.role=='MANAGER' and target.check_password(PW)
+                target=Account.objects.get(email=data['email']); assert target.role_code=='MANAGER' and target.check_password(PW)
                 actor=Browser(); actor.login('/manager/login/',target.email)
                 assert actor.request('/manager/')[0]==200
                 denied=actor.request('/admin/accounts/'); assert denied[0]==403 or '/admin/login/' in denied[1]
-                a.post(f'/admin/accounts/{target.pk}/role/',{'role':'CUSTOMER'}); target.refresh_from_db(); assert target.role=='CUSTOMER'
+                a.post(f'/admin/accounts/{target.pk}/role/',{'role':'CUSTOMER'}); target.refresh_from_db(); assert target.role_code=='CUSTOMER'
                 result=actor.request('/manager/'); assert '/manager/login/' in result[1] or result[0]==403
                 a.post('/admin/accounts/create/',data); assert Account.objects.filter(email=data['email']).count()==1
                 a.post(f'/admin/accounts/{target.pk}/lock/',{}); target.refresh_from_db(); assert target.status=='LOCKED'
                 a.post(f'/admin/accounts/{target.pk}/unlock/',{}); target.refresh_from_db(); assert target.status=='ACTIVE'
                 a.post(f'/admin/accounts/{target.pk}/reset-password/',{'new_password':PW+'New','new_password_confirm':PW+'New'}); target.refresh_from_db(); assert target.check_password(PW+'New')
                 a.post('/admin/accounts/create/',{**data,'email':'audit-created-admin@audit.test','role':'ADMIN'})
-                created_admin=Account.objects.get(email='audit-created-admin@audit.test'); assert created_admin.role=='ADMIN'
+                created_admin=Account.objects.get(email='audit-created-admin@audit.test'); assert created_admin.role_code=='ADMIN'
                 admin_actor=Browser(); admin_actor.login('/admin/login/',created_admin.email)
                 return 'create/hash/duplicate/role change/old session/lock/unlock/reset verified by ORM'
             case('A Account lifecycle',account_flow)
@@ -142,11 +142,11 @@ try:
                 assert m.request('/crm/reports/customers/')[0]==200
                 from apps.customers.models import CustomerPreference
                 CustomerPreference.objects.create(customer=customer,preference_type='FAVORITE_BRAND',preference_value='Yonex')
-                result=favorite_brand_report(); expected=CustomerPreference.objects.filter(preference_type='FAVORITE_BRAND',customer__role='CUSTOMER').values('customer_id').distinct().count()
+                result=favorite_brand_report(); expected=CustomerPreference.objects.filter(preference_type='FAVORITE_BRAND',customer__role__role_code='CUSTOMER').values('customer_id').distinct().count()
                 assert result['answered']==expected,(result,expected)
                 assert 'Yonex' in m.request('/crm/reports/customers/')[2]
                 with connection.cursor() as q:
-                    q.execute('SELECT date_of_birth FROM accounts WHERE role=%s',['CUSTOMER'])
+                    q.execute('SELECT a.date_of_birth FROM accounts a JOIN roles r ON a.role_id=r.role_id WHERE r.role_code=%s',['CUSTOMER'])
                     births=[r[0] for r in q.fetchall()]
                 today=timezone.localdate(); buckets=[0]*7
                 for birth in births:
@@ -162,7 +162,7 @@ try:
                 assert c.request('/api/accounts/')[0] in (401,403)
                 denied=m.request('/admin/database/'); assert denied[0]==403 or '/admin/login/' in denied[1]
                 result=c.post('/account/profile/',{'full_name':'Audit updated','phone':'0901234999','role':'ADMIN'})
-                customer.refresh_from_db(); assert customer.full_name=='Audit updated' and customer.role=='CUSTOMER'
+                customer.refresh_from_db(); assert customer.full_name=='Audit updated' and customer.role_code=='CUSTOMER'
                 assert c.request('/products/?q='+urllib.parse.quote("' OR 1=1 --"))[0]==200
                 req=urllib.request.Request('http://127.0.0.1:8018/admin/database/restore/',data=b'filename=bad.sql')
                 try: a.opener.open(req); raise AssertionError('CSRF accepted')
@@ -176,7 +176,7 @@ try:
                 for account in [admin,manager]:
                     actor=Browser(); actor.request('/login/')
                     result=actor.post('/login/',{'email':account.email,'password':PW})
-                    outcomes.append({'role':account.role,'url':result[1],'status':result[0]})
+                    outcomes.append({'role':account.role_code,'url':result[1],'status':result[0]})
                 assert all('/login/' not in result['url'] for result in outcomes),outcomes
                 return outcomes
             case('Unified login routes staff session correctly',unified_login)
@@ -198,7 +198,7 @@ try:
                 actor=Browser(); actor.request('/register/')
                 data={'email':'audit-register@audit.test','password':PW,'password_confirm':PW,'full_name':'Audit Registered','phone':'0908765123','playing_level':'BEGINNER'}
                 actor.post('/register/',data)
-                target=Account.objects.get(email=data['email']); assert target.check_password(PW) and target.role=='CUSTOMER'
+                target=Account.objects.get(email=data['email']); assert target.check_password(PW) and target.role_code=='CUSTOMER'
                 actor.post('/logout/',{}); actor.request('/register/'); actor.post('/register/',data)
                 assert Account.objects.filter(email=data['email']).count()==1
                 return 'Actual registration form/hash/duplicate protection'
@@ -209,7 +209,7 @@ try:
                 output=StringIO()
                 call_command('seed_survey_report_demo','--confirm',stdout=output)
                 call_command('seed_survey_report_demo','--clear','--confirm',stdout=output)
-                remaining=list(Account.objects.filter(email__endswith='@survey-report-demo.test').values('account_id','role','full_name'))
+                remaining=list(Account.objects.filter(email__endswith='@survey-report-demo.test').values('account_id','role__role_code','full_name'))
                 assert not remaining,remaining
                 return output.getvalue()
             case('CLI demo seed cleanup',seed_cleanup)
@@ -240,7 +240,7 @@ try:
                 assert a.json('PATCH',path,{'email':'bad@audit.test'})[0]==405
                 assert a.json('POST',path+'/role',{'role':'ADMIN'})[0]==409
                 assert a.json('POST',path+'/role',{'role':'manager'})[0]==200
-                target.refresh_from_db(); assert target.role=='MANAGER'
+                target.refresh_from_db(); assert target.role_code=='MANAGER'
                 actor=Browser(); actor.login('/manager/login/',target.email)
                 assert a.json('POST',path+'/lock')[0]==200
                 target.refresh_from_db(); assert target.status=='LOCKED'

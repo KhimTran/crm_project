@@ -1,0 +1,9 @@
+| Module | Tests | Passed | Failed | Errors | Skipped |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| accounts | 154 | 154 | 0 | 0 | 0 |
+| admin_portal | 43 | 43 | 0 | 0 | 0 |
+| catalog | 17 | 17 | 0 | 0 | 0 |
+| customers | 105 | 105 | 0 | 0 | 0 |
+| feedback | 24 | 24 | 0 | 0 | 0 |
+| shop | 13 | 13 | 0 | 0 | 0 |
+| surveys | 153 | 153 | 0 | 0 | 0 |

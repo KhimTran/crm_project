@@ -13,7 +13,7 @@ from apps.catalog.views import brand_list, category_list
 
 for role, views in [('ADMIN', [account_list, customer_list, feedback_list]),
                     ('MANAGER', [customer_list, brand_list, category_list, feedback_list])]:
-    actor = Account.objects.filter(role=role, status='ACTIVE').first()
+    actor = Account.objects.filter(role__role_code=role, status='ACTIVE').first()
     for view in views:
         for params in [{}, {'page': 2}, {'q': 'Demo'}]:
             request = RequestFactory().get('/crm/', params)
@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory(prefix='crm_feedback_layout_') as directory:
     root=Path(directory)
     signatures = {}
     for role in ['MANAGER','ADMIN']:
-        user=Account.objects.filter(role=role,status='ACTIVE').first()
+        user=Account.objects.filter(role__role_code=role,status='ACTIVE').first()
         for status in ['NEW','RESOLVED']:
             request=RequestFactory().get('/crm/feedbacks/',{'status':status}); request.user=user
             response=feedback_list(request)

@@ -53,7 +53,7 @@ def safe_login_destination(request, account):
     except Resolver404:
         return fallback
     allowed = {"shop:home", "shop:products", "shop:product_detail", "customer_auth:password_change"}
-    if account.role == "CUSTOMER":
+    if account.role_code == "CUSTOMER":
         allowed.add("customers:profile")
     if fallback in ("/crm/", "/admin/", "/manager/"):
         allowed.add("customer_auth:crm_home")

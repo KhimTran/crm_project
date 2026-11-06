@@ -1,0 +1,4 @@
+--
+-- Alter field role_code on role
+--
+ALTER TABLE `roles` DROP INDEX `roles_role_code_7a6cab69_uniq`;

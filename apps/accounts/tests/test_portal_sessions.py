@@ -125,7 +125,7 @@ class PortalSessionTests(TestCase):
                   Account.objects.create_user('unified-manager@test.example', password, role='MANAGER')]
         browser = BrowserClient()
         for actor, cookie, destination in zip(actors, ['sessionid', 'staff_sessionid', 'manager_sessionid'], ['/', '/admin/', '/manager/']):
-            with self.subTest(role=actor.role):
+            with self.subTest(role=actor.role_code):
                 existing = {name: value.value for name, value in browser.cookies.items() if name.endswith('sessionid')}
                 response = browser.post('/login/', {'email': actor.email, 'password': password})
                 self.assertEqual(response.status_code, 302)
@@ -162,7 +162,7 @@ class PortalSessionTests(TestCase):
         manager = Account.objects.create_user('state-manager@test.example', password, role='MANAGER')
         for state in ('expired', 'password', 'locked', 'role'):
             with self.subTest(state=state):
-                manager.set_password(password); manager.status='ACTIVE'; manager.role='MANAGER'; manager.save()
+                manager.set_password(password); manager.status='ACTIVE'; manager.role_code='MANAGER'; manager.save()
                 browser = BrowserClient()
                 for actor in (admin,manager):
                     browser.post('/login/', {'email': actor.email, 'password': password})

@@ -26,7 +26,7 @@ def _locked_target(account_id):
 
 def _lock_active_admins():
     # Lock in PK order so simultaneous demotions/deletions serialize on MySQL.
-    return list(Account.objects.filter(role=AccountRole.ADMIN, status=AccountStatus.ACTIVE)
+    return list(Account.objects.filter(role__role_code=AccountRole.ADMIN, status=AccountStatus.ACTIVE)
                 .order_by("account_id").select_for_update().values_list("account_id", flat=True))
 
 
@@ -117,7 +117,7 @@ def lock_account(actor, account_id):
     account = _locked_target(account_id)
     if actor.pk == account.account_id:
         raise CannotLockOwnAccount("An admin cannot lock their own account")
-    if account.role == AccountRole.ADMIN:
+    if account.role_code == AccountRole.ADMIN:
         raise CannotModifyOtherAdmin("Cannot lock another ADMIN account")
     if account.status == AccountStatus.LOCKED:
         raise AccountAlreadyLocked("Account is already locked")
@@ -146,13 +146,13 @@ def change_account_role(actor, account_id, role):
     if actor.pk not in active_admin_ids:
         raise AccountPermissionDenied("An active admin account is required")
     account = _locked_target(account_id)
-    if account.role == role:
+    if account.role_code == role:
         return account_data(account)
 
-    if account.role != AccountRole.ADMIN and role == AccountRole.ADMIN:
+    if account.role_code != AccountRole.ADMIN and role == AccountRole.ADMIN:
         raise CannotPromoteToAdmin("Cannot promote a standard account to ADMIN")
 
-    if account.role == AccountRole.ADMIN and role != AccountRole.ADMIN:
+    if account.role_code == AccountRole.ADMIN and role != AccountRole.ADMIN:
         if actor.pk == account.account_id:
             raise CannotDemoteOwnAccount("Cannot demote your own ADMIN account")
         raise CannotDemoteAdmin("Cannot demote another ADMIN")
@@ -170,7 +170,7 @@ def change_account_role(actor, account_id, role):
 def reset_account_password(actor, account_id, new_password):
     require_active_admin(actor, for_update=True)
     account = _locked_target(account_id)
-    if account.role == AccountRole.ADMIN and actor.pk != account.account_id:
+    if account.role_code == AccountRole.ADMIN and actor.pk != account.account_id:
         raise CannotModifyOtherAdmin("Cannot reset password of another ADMIN")
     try:
         validate_password(new_password, account)
@@ -190,7 +190,7 @@ def delete_account(actor, account_id):
     account = _locked_target(account_id)
     if actor.pk == account.account_id:
         raise CannotDeleteOwnAccount("An admin cannot delete their own account")
-    if account.role == AccountRole.ADMIN:
+    if account.role_code == AccountRole.ADMIN:
         raise CannotModifyOtherAdmin("Cannot delete another ADMIN account")
     _protect_final_admin(account, active_admin_ids)
 

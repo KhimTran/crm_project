@@ -141,7 +141,7 @@ class AdminPortalUiTests(TestCase):
         self.assertTrue(css_path)
         with open(css_path, "r", encoding="utf-8") as f:
             css_content = f.read()
-            self.assertIn(".portal-badge.role-manager", css_content)
+        self.assertIn(".portal-badge.role-manager", css_content)
         self.assertTrue(finders.find("js/admin_portal.js"))
 
     def test_create_validation_and_account_actions_return_to_list(self):

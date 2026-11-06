@@ -148,4 +148,4 @@ class BirthDateFlowTests(PortalTestCase):
         response = self.client.post(reverse("accounts_admin:role", args=[self.customer.pk]), {"role": "MANAGER"}, follow=True)
         self.assertEqual(response.status_code, 200)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, "CUSTOMER")
+        self.assertEqual(self.customer.role_code, "CUSTOMER")

@@ -1,0 +1,159 @@
+{
+  "results": [
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_all_routes_reject_anonymous_customer_and_locked_admin",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_case_insensitive_create_role_status_and_filters",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_create_and_validation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_csrf_session_mutations",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_customer_delete_preserves_business_data_and_locks_account",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_delete_other_admin_is_rejected",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_delete_self_final_admin_and_safe_delete",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_email_patch_is_removed_and_role_is_dedicated",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_list_detail_and_missing",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_lock_unlock_and_password_reset",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_openapi_and_swagger_paths",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api.AccountApiTests.test_role_action_normalizes_case",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_admin_login_me_accounts_logout_sequence",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_bad_credentials_and_locked_account_fail_safely",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_csrf_header_alone_does_not_authenticate",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_customer_can_log_in_but_cannot_manage_accounts",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_login_and_logout_require_csrf",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_api_auth.SessionApiTests.test_openapi_lists_auth_operations",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_admin_edit_uses_target_account_role_not_posted_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_create_form_uses_target_role_and_normalizes_role",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_customer_forms_registration_and_own_profile_require_fourteen",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_historical_birth_dates_do_not_block_lock_or_password_operations",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_model_and_services_cannot_bypass_age_validation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_staff_personal_profiles_reject_underage_and_future_without_writes",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_birth_dates.BirthDateFlowTests.test_underage_customer_cannot_be_promoted_to_manager",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_crm_authorization_and_old_sessions_after_lock_or_group_revocation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_csrf_for_login_register_logout_profile_password_change_and_reset",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_customer_denied_from_staff_portal_login",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_customer_login_route_and_staff_portal_separation",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_login_redirects_by_role_and_groups_without_modifying_roles",
+      "state": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "apps.accounts.tests.test_customer_auth.CustomerAuthTests.test_next_accepts_local_authorized_get_destinations_with_filters",
+      "state": "PASS",
+      "detail": ""
+    }
+  ]
+}

@@ -44,7 +44,7 @@ class CsrfOutput(Schema):
 
 def _account_data(account):
     return {"account_id": account.account_id, "email": account.email,
-            "role": account.role, "status": account.status}
+            "role": account.role_code, "status": account.status}
 
 
 def _require_csrf(request):

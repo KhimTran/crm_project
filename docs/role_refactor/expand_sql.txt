@@ -1,0 +1,14 @@
+--
+-- Add field role_link to account
+--
+ALTER TABLE `accounts` ADD COLUMN `role_id` integer NULL;
+--
+-- Raw Python operation
+--
+-- THIS OPERATION CANNOT BE WRITTEN AS SQL
+--
+-- Alter field role_link on account
+--
+ALTER TABLE `accounts` MODIFY `role_id` integer NOT NULL;
+ALTER TABLE `accounts` ADD CONSTRAINT `accounts_role_id_41f27d4c_fk_roles_role_id` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`);
+CREATE INDEX `accounts_role_id_41f27d4c` ON `accounts` (`role_id`);

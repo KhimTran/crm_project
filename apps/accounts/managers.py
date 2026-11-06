@@ -7,10 +7,25 @@ from .constants import AccountRole, AccountStatus, normalize_account_role, norma
 from .errors import InvalidAccountRole
 
 
+def resolve_account_role(code, *, using=None):
+    from django.apps import apps
+    try:
+        code = normalize_account_role(code)
+    except InvalidAccountRole as exc:
+        raise ValidationError(str(exc)) from exc
+    names = {"ADMIN": "Quản trị viên", "MANAGER": "Quản lý", "CUSTOMER": "Khách hàng"}
+    role, _ = apps.get_model("accounts", "Role").objects.db_manager(using).get_or_create(
+        role_code=code, defaults={"role_name": names[code]},
+    )
+    return role
+
+
 class AccountQuerySet(models.QuerySet):
     def update(self, **kwargs):
         if "email" in kwargs:
             raise ValidationError({"email": "Account email cannot be changed"})
+        if "role" in kwargs and isinstance(kwargs["role"], str):
+            kwargs["role"] = resolve_account_role(kwargs["role"], using=self.db)
         return super().update(**kwargs)
 
     def bulk_update(self, objs, fields, batch_size=None):

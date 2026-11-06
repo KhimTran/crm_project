@@ -38,7 +38,7 @@ class AdminCustomerSyncTests(TestCase):
         )
         # Check Account created
         account = get_user_model().objects.get(pk=account_data["account_id"])
-        self.assertEqual(account.role, AccountRole.CUSTOMER)
+        self.assertEqual(account.role_code, AccountRole.CUSTOMER)
 
         # Check linked Customer automatically created
         customer = Customer.objects.filter(pk=account.pk).first()

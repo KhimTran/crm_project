@@ -10,7 +10,7 @@ from apps.accounts.models import Account
 from apps.surveys.views import manage_list
 
 edge=Path('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
-user=Account.objects.filter(role='MANAGER',status='ACTIVE').first()
+user=Account.objects.filter(role__role_code='MANAGER',status='ACTIVE').first()
 probe='''<script>window.addEventListener('load',()=>setTimeout(()=>{const f=document.querySelector('.survey-list-filter');const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,height:r.height}};const pre=document.createElement('pre');pre.id='layout-result';pre.textContent=JSON.stringify({controls:[...f.querySelectorAll('input,select,.btn')].map(rect),form:rect(f)});document.body.append(pre)},200));</script>'''
 with tempfile.TemporaryDirectory(prefix='survey_filter_layout_') as directory:
     root=Path(directory); signatures={}

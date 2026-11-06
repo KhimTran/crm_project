@@ -14,7 +14,7 @@ class AccountFoundationTests(TestCase):
     def test_customer_creation_normalizes_email_and_hashes_password(self):
         account = get_user_model().objects.create_user("  Customer@Example.COM  ", self.password)
         self.assertEqual(account.email, "customer@example.com")
-        self.assertEqual(account.role, AccountRole.CUSTOMER)
+        self.assertEqual(account.role_code, AccountRole.CUSTOMER)
         self.assertEqual(account.status, AccountStatus.ACTIVE)
         self.assertNotEqual(account.password, self.password)
         self.assertTrue(account.check_password(self.password))
@@ -25,7 +25,7 @@ class AccountFoundationTests(TestCase):
 
     def test_admin_creation_has_framework_permissions(self):
         account = get_user_model().objects.create_superuser("Admin@Example.COM", self.password)
-        self.assertEqual(account.role, AccountRole.ADMIN)
+        self.assertEqual(account.role_code, AccountRole.ADMIN)
         self.assertEqual(account.status, AccountStatus.ACTIVE)
         self.assertTrue(account.is_staff)
         self.assertTrue(account.is_superuser)
@@ -42,9 +42,9 @@ class AccountFoundationTests(TestCase):
     def test_role_and_status_choices_are_enforced(self):
         model = get_user_model()
         admin = model.objects.create_user("role@example.com", self.password, role=AccountRole.ADMIN)
-        self.assertEqual(admin.role, AccountRole.ADMIN)
+        self.assertEqual(admin.role_code, AccountRole.ADMIN)
         manager = model.objects.create_user("manager-role@example.com", self.password, role=AccountRole.MANAGER)
-        self.assertEqual(manager.role, AccountRole.MANAGER)
+        self.assertEqual(manager.role_code, AccountRole.MANAGER)
         self.assertTrue(manager.is_active)
         self.assertFalse(manager.is_staff)
         self.assertFalse(manager.is_superuser)
@@ -62,12 +62,12 @@ class AccountFoundationTests(TestCase):
         model = get_user_model()
         account = model.objects.create_user("fixed@example.com", self.password,
                                             role=" customer ", status=" Active ")
-        self.assertEqual((account.role, account.status), ("CUSTOMER", "ACTIVE"))
-        account.role = "Admin"
+        self.assertEqual((account.role_code, account.status), ("CUSTOMER", "ACTIVE"))
+        account.role_code = "Admin"
         account.status = "Locked"
         account.save(update_fields=["role", "status"])
         account.refresh_from_db()
-        self.assertEqual((account.role, account.status), ("ADMIN", "LOCKED"))
+        self.assertEqual((account.role_code, account.status), ("ADMIN", "LOCKED"))
         account.email = "changed@example.com"
         with self.assertRaises(ValidationError):
             account.save(update_fields=["email"])
@@ -129,7 +129,7 @@ class AccountFoundationTests(TestCase):
         with connection.cursor() as cursor:
             columns = [column.name for column in connection.introspection.get_table_description(cursor, "accounts")]
         self.assertEqual(set(columns), {
-            "account_id", "email", "password_hash", "role", "status",
+            "account_id", "email", "password_hash", "role_id", "status",
             "last_login_at", "created_at", "updated_at",
             "full_name", "phone", "date_of_birth", "gender", "address",
             "playing_level",

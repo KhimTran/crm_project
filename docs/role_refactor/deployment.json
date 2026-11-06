@@ -1,0 +1,18 @@
+{
+  "status": "DEPLOYED_VERIFIED",
+  "recovery_backup": "crm_261106_163800.sql",
+  "sha256": "4d5d2e2ff1215e0e86321d33bf3f2a2ebb5cb8995a930875813eca06475dc1b0",
+  "backup_restore_verified": true,
+  "database": "crm_db",
+  "accounts_preserved": 20,
+  "mapping": {
+    "ADMIN": 2,
+    "CUSTOMER": 15,
+    "MANAGER": 3
+  },
+  "tables": 22,
+  "foreign_keys_checked": 25,
+  "all_account_and_unrelated_values_preserved": true,
+  "role_names_normalized": true,
+  "orphan_records": 0
+}

@@ -91,7 +91,7 @@ for _vi, _en in EN_TEXT.items():
 
 # tv4: tài khoản Admin/Manager xem màn hình TV4 trong Portal (bằng tiếng Anh)
 def is_portal_user(user):
-    return getattr(user, "is_authenticated", False) and getattr(user, "role", None) in (AccountRole.ADMIN, AccountRole.MANAGER)
+    return getattr(user, "is_authenticated", False) and getattr(user, "role_code", None) in (AccountRole.ADMIN, AccountRole.MANAGER)
 
 
 # tv4: đang hiển thị tiếng Anh cho Admin Portal không

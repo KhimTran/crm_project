@@ -16,7 +16,7 @@
    - Bảng sản phẩm (`products`) chỉ thuộc về danh mục (`categories`) và thương hiệu (`brands`). Khi tạo mới database từ đầu hoặc chạy seed, hoàn toàn không tạo lại bất kỳ thực thể nhà cung cấp nào.
 2. **Chỉ duy trì 3 Vai trò Nghiệp vụ (RBAC):**
    - Ba vai trò chuẩn: `ADMIN` (Quản trị viên), `MANAGER` (Nhân sự quản lý), `CUSTOMER` (Khách hàng).
-   - Được đồng bộ chặt chẽ giữa bảng `roles`, trường `accounts.role`, ràng buộc `chk_roles_code`, `chk_accounts_role`, khóa ngoại `fk_accounts_role`, và hệ thống phân quyền Django Groups / Permissions.
+   - Được đồng bộ chặt chẽ giữa bảng `roles`, trường `accounts.role_id`, ràng buộc `chk_roles_code`, khóa ngoại `fk_accounts_role`, và hệ thống phân quyền Django Groups / Permissions.
    - Không tồn tại vai trò CSKH hoặc Staff riêng lẻ làm lệch mô hình phân quyền 3 vai trò.
 3. **Đặc tả Bảng Tài khoản (`accounts`) & Hồ sơ Khách hàng:**
    - Đã loại bỏ hoàn toàn các trường `position` và `hire_date` khỏi schema SQL, Django models và migrations.
@@ -36,7 +36,7 @@
 
 ```mermaid
 erDiagram
-    roles ||--o{ accounts : "fk_accounts_role (role_code)"
+    roles ||--o{ accounts : "role_id"
     categories ||--o{ products : "fk_products_category (category_id)"
     brands ||--o{ products : "fk_products_brand (brand_id)"
     
@@ -70,7 +70,7 @@ erDiagram
         int account_id PK
         varchar email UK
         varchar password_hash
-        varchar role FK "ADMIN, MANAGER, CUSTOMER"
+        int role_id FK
         varchar status "ACTIVE, LOCKED"
         varchar full_name
         varchar phone
@@ -216,7 +216,7 @@ Chứa tài khoản người dùng đăng nhập hệ thống kết hợp thông
 | `account_id` | `INT` | No | AUTO_INCREMENT | PK | Khóa chính tài khoản |
 | `email` | `VARCHAR(255)` | No | — | UNIQUE (`uq_accounts_email`) | Email đăng nhập, bất biến |
 | `password_hash` | `VARCHAR(255)` | No | — | — | Mật khẩu băm (PBKDF2 SHA256) |
-| `role` | `VARCHAR(20)` | No | `'CUSTOMER'` | FK (`fk_accounts_role` → `roles.role_code`), CHECK (`ADMIN`, `MANAGER`, `CUSTOMER`) | Vai trò tài khoản |
+| `role_id` | `INT` | No | — | FK → `roles.role_id` (PROTECT/RESTRICT) | Vai trò tài khoản; API vẫn dùng chuỗi role_code |
 | `status` | `VARCHAR(20)` | No | `'ACTIVE'` | CHECK (`chk_accounts_status`: `ACTIVE`, `LOCKED`) | Trạng thái hoạt động |
 | `full_name` | `VARCHAR(150)` | No | `''` | — | Họ và tên |
 | `phone` | `VARCHAR(20)` | Yes | NULL | — | Số điện thoại liên hệ |
@@ -425,3 +425,8 @@ python manage.py seed_surveys
   python manage.py backup_database --purpose="scheduled_backup"
   ```
 - **Kiểm thử phục hồi:** Dịch vụ phục hồi `apps.admin_portal.services.restore_service` hỗ trợ kiểm tra tính toàn vẹn và phục hồi an toàn vào cơ sở dữ liệu mục tiêu đã chỉ định.
+
+
+## Role normalization — 2026-11-06
+
+Migrations accounts.0005–0007 replace accounts.role VARCHAR with role_id INT NOT NULL. Role codes remain unique; the duplicate role_code unique index is removed, retaining uq_roles_code. Django Account.role is a Role relation, Account.role_id is an integer, and Account.role_code is the stable business code. ORM code uses role__role_code, including values/values_list. API/form fields remain named role and carry the same three strings. Group permissions are independent and retain existing policy. See role_refactor/REPORT.md for deployment evidence and recovery.

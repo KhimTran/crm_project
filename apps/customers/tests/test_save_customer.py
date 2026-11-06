@@ -35,7 +35,7 @@ class SaveCustomerTests(TestCase):
         response = self.save(role="ADMIN", status="LOCKED", play_styles="ignored", brands="ignored")
         self.assertEqual(response.status_code, 201)
         customer = Customer.objects.get(pk=response.json()["customer_id"])
-        self.assertEqual((customer.account.role, customer.account.status), ("CUSTOMER", "ACTIVE"))
+        self.assertEqual((customer.account.role_code, customer.account.status), ("CUSTOMER", "ACTIVE"))
         self.assertTrue(customer.account.check_password(self.password))
         self.assertNotEqual(customer.account.password, self.password)
         self.assertFalse(customer.customerpreference_set.exists())

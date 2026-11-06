@@ -15,7 +15,7 @@ def generate_staff_code():
 
 @transaction.atomic
 def ensure_admin_profile(account_id, **profile_data):
-    account = Account.objects.select_for_update().get(pk=account_id, role=AccountRole.ADMIN)
+    account = Account.objects.select_for_update().get(pk=account_id, role__role_code=AccountRole.ADMIN)
     was_empty = not bool(account.full_name)
     full_name = profile_data.pop("full_name", None)
     if full_name:
@@ -32,7 +32,7 @@ def ensure_admin_profile(account_id, **profile_data):
 
 @transaction.atomic
 def ensure_staff_profile(account_id, **profile_data):
-    account = Account.objects.select_for_update().get(pk=account_id, role=AccountRole.MANAGER)
+    account = Account.objects.select_for_update().get(pk=account_id, role__role_code=AccountRole.MANAGER)
     was_empty = not bool(account.full_name)
     full_name = profile_data.pop("full_name", None)
     if full_name:

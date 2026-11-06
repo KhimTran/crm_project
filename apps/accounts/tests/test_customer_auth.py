@@ -42,7 +42,7 @@ class CustomerAuthTests(TestCase):
                 self.assertEqual(self.client.session["_auth_user_id"], str(user.pk))
                 user.refresh_from_db()
                 self.assertIsNotNone(user.last_login)
-                self.assertEqual(user.role, "ADMIN" if user == self.admin else "CUSTOMER")
+                self.assertEqual(user.role_code, "ADMIN" if user == self.admin else "CUSTOMER")
         self.admin.groups.add(self.manager.groups.first())
         self.client.logout()
         self.assertRedirects(self.sign_in(self.admin), "/admin/", fetch_redirect_response=False)
@@ -95,7 +95,7 @@ class CustomerAuthTests(TestCase):
                 "full_name": "New customer", "role": "ADMIN", "status": "LOCKED", "groups": "CRM_MANAGER", "permissions": "*"}
         self.assertRedirects(self.client.post("/register/", data), "/login/", fetch_redirect_response=False)
         account = Account.objects.get(email="new@auth.test")
-        self.assertEqual((account.role, account.status), ("CUSTOMER", "ACTIVE"))
+        self.assertEqual((account.role_code, account.status), ("CUSTOMER", "ACTIVE"))
         self.assertFalse(account.groups.exists())
         self.assertTrue(account.check_password(self.password))
         self.assertTrue(Customer.objects.filter(account=account).exists())
@@ -271,7 +271,7 @@ class ManagerPasswordChangeTests(TestCase):
                 self.assertRedirects(response, destination, fetch_redirect_response=False)
                 self.assertEqual(self.client.get(self.path).status_code, 200)
         self.manager.refresh_from_db()
-        self.assertEqual(self.manager.role, "MANAGER")
+        self.assertEqual(self.manager.role_code, "MANAGER")
         self.assertTrue(self.manager.check_password(self.password))
 
     def test_manager_password_change_requires_current_password_and_valid_new_password(self):
@@ -304,7 +304,7 @@ class ManagerPasswordChangeTests(TestCase):
         self.other_account.refresh_from_db()
         self.assertTrue(self.manager.check_password(self.new_password))
         self.assertFalse(self.manager.check_password(self.password))
-        self.assertEqual((self.manager.role, self.manager.status), ("MANAGER", "ACTIVE"))
+        self.assertEqual((self.manager.role_code, self.manager.status), ("MANAGER", "ACTIVE"))
         self.assertEqual(self.other_account.password, other_hash)
         self.assertEqual(self.client.session["_auth_user_id"], str(self.manager.pk))
         self.assertEqual(self.client.get(reverse("catalog_admin:product_list")).status_code, 200)

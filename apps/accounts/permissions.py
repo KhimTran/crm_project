@@ -16,7 +16,7 @@ def require_active_admin(actor, *, for_update=False):
     if for_update:
         query = query.select_for_update()
     account = query.first()
-    if account is None or account.role != AccountRole.ADMIN or account.status != AccountStatus.ACTIVE:
+    if account is None or account.role_code != AccountRole.ADMIN or account.status != AccountStatus.ACTIVE:
         raise AccountPermissionDenied("An active admin account is required")
     return account
 
@@ -29,7 +29,7 @@ def require_active_manager(actor, *, for_update=False):
     if for_update:
         query = query.select_for_update()
     account = query.first()
-    if account is None or account.role != AccountRole.MANAGER or account.status != AccountStatus.ACTIVE:
+    if account is None or account.role_code != AccountRole.MANAGER or account.status != AccountStatus.ACTIVE:
         raise AccountPermissionDenied("An active manager account is required")
     return account
 

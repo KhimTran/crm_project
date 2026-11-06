@@ -17,7 +17,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255)
     # Django's authentication attributes map to the official SQL columns.
     password = models.CharField(max_length=255, db_column="password_hash")
-    role = models.CharField(max_length=20, choices=AccountRole.choices, default=AccountRole.CUSTOMER)
+    role = models.ForeignKey("Role", on_delete=models.PROTECT, db_column="role_id")
     status = models.CharField(max_length=20, choices=AccountStatus.choices, default=AccountStatus.ACTIVE)
     full_name = models.CharField(max_length=150, default="", blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
@@ -38,7 +38,6 @@ class Account(AbstractBaseUser, PermissionsMixin):
         db_table = "accounts"
         constraints = [
             models.UniqueConstraint(fields=["email"], name="uq_accounts_email"),
-            models.CheckConstraint(condition=models.Q(role__in=AccountRole.values), name="chk_accounts_role"),
             models.CheckConstraint(condition=models.Q(status__in=AccountStatus.values), name="chk_accounts_status"),
         ]
 
@@ -48,35 +47,47 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_staff(self):
-        return self.is_active and self.role == AccountRole.ADMIN
+        return self.is_active and self.role_code == AccountRole.ADMIN
 
     @property
     def is_superuser(self):
         return self.is_staff
 
+    def __init__(self, *args, **kwargs):
+        # String input remains supported for account construction, never for ORM lookups.
+        code = kwargs.pop("role", None) if isinstance(kwargs.get("role"), str) else None
+        super().__init__(*args, **kwargs)
+        if code is not None:
+            self.role_code = code
+
     @property
-    def role_id(self):
-        return self.role
+    def role_code(self):
+        return self.role.role_code if self.role_id is not None else AccountRole.CUSTOMER
+
+    @role_code.setter
+    def role_code(self, code):
+        from .managers import resolve_account_role
+        self.role = resolve_account_role(code, using=self._state.db)
 
     @property
     def admin(self):
-        return self if self.role == AccountRole.ADMIN else None
+        return self if self.role_code == AccountRole.ADMIN else None
 
     @property
     def staff(self):
-        return self if self.role == AccountRole.MANAGER else None
+        return self if self.role_code == AccountRole.MANAGER else None
 
     @property
     def admin_profile(self):
-        return self if self.role == AccountRole.ADMIN else None
+        return self if self.role_code == AccountRole.ADMIN else None
 
     @property
     def staff_profile(self):
-        return self if self.role == AccountRole.MANAGER else None
+        return self if self.role_code == AccountRole.MANAGER else None
 
     @property
     def customer(self):
-        return self if self.role == AccountRole.CUSTOMER else None
+        return self if self.role_code == AccountRole.CUSTOMER else None
 
     @property
     def customer_id(self):
@@ -97,9 +108,9 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     @property
     def code(self):
-        if self.role == AccountRole.ADMIN:
+        if self.role_code == AccountRole.ADMIN:
             return self.admin_code
-        elif self.role == AccountRole.MANAGER:
+        elif self.role_code == AccountRole.MANAGER:
             return self.staff_code
         return self.customer_code
 
@@ -125,14 +136,16 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         self.email = AccountManager.normalize_account_email(self.email)
         if self.pk is not None:
-            saved = type(self).objects.filter(pk=self.pk).values("email", "role").first()
+            saved = type(self).objects.filter(pk=self.pk).values("email", 'role__role_code').first()
             if saved is not None and saved["email"] != self.email:
-                if saved["role"] != AccountRole.CUSTOMER:
+                if saved["role__role_code"] != AccountRole.CUSTOMER:
                     raise ValidationError({"email": "Account email cannot be changed"})
                 if type(self).objects.filter(email=self.email).exclude(pk=self.pk).exists():
                     raise ValidationError({"email": "Email is already in use"})
         try:
-            self.role = normalize_account_role(self.role)
+            if self.role_id is None:
+                self.role_code = AccountRole.CUSTOMER
+            normalize_account_role(self.role_code)
             self.status = normalize_account_status(self.status)
         except (InvalidAccountRole, ValueError) as exc:
             raise ValidationError(str(exc)) from exc
@@ -147,13 +160,13 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def clean(self):
         super().clean()
         if self.pk:
-            saved = Account.objects.filter(pk=self.pk).values("date_of_birth", "role").first()
-            if saved and saved["date_of_birth"] == self.date_of_birth and saved["role"] == self.role:
+            saved = Account.objects.filter(pk=self.pk).values("date_of_birth", 'role__role_code').first()
+            if saved and saved["date_of_birth"] == self.date_of_birth and saved["role__role_code"] == self.role_code:
                 return  # Preserve unrelated operations on historical profiles.
         # Invalid date strings are reported by DateField.clean during full_clean.
         if isinstance(self.date_of_birth, date):
             try:
-                validate_birth_date(self.date_of_birth, minimum_age_for_role(self.role))
+                validate_birth_date(self.date_of_birth, minimum_age_for_role(self.role_code))
             except ValidationError as exc:
                 raise ValidationError({"date_of_birth": exc.messages}) from exc
 
@@ -163,7 +176,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
 class Role(models.Model):
     role_id = models.AutoField(primary_key=True)
-    role_code = models.CharField(max_length=20, unique=True)
+    role_code = models.CharField(max_length=20)
     role_name = models.CharField(max_length=50)
     description = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)

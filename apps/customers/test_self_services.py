@@ -23,7 +23,7 @@ class CustomerSelfServiceTests(TestCase):
     def test_registration_normalizes_email_hashes_password_and_whitelists_profile(self):
         account = self.register(" Owner@Customer.TEST ", role="ADMIN", status="LOCKED", groups="CRM_MANAGER", account_id=123)
         self.assertEqual(account.email, "owner@customer.test")
-        self.assertEqual((account.role, account.status), ("CUSTOMER", "ACTIVE"))
+        self.assertEqual((account.role_code, account.status), ("CUSTOMER", "ACTIVE"))
         self.assertTrue(account.check_password(self.password))
         self.assertFalse(account.groups.exists())
         self.assertFalse(account.user_permissions.exists())
@@ -63,7 +63,7 @@ class CustomerSelfServiceTests(TestCase):
                            "email": "changed@test.test", "role": "ADMIN", "status": "DELETED"},
                            category_ids=[Category.objects.create(category_name="Badminton rackets").pk])
         owner.refresh_from_db()
-        self.assertEqual((owner.email, owner.role, owner.status), ("owner@customer.test", "CUSTOMER", "ACTIVE"))
+        self.assertEqual((owner.email, owner.role_code, owner.status), ("owner@customer.test", "CUSTOMER", "ACTIVE"))
         self.assertEqual(Customer.objects.get(pk=owner.pk).full_name, "Updated")
         other_customer.refresh_from_db()
         self.assertEqual(other_customer.full_name, "Khách hàng")

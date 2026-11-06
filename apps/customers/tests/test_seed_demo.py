@@ -29,11 +29,11 @@ class FinalDemoContractTests(TestCase):
         call_command('seed_demo', verbosity=0)
         self.assertEqual(Account.objects.count(), 20)
         self.assertEqual(Customer.objects.count(), 15)
-        self.assertEqual({r: Account.objects.filter(role=r).count() for r in ('ADMIN','MANAGER','CUSTOMER')},
+        self.assertEqual({r: Account.objects.filter(role__role_code=r).count() for r in ('ADMIN','MANAGER','CUSTOMER')},
                          {'ADMIN':2,'MANAGER':3,'CUSTOMER':15})
         self.assertEqual(Feedback.objects.count(), 20)
         self.assertEqual(Feedback.objects.filter(status='NEW', resolved_at__isnull=True, handled_by__isnull=True).count(),8)
-        self.assertEqual(Feedback.objects.filter(status='RESOLVED', handled_by__role='MANAGER', resolved_at__isnull=False).count(),12)
+        self.assertEqual(Feedback.objects.filter(status='RESOLVED', handled_by__role__role_code='MANAGER', resolved_at__isnull=False).count(),12)
         self.assertEqual(Survey.objects.count(),18)
         self.assertEqual(SurveyResponse.objects.filter(status='SUBMITTED').count(),61)
         self.assertEqual(SurveyRecipient.objects.count(),91)
@@ -51,16 +51,16 @@ class FinalDemoContractTests(TestCase):
         for account in Account.objects.all():
             self.assertTrue(account.check_password(PASSWORD))
             client=Client(enforce_csrf_checks=True)
-            url={'ADMIN':'/admin/login/','MANAGER':'/manager/login/','CUSTOMER':'/login/'}[account.role]
+            url={'ADMIN':'/admin/login/','MANAGER':'/manager/login/','CUSTOMER':'/login/'}[account.role_code]
             client.get(url)
             response=client.post(url,{'email':account.email,'password':PASSWORD,
                                      'csrfmiddlewaretoken':client.cookies['csrftoken'].value})
             self.assertEqual(response.status_code,302,account.email)
-            home={'ADMIN':'/admin/accounts/','MANAGER':'/manager/catalog/products/','CUSTOMER':'/account/profile/'}[account.role]
+            home={'ADMIN':'/admin/accounts/','MANAGER':'/manager/catalog/products/','CUSTOMER':'/account/profile/'}[account.role_code]
             self.assertEqual(client.get(home).status_code,200,account.email)
-            if account.role!='ADMIN':
+            if account.role_code!='ADMIN':
                 self.assertNotEqual(client.get('/admin/database/').status_code,200)
-            if account.role!='MANAGER':
+            if account.role_code!='MANAGER':
                 self.assertNotEqual(client.get('/manager/').status_code,200)
         for survey in Survey.objects.all():
             stats=build_stats(survey)

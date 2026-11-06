@@ -145,7 +145,7 @@ class AdminCustomerEditTests(TestCase):
         self.assertEqual(self.customer.gender, "FEMALE")
 
         # Invariants: role, status, password hash NOT changed
-        self.assertEqual(self.customer_account.role, AccountRole.CUSTOMER)
+        self.assertEqual(self.customer_account.role_code, AccountRole.CUSTOMER)
         self.assertEqual(self.customer_account.status, AccountStatus.ACTIVE)
         self.assertEqual(self.customer_account.password, original_hash)
 

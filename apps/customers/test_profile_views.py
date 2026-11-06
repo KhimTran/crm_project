@@ -58,7 +58,7 @@ class OwnProfileViewTests(TestCase):
         self.owner.refresh_from_db()
         self.other_customer.refresh_from_db()
         self.assertEqual((self.customer.full_name, self.customer.status, self.customer.account_id), ('Updated owner', 'ACTIVE', self.owner.pk))
-        self.assertEqual((self.owner.email, self.owner.role, self.owner.status), ('owner@profile.test', 'CUSTOMER', 'ACTIVE'))
+        self.assertEqual((self.owner.email, self.owner.role_code, self.owner.status), ('owner@profile.test', 'CUSTOMER', 'ACTIVE'))
         self.assertFalse(self.owner.groups.exists())
         self.assertEqual(self.other_customer.full_name, 'Other')
         self.assertEqual(self.customer.customerpreference_set.count(), 4)

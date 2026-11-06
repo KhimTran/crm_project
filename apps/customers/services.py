@@ -73,7 +73,7 @@ def update_customer(customer_id, *, email, full_name, phone=None, date_of_birth=
                     gender=None, address=None, playing_level=None):
     """Update customer profile fields atomically without altering password, role, status, or preferences."""
     customer = _active_customer_for_update(customer_id)
-    if customer.role != AccountRole.CUSTOMER:
+    if customer.role_code != AccountRole.CUSTOMER:
         raise CustomerServiceError("Only customer accounts can be edited here")
 
     email = AccountManager.normalize_account_email(email)

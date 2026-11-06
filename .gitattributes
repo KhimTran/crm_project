@@ -1,3 +1,5 @@
 # Backup manifests verify exact bytes on every operating system.
 database/backups/*.sql -text
 database/backups/*.sql.json -text
+database/crm_db.sql -text whitespace=cr-at-eol
+database/seed_survey_report.sql -text whitespace=cr-at-eol

@@ -94,7 +94,7 @@ class AccountApiTests(TestCase):
             self.assert_safe(response)
             account = get_user_model().objects.get(email=payload["email"].lower())
             self.assertTrue(account.check_password(self.password))
-            self.assertEqual(account.role, role)
+            self.assertEqual(account.role_code, role)
         invalid = [
             base | {"email": self.customer.email.upper()},
             base | {"email": "invalid-email"}, base | {"role": "INVALID"},
@@ -119,7 +119,7 @@ class AccountApiTests(TestCase):
         # Role change between non-admin roles succeeds
         self.assertEqual(self.send("post", self.url(action="/role"), {"role": "MANAGER"}).status_code, 200)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.MANAGER)
+        self.assertEqual(self.customer.role_code, AccountRole.MANAGER)
 
     def test_case_insensitive_create_role_status_and_filters(self):
         base = {"status": "active", "password": self.password,
@@ -151,7 +151,7 @@ class AccountApiTests(TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["role"], role.upper())
             self.customer.refresh_from_db()
-            self.assertEqual(self.customer.role, role.upper())
+            self.assertEqual(self.customer.role_code, role.upper())
         # Escalation to ADMIN is rejected
         self.assertEqual(self.send("post", self.url(action="/role"),
                                    {"role": "ADMIN"}).status_code, 409)

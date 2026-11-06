@@ -93,7 +93,7 @@ def inspect_source(connection):
         raise ExportError("Source accounts differ from seed_demo; refusing possible personal data")
     if any(not account.check_password(PASSWORD) for account in Account.objects.all()):
         raise ExportError("Demo password verification failed")
-    if {role: Account.objects.filter(role=role, status='ACTIVE').count() for role in ('ADMIN','MANAGER','CUSTOMER')} != {'ADMIN':2,'MANAGER':3,'CUSTOMER':15}:
+    if {role: Account.objects.filter(role__role_code=role, status='ACTIVE').count() for role in ('ADMIN','MANAGER','CUSTOMER')} != {'ADMIN':2,'MANAGER':3,'CUSTOMER':15}:
         raise ExportError("Demo role counts differ")
     if set(Product.objects.values_list("product_name", flat=True)) != {row[2] for row in PRODUCTS}:
         raise ExportError("Source products differ from the real seed_catalog")

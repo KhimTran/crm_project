@@ -75,7 +75,7 @@ class Command(BaseCommand):
             if not settings.DEBUG:
                 raise CommandError("Set CRM_DEMO_PASSWORD before seeding accounts outside DEBUG mode.")
             password = "DemoPass!2026"  # local demo only
-        creator = Account.objects.filter(role__in=["MANAGER", "ADMIN"]).order_by("account_id").first()
+        creator = Account.objects.filter(role__role_code__in=["MANAGER", "ADMIN"]).order_by("account_id").first()
         if creator is None:
             raise CommandError("Create a MANAGER or ADMIN account first (it becomes the survey creator).")
         rng = random.Random(2026)

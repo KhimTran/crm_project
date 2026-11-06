@@ -14,13 +14,13 @@ def account_data(account):
     return {
         "account_id": account.account_id,
         "email": account.email,
-        "role": account.role,
+        "role": account.role_code,
         "status": account.status,
         "last_login_at": account.last_login,
         "created_at": account.created_at,
         "updated_at": account.updated_at,
         "profile": {
-            "type": account.role,
+            "type": account.role_code,
             "code": account.code,
             "full_name": account.full_name,
             "phone": account.phone,
@@ -73,7 +73,7 @@ def list_account_page(actor, *, page=1, q="", role=None, status=None, page_size=
             | code_filter
         )
     if role:
-        query = query.filter(role=normalize_account_role(role))
+        query = query.filter(role__role_code=normalize_account_role(role))
     if status:
         query = query.filter(status=normalize_account_status(status))
     result = Paginator(query, page_size).get_page(page)
@@ -84,4 +84,4 @@ def list_account_page(actor, *, page=1, q="", role=None, status=None, page_size=
 def count_active_admins():
     from .constants import AccountRole, AccountStatus
 
-    return Account.objects.filter(role=AccountRole.ADMIN, status=AccountStatus.ACTIVE).count()
+    return Account.objects.filter(role__role_code=AccountRole.ADMIN, status=AccountStatus.ACTIVE).count()
