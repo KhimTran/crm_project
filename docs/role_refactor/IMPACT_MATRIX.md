@@ -65,3 +65,35 @@
 | `templates/layouts/base_crm.html` | Account object role display/guards read code; MEDIUM | Template rendering, navigation and real HTTP |
 | `templates/layouts/base_customer.html` | Account object role display/guards read code; MEDIUM | Template rendering, navigation and real HTTP |
 | `templates/manager/profile.html` | Account object role display/guards read code; MEDIUM | Template rendering, navigation and real HTTP |
+
+
+## Hardening changes — 2026-11-07
+
+| File | Direct purpose / risk | Evidence |
+| --- | --- | --- |
+| `README.md` | Current schema, rollout/recovery instructions and evidence | Source/schema/diff review |
+| `apps/accounts/decorators.py` | Join Role on reads while preserving fresh guards and locking paths; MEDIUM | Bounded list queries, one-query auth/session and Customer list; full516 |
+| `apps/accounts/management/__init__.py` | Explicit idempotent standard-Role initialization; MEDIUM | Initializer idempotence/missing-role tests; fresh/legacy restore |
+| `apps/accounts/management/commands/__init__.py` | Explicit idempotent standard-Role initialization; MEDIUM | Initializer idempotence/missing-role tests; fresh/legacy restore |
+| `apps/accounts/management/commands/initialize_roles.py` | Explicit idempotent standard-Role initialization; MEDIUM | Initializer idempotence/missing-role tests; fresh/legacy restore |
+| `apps/accounts/managers.py` | Read-only Role resolution; explicit default and fail-closed relation; HIGH | Seven new hardening tests; full516; actual portal forms |
+| `apps/accounts/models.py` | Read-only Role resolution; explicit default and fail-closed relation; HIGH | Seven new hardening tests; full516; actual portal forms |
+| `apps/accounts/permissions.py` | Join Role on reads while preserving fresh guards and locking paths; MEDIUM | Bounded list queries, one-query auth/session and Customer list; full516 |
+| `apps/accounts/selectors.py` | Join Role on reads while preserving fresh guards and locking paths; MEDIUM | Bounded list queries, one-query auth/session and Customer list; full516 |
+| `apps/accounts/tests/test_role_hardening.py` | Explicit transaction-test Role fixtures / additional integrity and query tests | Full516 without removed or weakened assertions |
+| `apps/accounts/tests/test_services.py` | Explicit transaction-test Role fixtures / additional integrity and query tests | Full516 without removed or weakened assertions |
+| `apps/customers/selectors.py` | Join Role on reads while preserving fresh guards and locking paths; MEDIUM | Bounded list queries, one-query auth/session and Customer list; full516 |
+| `apps/surveys/test_business_rules.py` | Fix baseline fixture date crossing midnight; no production rule changes | Frozen00:02 baseline rejection + corrected full lifecycle; full516 |
+| `apps/surveys/test_new_recipients.py` | Explicit transaction-test Role fixtures / additional integrity and query tests | Full516 without removed or weakened assertions |
+| `docs/database_schema.md` | Current schema, rollout/recovery instructions and evidence | Source/schema/diff review |
+| `docs/role_refactor/REPORT.md` | Current schema, rollout/recovery instructions and evidence | Source/schema/diff review |
+| `docs/role_refactor/TEAM_UPGRADE.md` | Current schema, rollout/recovery instructions and evidence | Source/schema/diff review |
+| `docs/role_refactor/TEST_RESULTS.md` | Current schema, rollout/recovery instructions and evidence | Source/schema/diff review |
+| `scripts/audit_crm_flows.py` | Real browser/network assertions; isolate seed fixture; fail runner on errors; read-only live verification | HTTP15/15; Edge34; MySQL restore/migration integrity |
+| `scripts/audit_role_portal_browser.py` | Real browser/network assertions; isolate seed fixture; fail runner on errors; read-only live verification | HTTP15/15; Edge34; MySQL restore/migration integrity |
+| `scripts/audit_survey_browser.py` | Real browser/network assertions; isolate seed fixture; fail runner on errors; read-only live verification | HTTP15/15; Edge34; MySQL restore/migration integrity |
+| `scripts/browser_cdp.py` | Real browser/network assertions; isolate seed fixture; fail runner on errors; read-only live verification | HTTP15/15; Edge34; MySQL restore/migration integrity |
+| `scripts/run_crm_audit.py` | Real browser/network assertions; isolate seed fixture; fail runner on errors; read-only live verification | HTTP15/15; Edge34; MySQL restore/migration integrity |
+| `scripts/verify_role_merge_readiness.py` | Real browser/network assertions; isolate seed fixture; fail runner on errors; read-only live verification | HTTP15/15; Edge34; MySQL restore/migration integrity |
+
+Structured hardening artifacts under hardening/ include per-test outcomes, live snapshot/final fingerprints, metadata, restore proofs, clock reproduction, HTTP/browser outcomes and branch rules. These contain no recovery SQL or session cookie values.

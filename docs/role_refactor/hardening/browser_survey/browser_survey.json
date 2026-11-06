@@ -1,0 +1,73 @@
+{
+  "cases": [
+    {
+      "case": "Browser Create + Draft + 4 answer types + saved audience",
+      "status": "PASS",
+      "survey_id": 19,
+      "question_ids": [
+        145,
+        146,
+        147,
+        148
+      ]
+    },
+    {
+      "case": "Browser Edit / reorder / add / delete / persisted SQL order",
+      "status": "PASS",
+      "questions": [
+        [
+          "SINGLE_CHOICE",
+          "Browser single edited"
+        ],
+        [
+          "MULTI_CHOICE",
+          "Browser MULTI_CHOICE"
+        ],
+        [
+          "TEXT",
+          "Browser TEXT"
+        ],
+        [
+          "RATING",
+          "Browser RATING"
+        ]
+      ]
+    },
+    {
+      "case": "Browser Send uses saved pick audience without second selection",
+      "status": "PASS",
+      "recipient_id": 92
+    },
+    {
+      "case": "Browser Customer creates NEW / Manager reads without mutation / direct resolve / Customer history",
+      "status": "PASS",
+      "feedback_id": 21
+    },
+    {
+      "case": "Customer invitation list links to the correct saved recipient",
+      "status": "PASS"
+    },
+    {
+      "case": "Browser customer submit Single/Multi/Text/Rating/Matrix through survey_take.js",
+      "status": "PASS",
+      "answer_count": 6,
+      "rating": 10
+    },
+    {
+      "case": "Manager specialized Survey Results matches published 8-question responses and excludes custom questionnaire",
+      "status": "PASS",
+      "responses": 61
+    },
+    {
+      "case": "Browser console/uncaught errors during builder/send/take/stats/report",
+      "status": "PASS"
+    }
+  ],
+  "database": "crm_browser_audit_7f4196993e",
+  "send_confirmation": "CRM Manager Portal\n\nPERSONAL\n\nProfile\n\nCATALOG\n\nProducts\nCategories\nBrands\n\nCRM MODULES\n\nCustomers\nCustomer Report\nFeedback\nSurveys\n\nCRM MANAGER PORTAL\n\nPublish Survey\nbrowser-manager@audit.test\nST0021\nLogout\nBROWSER survey builder\n\nSchedule: 07/11/2026 00:00 – 14/11/2026 23:59\n\nOnly eligible customers in the saved audience who have not received this survey will be invited.\n\n1 eligible customer(s) who have not received this survey.\n\nConfirm Publish Survey\nBack to survey",
+  "report_chart_count": 5,
+  "browser_errors": [],
+  "network_failures": [],
+  "http_failures": [],
+  "live_database_unchanged": true
+}

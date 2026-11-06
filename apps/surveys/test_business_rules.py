@@ -66,7 +66,8 @@ class SurveyFixture(TestCase):
 class LifecycleTests(SurveyFixture):
     def test_full_flow_create_invite_publish_answer_report(self):
         self.client.force_login(self.manager)
-        start = timezone.localtime() - timedelta(minutes=5)
+        # The UI accepts calendar dates: subtracting minutes can become yesterday at 00:00.
+        start = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
         response = self.client.post(reverse("surveys:manage_create"), {
             "title": "Luồng mới", "start_at": start.strftime(DT), "end_at": (start + timedelta(days=3)).strftime(DT),
             "objective": "SATISFACTION", "audience": "all"})

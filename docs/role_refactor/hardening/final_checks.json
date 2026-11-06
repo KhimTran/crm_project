@@ -1,0 +1,31 @@
+{
+  "live_table_fingerprints_unchanged": true,
+  "tables": 22,
+  "pending_migrations": false,
+  "check": "PASS",
+  "makemigrations_check": "PASS",
+  "server": "http://127.0.0.1:8000",
+  "http_gets": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/login/",
+      "status": 200
+    },
+    {
+      "path": "/admin/login/",
+      "status": 200
+    },
+    {
+      "path": "/manager/login/",
+      "status": 200
+    },
+    {
+      "path": "/api/openapi.json",
+      "status": 200
+    }
+  ],
+  "new_schema_changes": false
+}

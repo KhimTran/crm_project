@@ -1,0 +1,286 @@
+{
+  "head": "2fe237a0bd132865af38497ebd5056b679d03492",
+  "database": "crm_db",
+  "server": [
+    "8.0.45",
+    "DESKTOP-HE9BDKO"
+  ],
+  "mapping": {
+    "ADMIN": 2,
+    "CUSTOMER": 15,
+    "MANAGER": 3
+  },
+  "before_fingerprints": {
+    "accounts": [
+      [
+        "account_id",
+        "email",
+        "password_hash",
+        "status",
+        "last_login_at",
+        "created_at",
+        "updated_at",
+        "address",
+        "date_of_birth",
+        "full_name",
+        "gender",
+        "phone",
+        "playing_level",
+        "role_id"
+      ],
+      20,
+      "c009790605a1310bf15a8effbdc8ab8c9b4b4213d57b5e3fddabfe04d1e87674"
+    ],
+    "accounts_groups": [
+      [
+        "id",
+        "account_id",
+        "group_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "accounts_user_permissions": [
+      [
+        "id",
+        "account_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group": [
+      [
+        "id",
+        "name"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_group_permissions": [
+      [
+        "id",
+        "group_id",
+        "permission_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "auth_permission": [
+      [
+        "id",
+        "name",
+        "content_type_id",
+        "codename"
+      ],
+      84,
+      "d9b25496559ed4b3966b66a1917a0392d4d72781713d97e5c992465b51edcda2"
+    ],
+    "brands": [
+      [
+        "brand_id",
+        "brand_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "6cf3fa901f399e14a896e7596849510d31c52dac158ef086a9499895174600ce"
+    ],
+    "categories": [
+      [
+        "category_id",
+        "category_name",
+        "description",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      6,
+      "886ae7301ff816bfb694044f75c019744c5f3d83678ab722f258e67acb56910c"
+    ],
+    "customer_preferences": [
+      [
+        "preference_id",
+        "preference_type",
+        "preference_value",
+        "created_at",
+        "customer_id"
+      ],
+      45,
+      "3ced59770cfaa85a20719546b28beb2b62b73e20bdca558ee7d6818d4b31efc3"
+    ],
+    "django_admin_log": [
+      [
+        "id",
+        "action_time",
+        "object_id",
+        "object_repr",
+        "action_flag",
+        "change_message",
+        "content_type_id",
+        "user_id"
+      ],
+      0,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "django_content_type": [
+      [
+        "id",
+        "app_label",
+        "model"
+      ],
+      21,
+      "94bd2ddf273cf265157879470deafa3c579a66860205011c117b3fb4b00b5a03"
+    ],
+    "django_migrations": [
+      [
+        "id",
+        "app",
+        "name",
+        "applied"
+      ],
+      40,
+      "96c4da124f6b58d8502bef6fe2e88ebad528b8370c51df5d81a1b09e55d71b6e"
+    ],
+    "django_session": [
+      [
+        "session_key",
+        "session_data",
+        "expire_date"
+      ],
+      3,
+      "e7fe1f66f8d6065e1bc0f7e1508e4af1f2dcd8b73993c316b3f0b49d85da1898"
+    ],
+    "feedbacks": [
+      [
+        "feedback_id",
+        "rating",
+        "content",
+        "status",
+        "manager_note",
+        "created_at",
+        "resolved_at",
+        "customer_id",
+        "handled_by",
+        "product_id"
+      ],
+      20,
+      "d7d87b8ade066200d34fadc91307a51c95479de130e7b44887bcf2f0fb1b8f44"
+    ],
+    "products": [
+      [
+        "product_id",
+        "product_name",
+        "description",
+        "price",
+        "status",
+        "created_at",
+        "updated_at",
+        "brand_id",
+        "category_id",
+        "image_url"
+      ],
+      40,
+      "8dcda1cfe29e9d48f3d8e1bddabd4b13c714b0367075ae82df921eb92dca7efe"
+    ],
+    "roles": [
+      [
+        "role_id",
+        "role_code",
+        "role_name",
+        "description",
+        "created_at",
+        "updated_at"
+      ],
+      3,
+      "fa9bcca605c0f6dcbebd9abef6803a6b3f4275f02a9efefcba13e752e5cc3b8a"
+    ],
+    "survey_answers": [
+      [
+        "answer_id",
+        "answer_text",
+        "rating_value",
+        "created_at",
+        "option_id",
+        "question_id",
+        "response_id"
+      ],
+      854,
+      "96360dd9302c078f042f761e07fb5b54db99224b6f14821d8eae25f5c24a68f4"
+    ],
+    "survey_options": [
+      [
+        "option_id",
+        "option_text",
+        "sort_order",
+        "question_id"
+      ],
+      432,
+      "a356c0720b14ffb3a0c9aa9fba9d729a7cf3b51e0663746a16bb17469a5e8ab7"
+    ],
+    "survey_questions": [
+      [
+        "question_id",
+        "question_text",
+        "question_type",
+        "is_required",
+        "sort_order",
+        "survey_id",
+        "config"
+      ],
+      144,
+      "8b72d7dfb1315925c323a6797db897119719c5e0e75f35b88036c0419f668504"
+    ],
+    "survey_recipients": [
+      [
+        "recipient_id",
+        "status",
+        "sent_at",
+        "opened_at",
+        "completed_at",
+        "customer_id",
+        "survey_id"
+      ],
+      91,
+      "f8f1903d37910b6495c901627f7e3a745ca634ce3eeb85afae1c4f4be1563f63"
+    ],
+    "survey_responses": [
+      [
+        "response_id",
+        "status",
+        "started_at",
+        "submitted_at",
+        "recipient_id"
+      ],
+      61,
+      "51b037d0ce98b4b8bd876d9799555d9df7ff665c0d108a8e4c0d8f5a98a4cf7c"
+    ],
+    "surveys": [
+      [
+        "survey_id",
+        "title",
+        "description",
+        "start_at",
+        "end_at",
+        "status",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "template_key",
+        "objective",
+        "audience"
+      ],
+      18,
+      "d265f66522106676481f78c29118f7f9678586034eb62914461a93608e0be994"
+    ]
+  },
+  "account_list_queries": {
+    "1": 5,
+    "20": 24
+  },
+  "role_fk_present": true,
+  "pending_migrations": false,
+  "http_status": 200
+}

@@ -207,11 +207,27 @@ try:
                 from django.core.management import call_command
                 from io import StringIO
                 output=StringIO()
-                call_command('seed_survey_report_demo','--confirm',stdout=output)
-                call_command('seed_survey_report_demo','--clear','--confirm',stdout=output)
-                remaining=list(Account.objects.filter(email__endswith='@survey-report-demo.test').values('account_id','role__role_code','full_name'))
-                assert not remaining,remaining
-                return output.getvalue()
+                # Legacy fixtures intentionally refuse the final-demo database.
+                # Exercise real seed+cleanup on an independently migrated database.
+                seed_name='crm_http_seed_'+uuid4().hex[:10]
+                main_before=database_fingerprint(connection.connection)
+                cursor.execute(f'CREATE DATABASE `{seed_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci')
+                try:
+                    connection.close(); db['NAME']=seed_name; connection.settings_dict['NAME']=seed_name
+                    call_command('migrate',interactive=False,verbosity=0,stdout=output)
+                    Account.objects.create_user('seed-manager@audit.test',PW,role='MANAGER')
+                    call_command('seed_survey_report_demo','--confirm',stdout=output)
+                    assert Account.objects.filter(email__endswith='@survey-report-demo.test').count()==30
+                    assert Survey.objects.filter(title__startswith='[DỮ LIỆU THỬ]').exists()
+                    call_command('seed_survey_report_demo','--clear','--confirm',stdout=output)
+                    assert not Account.objects.filter(email__endswith='@survey-report-demo.test').exists()
+                    assert not Survey.objects.filter(title__startswith='[DỮ LIỆU THỬ]').exists()
+                finally:
+                    connection.close(); db['NAME']=name; connection.settings_dict['NAME']=name
+                    cursor.execute(f'DROP DATABASE `{seed_name}`')
+                connection.ensure_connection()
+                assert database_fingerprint(connection.connection)==main_before
+                return 'Disposable migrated fixture: 30 customers seeded and cleared; final-demo clone unchanged; production guard retained'
             case('CLI demo seed cleanup',seed_cleanup)
             def api_read():
                 one=a.request('/api/accounts/?page=1&page_size=5')
@@ -284,3 +300,5 @@ finally:
     cursor.close(); root.close()
     (OUT/'http_isolation.json').write_text(json.dumps({'database':name,'live_database_unchanged':unchanged}),encoding='utf-8')
     assert unchanged,'Shared crm_db changed during HTTP audit'
+
+assert rows and all(row['status']=='PASS' for row in rows), 'HTTP audit contains failed cases'

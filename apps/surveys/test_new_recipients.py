@@ -215,6 +215,10 @@ class NewRecipientTests(PortalTestCase):
 
 
 class ConcurrentNewRecipientTests(TransactionTestCase):
+    def setUp(self):
+        from django.core.management import call_command
+        call_command('initialize_roles', verbosity=0)
+
     @skipUnlessDBFeature("has_select_for_update")
     def test_two_simultaneous_sends_create_one_invitation(self):
         manager = Account.objects.create_user("parallel-manager@new.test", PW, role="MANAGER")

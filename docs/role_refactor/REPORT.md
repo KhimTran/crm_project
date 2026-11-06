@@ -1,5 +1,7 @@
 # Safe Account Role Normalization
 
+**Latest verification (2026-11-07): [Hardening report](hardening/REPORT.md).** 516/516 automated tests, HTTP15/15, actual Edge34 cases, source data unchanged. [Team rollout guide](TEAM_UPGRADE.md). The report below records the original refactor/deployment at 2fe237a; its browser and HTTP limitations are superseded by the new evidence.
+
 Baseline: `develop`, `28eb667fb7e7a56011eff2eb85729d85ad5e2702`, fetched from origin on 2026-11-06. Initial working tree clean. Feature branch: `feature/normalize-account-role`.
 
 ## Scope and compatibility

@@ -13,11 +13,12 @@ def resolve_account_role(code, *, using=None):
         code = normalize_account_role(code)
     except InvalidAccountRole as exc:
         raise ValidationError(str(exc)) from exc
-    names = {"ADMIN": "Quản trị viên", "MANAGER": "Quản lý", "CUSTOMER": "Khách hàng"}
-    role, _ = apps.get_model("accounts", "Role").objects.db_manager(using).get_or_create(
-        role_code=code, defaults={"role_name": names[code]},
-    )
-    return role
+    Role = apps.get_model("accounts", "Role")
+    try:
+        return Role.objects.db_manager(using).get(role_code=code)
+    except Role.DoesNotExist as exc:
+        raise ValidationError({"role": "Required role is missing. Run initialize_roles before creating accounts."},
+                              code="missing_role") from exc
 
 
 class AccountQuerySet(models.QuerySet):
@@ -35,6 +36,11 @@ class AccountQuerySet(models.QuerySet):
 
 
 class AccountManager(BaseUserManager.from_queryset(AccountQuerySet)):
+    def get(self, *args, **kwargs):
+        # Django's ModelBackend uses this for both login and session reloads.
+        # Join the current Role in that same fresh read; never cache across requests.
+        return self.get_queryset().select_related("role").get(*args, **kwargs)
+
     @staticmethod
     def normalize_account_email(email):
         if not isinstance(email, str) or not email.strip():
@@ -52,6 +58,7 @@ class AccountManager(BaseUserManager.from_queryset(AccountQuerySet)):
             extra_fields["status"] = normalize_account_status(extra_fields["status"])
         except (InvalidAccountRole, ValueError) as exc:
             raise ValidationError(str(exc)) from exc
+        extra_fields["role"] = resolve_account_role(extra_fields["role"], using=self.db)
         account = self.model(email=email, **extra_fields)
         validate_password(password, account)
         account.set_password(password)

@@ -23,7 +23,7 @@ def _get_active_account(user):
             or not getattr(user, "pk", None)):
         return None
     # Đọc lại DB để session/object cũ không giữ quyền sau khi khóa hoặc đổi role.
-    return Account.objects.filter(pk=user.pk, status=AccountStatus.ACTIVE).only(
+    return Account.objects.select_related("role").filter(pk=user.pk, status=AccountStatus.ACTIVE).only(
         "account_id", "role", "status",
     ).first()
 

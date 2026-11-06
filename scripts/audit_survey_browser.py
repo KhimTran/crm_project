@@ -19,7 +19,7 @@ from apps.surveys.models import Survey, SurveyQuestion, SurveyOption, SurveyReci
 from apps.admin_portal.services.restore_service import database_fingerprint
 from browser_cdp import DevTools
 
-OUT = Path('docs/crm_audit_20261101/completion').resolve()
+OUT = Path(os.environ.get('CRM_AUDIT_OUT','docs/crm_audit_20261101/completion')).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
 db = settings.DATABASES['default']; original = db['NAME']
 root = connection.Database.connect(**connection.get_connection_params())
@@ -147,6 +147,9 @@ try:
             navigate('/feedbacks/mine/', 'body')
             assert 'Browser resolved directly' in dev.evaluate('document.body.innerText')
             evidence['cases'].append({'case':'Browser Customer creates NEW / Manager reads without mutation / direct resolve / Customer history', 'status':'PASS','feedback_id':feedback.pk})
+            navigate('/surveys/mine/', 'body')
+            dev.wait('!!document.querySelector('+json.dumps(f'a[href="/surveys/recipients/{recipient.pk}/"]')+')')
+            evidence['cases'].append({'case':'Customer invitation list links to the correct saved recipient','status':'PASS'})
             navigate(f'/surveys/recipients/{recipient.pk}/', '#sv-form')
             for kind in ('SINGLE_CHOICE','MULTI_CHOICE','RATING'):
                 dev.click(f'[data-type="{kind}"] input')
@@ -165,6 +168,13 @@ try:
             evidence['cases'].append({'case':'Browser customer submit Single/Multi/Text/Rating/Matrix through survey_take.js','status':'PASS','answer_count':6,'rating':10})
             navigate(f'/surveys/manage/{survey.pk}/stats/', 'body')
             assert 'Browser' in dev.evaluate('document.body.innerText')
+            navigate('/surveys/manage/results/', 'body')
+            from apps.surveys.survey_report import build_report
+            expected_responses=build_report()['total']['count']
+            assert expected_responses>0
+            dev.wait('!!document.querySelector(".report-tile strong") && document.querySelector(".report-tile strong").textContent.trim().startsWith('+json.dumps(str(expected_responses))+')')
+            assert str(survey.pk) not in dev.evaluate('[...document.querySelector("#report-survey").options].map(o=>o.value)')
+            evidence['cases'].append({'case':'Manager specialized Survey Results matches published 8-question responses and excludes custom questionnaire','status':'PASS','responses':expected_responses})
             # Capture at both desktop and mobile dimensions without changing data.
             for width in (1440,390):
                 dev.command('Emulation.setDeviceMetricsOverride', {'width':width,'height':1000,'deviceScaleFactor':1,'mobile':False})
@@ -172,7 +182,11 @@ try:
                 dev.wait('typeof Chart !== "undefined" && Object.keys(Chart.instances).length === 5')
             evidence['report_chart_count'] = dev.evaluate('Object.keys(Chart.instances).length')
             evidence['browser_errors'] = dev.errors
+            evidence['network_failures'] = dev.network_failures
+            evidence['http_failures'] = [r for r in dev.responses if r['status']>=400]
             assert not dev.errors, dev.errors
+            assert not evidence['network_failures'],evidence['network_failures']
+            assert not evidence['http_failures'],evidence['http_failures']
             evidence['cases'].append({'case':'Browser console/uncaught errors during builder/send/take/stats/report','status':'PASS'})
             dev.sock.close()
 except Exception as exc:

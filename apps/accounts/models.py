@@ -56,13 +56,21 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def __init__(self, *args, **kwargs):
         # String input remains supported for account construction, never for ORM lookups.
         code = kwargs.pop("role", None) if isinstance(kwargs.get("role"), str) else None
+        default_customer = not args and "role" not in kwargs and "role_id" not in kwargs
         super().__init__(*args, **kwargs)
         if code is not None:
             self.role_code = code
+        elif default_customer:
+            self.role_code = AccountRole.CUSTOMER
 
     @property
     def role_code(self):
-        return self.role.role_code if self.role_id is not None else AccountRole.CUSTOMER
+        if self.role_id is None:
+            raise ValidationError({"role": "An account must reference an existing role."})
+        try:
+            return self.role.role_code
+        except Role.DoesNotExist as exc:
+            raise ValidationError({"role": "An account must reference an existing role."}) from exc
 
     @role_code.setter
     def role_code(self, code):
@@ -143,8 +151,6 @@ class Account(AbstractBaseUser, PermissionsMixin):
                 if type(self).objects.filter(email=self.email).exclude(pk=self.pk).exists():
                     raise ValidationError({"email": "Email is already in use"})
         try:
-            if self.role_id is None:
-                self.role_code = AccountRole.CUSTOMER
             normalize_account_role(self.role_code)
             self.status = normalize_account_status(self.status)
         except (InvalidAccountRole, ValueError) as exc:

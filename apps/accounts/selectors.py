@@ -37,7 +37,7 @@ def account_data(account):
 
 def get_account(actor, account_id):
     require_active_admin(actor)
-    account = Account.objects.filter(pk=account_id).first()
+    account = Account.objects.select_related("role").filter(pk=account_id).first()
     if account is None:
         raise AccountNotFound("Account not found")
     return account_data(account)
@@ -47,13 +47,13 @@ def list_accounts(actor):
     require_active_admin(actor)
     return [
         account_data(account)
-        for account in Account.objects.order_by("account_id")
+        for account in Account.objects.select_related("role").order_by("account_id")
     ]
 
 
 def list_account_page(actor, *, page=1, q="", role=None, status=None, page_size=20):
     require_active_admin(actor)
-    query = Account.objects.order_by("account_id")
+    query = Account.objects.select_related("role").order_by("account_id")
     if q and q.strip():
         term = q.strip()
         code_filter = Q()

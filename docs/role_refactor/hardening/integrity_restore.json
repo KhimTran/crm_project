@@ -1,0 +1,49 @@
+{
+  "normalized_backup": {
+    "backup": "crm_261106_170509.sql",
+    "sha256": "94fcdbd2e0cfee97172d2c8814aba06af3f74eb8c2ed0e4496d79d7179c2572d",
+    "result": {
+      "all_table_values_restored_identically": true,
+      "existing_role_id_schema_no_pending_migration": true
+    }
+  },
+  "legacy_backup": {
+    "backup": "crm_261104_135013.sql",
+    "sha256": "b0234fd76d0158879ee6edac2c154252bdb034097d2190e3f7173df8ae5fadeb",
+    "result": {
+      "database": "crm_role_verify_e4a65a83bc9a",
+      "accounts_preserved": 20,
+      "mapping": {
+        "ADMIN": 2,
+        "CUSTOMER": 15,
+        "MANAGER": 3
+      },
+      "tables": 22,
+      "foreign_keys_checked": 25,
+      "all_account_and_unrelated_values_preserved": true,
+      "role_names_normalized": true,
+      "orphan_records": 0,
+      "reverse_forward_reverified": true
+    }
+  },
+  "live_integrity": {
+    "database": "crm_db",
+    "accounts_preserved": 20,
+    "mapping": {
+      "ADMIN": 2,
+      "CUSTOMER": 15,
+      "MANAGER": 3
+    },
+    "tables": 22,
+    "foreign_keys_checked": 25,
+    "all_account_and_unrelated_values_preserved": true,
+    "role_names_normalized": true,
+    "orphan_records": 0
+  },
+  "account_list_queries": {
+    "1": 3,
+    "20": 3
+  },
+  "live_fingerprints_unchanged": true,
+  "status": "PASS"
+}

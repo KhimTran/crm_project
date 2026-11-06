@@ -1,0 +1,523 @@
+{
+  "database": "crm_role_browser_3e0a299d72",
+  "cases": [
+    {
+      "case": "ADMIN login and dashboard redirect",
+      "status": "PASS",
+      "path": "/admin/accounts/",
+      "http_status": 200
+    },
+    {
+      "case": "ADMIN invalid password validation then create Account",
+      "status": "PASS",
+      "path": "/admin/accounts/",
+      "http_status": 200
+    },
+    {
+      "case": "ADMIN Account detail",
+      "status": "PASS",
+      "path": "/admin/accounts/23/",
+      "http_status": 200
+    },
+    {
+      "case": "ADMIN role change",
+      "status": "PASS",
+      "path": "/admin/accounts/",
+      "http_status": 200
+    },
+    {
+      "case": "ADMIN lock",
+      "status": "PASS",
+      "path": "/admin/accounts/",
+      "http_status": 200
+    },
+    {
+      "case": "ADMIN unlock",
+      "status": "PASS",
+      "path": "/admin/accounts/",
+      "http_status": 200
+    },
+    {
+      "case": "ADMIN password reset",
+      "status": "PASS",
+      "path": "/admin/accounts/",
+      "http_status": 200
+    },
+    {
+      "case": "ADMIN Customer management",
+      "status": "PASS",
+      "path": "/crm/customers/",
+      "http_status": 200
+    },
+    {
+      "case": "ADMIN actual Backup UI on clone",
+      "status": "PASS",
+      "path": "/admin/database/",
+      "http_status": 200
+    },
+    {
+      "case": "MANAGER login and dashboard redirect",
+      "status": "PASS",
+      "path": "/manager/catalog/products/",
+      "http_status": 200
+    },
+    {
+      "case": "MANAGER Catalog create and edit",
+      "status": "PASS",
+      "path": "/manager/catalog/products/",
+      "http_status": 200
+    },
+    {
+      "case": "MANAGER Catalog delete disposable product",
+      "status": "PASS",
+      "path": "/manager/catalog/products/",
+      "http_status": 200
+    },
+    {
+      "case": "MANAGER /crm/customers/",
+      "status": "PASS",
+      "path": "/crm/customers/",
+      "http_status": 200
+    },
+    {
+      "case": "MANAGER /crm/feedbacks/",
+      "status": "PASS",
+      "path": "/crm/feedbacks/",
+      "http_status": 200
+    },
+    {
+      "case": "MANAGER /surveys/manage/",
+      "status": "PASS",
+      "path": "/surveys/manage/",
+      "http_status": 200
+    },
+    {
+      "case": "MANAGER /crm/reports/customers/",
+      "status": "PASS",
+      "path": "/crm/reports/customers/",
+      "http_status": 200
+    },
+    {
+      "case": "CUSTOMER registration default Role",
+      "status": "PASS",
+      "path": "/login/",
+      "http_status": 200
+    },
+    {
+      "case": "CUSTOMER profile update",
+      "status": "PASS",
+      "path": "/account/profile/",
+      "http_status": 200
+    },
+    {
+      "case": "CUSTOMER password change retains session",
+      "status": "PASS",
+      "path": "/",
+      "http_status": 200
+    },
+    {
+      "case": "CUSTOMER Product catalog",
+      "status": "PASS",
+      "path": "/products/",
+      "http_status": 200
+    },
+    {
+      "case": "Browser forged CSRF POST rejected",
+      "status": "PASS",
+      "path": "/products/",
+      "http_status": 200
+    },
+    {
+      "case": "Independent logout /admin/logout/",
+      "status": "PASS",
+      "path": "/admin/login/",
+      "http_status": 200
+    },
+    {
+      "case": "Independent logout /manager/logout/",
+      "status": "PASS",
+      "path": "/manager/login/",
+      "http_status": 200
+    },
+    {
+      "case": "Independent logout /logout/",
+      "status": "PASS",
+      "path": "/login/",
+      "http_status": 200
+    },
+    {
+      "case": "CUSTOMER login with changed password",
+      "status": "PASS",
+      "path": "/",
+      "http_status": 200
+    },
+    {
+      "case": "CUSTOMER denied ADMIN portal",
+      "status": "PASS",
+      "path": "/admin/login/",
+      "http_status": 200
+    }
+  ],
+  "viewports": [
+    {
+      "path": "/admin/accounts/",
+      "width": 1440,
+      "body": 1425,
+      "main": true,
+      "forms": 6
+    },
+    {
+      "path": "/admin/accounts/",
+      "width": 390,
+      "body": 375,
+      "main": true,
+      "forms": 6
+    },
+    {
+      "path": "/crm/customers/",
+      "width": 1440,
+      "body": 1425,
+      "main": true,
+      "forms": 12
+    },
+    {
+      "path": "/crm/reports/customers/",
+      "width": 1440,
+      "body": 1425,
+      "main": true,
+      "forms": 2
+    },
+    {
+      "path": "/crm/customers/",
+      "width": 390,
+      "body": 375,
+      "main": true,
+      "forms": 12
+    },
+    {
+      "path": "/crm/reports/customers/",
+      "width": 390,
+      "body": 375,
+      "main": true,
+      "forms": 2
+    },
+    {
+      "path": "/account/profile/",
+      "width": 1440,
+      "body": 1425,
+      "main": true,
+      "forms": 3
+    },
+    {
+      "path": "/account/profile/",
+      "width": 390,
+      "body": 375,
+      "main": true,
+      "forms": 3
+    }
+  ],
+  "three_portal_cookies_coexist": true,
+  "javascript_errors": [],
+  "console_log_errors": [
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "network",
+          "level": "error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+          "timestamp": 1793984656590.116,
+          "url": "http://127.0.0.1:8027/admin/accounts/",
+          "networkRequestId": "28268.738"
+        }
+      }
+    }
+  ],
+  "network_failures": [],
+  "http_failures": [
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 403,
+      "type": "Fetch"
+    }
+  ],
+  "document_responses": [
+    {
+      "url": "http://127.0.0.1:8027/admin/login/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/create/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/23/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/?q=browser-created",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/?q=browser-created",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/?q=browser-created",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/?q=browser-created",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/crm/customers/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/database/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/database/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/login/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/catalog/products/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/catalog/products/create/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/catalog/products/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/catalog/products/41/edit/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/catalog/products/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/catalog/products/?q=Browser+Role",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/catalog/products/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/crm/customers/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/crm/feedbacks/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/surveys/manage/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/crm/reports/customers/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/crm/customers/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/crm/reports/customers/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/crm/customers/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/crm/reports/customers/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/register/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/login/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/login/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/account/profile/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/account/profile/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/account/password/change/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/account/profile/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/account/profile/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/products/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/accounts/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/login/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/profile/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/manager/login/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/account/profile/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/login/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/login/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/",
+      "status": 200,
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:8027/admin/login/?next=%2Fadmin%2Faccounts%2F",
+      "status": 200,
+      "type": "Document"
+    }
+  ],
+  "expected_negative_http": "One intentional forged-CSRF Fetch returns 403 and produces a browser network console entry.",
+  "source_unchanged": true
+}
