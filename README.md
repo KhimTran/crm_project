@@ -297,3 +297,10 @@ Live finalization 2026-11-02: owner authorized and applied surveys.0006; verifie
 
 
 Feedback owner decision 2026-11-02: only NEW and RESOLVED are valid. Existing IN_PROGRESS feedbacks converted to NEW by feedback.0003_two_status_feedback; note and handler retained, resolved_at cleared. Existing reopen remains RESOLVED -> NEW. Survey response IN_PROGRESS is unrelated and remains supported. Live migration and verified recovery/full backup evidence: docs/crm_audit_20261101/completion/feedback_finalization.json. Previous three-status Feedback descriptions are historical and superseded.
+
+
+### Role FK upgrade — PR #27
+
+Account.role is a Role relation; use role_code for business comparisons and role__role_code in ORM filters. APIs/forms retain their string role contract. Runtime never recreates missing Roles; migrations or the explicit initialize_roles command initialize them. This hardening has no schema migration and requires no seed on an existing normalized database.
+
+Read [the four-path team upgrade/restore guide](docs/role_refactor/TEAM_UPGRADE.md) before changing an existing database, and [verification evidence](docs/role_refactor/hardening/REPORT.md) before reviewing PR #27. Never overwrite populated tables with a dump or fake migration history.

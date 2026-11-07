@@ -39,7 +39,7 @@ def _safe_staff_next(request, account):
     elif not url_has_allowed_host_and_scheme(destination, {host}, require_https=request.is_secure()):
         destination = ""
 
-    role = getattr(account, "role", None)
+    role = getattr(account, "role_code", None)
 
     if role == AccountRole.ADMIN:
         default_admin = reverse("accounts_admin:list")
@@ -103,7 +103,7 @@ def staff_login(request):
     next_url = request.POST.get("next") or request.GET.get("next") or ""
 
     if request.user.is_authenticated and request.user.is_active:
-        role = getattr(request.user, "role", None)
+        role = getattr(request.user, "role_code", None)
         if role == AccountRole.ADMIN:
             return redirect(_safe_staff_next(request, request.user))
         if role == AccountRole.MANAGER:
@@ -123,9 +123,9 @@ def staff_login(request):
             if account is not None:
                 if account.status != AccountStatus.ACTIVE:
                     form.add_error(None, "Unable to sign in with these credentials.")
-                elif account.role == AccountRole.CUSTOMER:
+                elif account.role_code == AccountRole.CUSTOMER:
                     form.add_error(None, "Access Denied: Staff only.")
-                elif account.role in (AccountRole.ADMIN, AccountRole.MANAGER):
+                elif account.role_code in (AccountRole.ADMIN, AccountRole.MANAGER):
                     # The shared sign-in form may receive either staff role.
                     # Store it in that role's session without replacing the other.
                     select_login_session(request, account)

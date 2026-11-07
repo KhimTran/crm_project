@@ -59,3 +59,6 @@ finally:
     observer.close()
     (OUT/'suite_summary.json').write_text(json.dumps({'counts':{state:sum(r['state']==state for r in rows) for state in ['PASS','FAIL','ERROR','SKIP']},'duration_seconds':round(time.monotonic()-started,2),'live_database_unchanged':unchanged,'test_database':test_database},indent=2),encoding='utf-8')
     assert unchanged,'Shared crm_db data changed during tests'
+
+if failed:
+    raise SystemExit(1)

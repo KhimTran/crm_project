@@ -81,7 +81,7 @@ class AccountProfileEditForm(forms.Form):
         self.account_id = account_id
         super().__init__(*args, **kwargs)
         if account_id:
-            role = Account.objects.filter(pk=account_id).values_list("role", flat=True).first()
+            role = Account.objects.filter(pk=account_id).values_list('role__role_code', flat=True).first()
             self.fields["date_of_birth"].set_minimum_age(minimum_age_for_role(role))
 
     def clean_email(self):

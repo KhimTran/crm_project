@@ -1,0 +1,162 @@
+[
+  {
+    "case": "Role login",
+    "status": "PASS",
+    "evidence": [
+      null,
+      null,
+      null,
+      "3 real CSRF login flows"
+    ]
+  },
+  {
+    "case": "A Account lifecycle",
+    "status": "PASS",
+    "evidence": "create/hash/duplicate/role change/old session/lock/unlock/reset verified by ORM"
+  },
+  {
+    "case": "B Customer lifecycle",
+    "status": "PASS",
+    "evidence": "manager create/lock/stale session/unlock/hard-delete-without-history verified"
+  },
+  {
+    "case": "C Customer feedback -> manager",
+    "status": "PASS",
+    "evidence": {
+      "feedback_id": 21,
+      "status": "RESOLVED",
+      "customer_id": 23,
+      "product_id": 1
+    }
+  },
+  {
+    "case": "D Saved audience survey -> answer -> stats",
+    "status": "PASS",
+    "evidence": {
+      "survey_id": 19,
+      "recipient_id": 92,
+      "submitted": 1,
+      "answers": 1
+    }
+  },
+  {
+    "case": "E Customer reports SQL reconciliation",
+    "status": "PASS",
+    "evidence": {
+      "favorite_answered": 16,
+      "direct_sql_expected": 16,
+      "age_groups": [
+        {
+          "label": "Dưới 18",
+          "count": 2
+        },
+        {
+          "label": "18–24",
+          "count": 2
+        },
+        {
+          "label": "25–34",
+          "count": 5
+        },
+        {
+          "label": "35–44",
+          "count": 2
+        },
+        {
+          "label": "45–54",
+          "count": 2
+        },
+        {
+          "label": "Từ 55",
+          "count": 3
+        },
+        {
+          "label": "Chưa khai báo",
+          "count": 1
+        }
+      ],
+      "age_sql_buckets": [
+        2,
+        2,
+        5,
+        2,
+        2,
+        3,
+        1
+      ]
+    }
+  },
+  {
+    "case": "Cross-role security and profile",
+    "status": "PASS",
+    "evidence": "Customer admin API denied; Manager database denied; profile mass assignment ignored; SQLi-like search handled; no-CSRF POST rejected"
+  },
+  {
+    "case": "Unified login routes staff session correctly",
+    "status": "PASS",
+    "evidence": [
+      {
+        "role": "ADMIN",
+        "url": "http://127.0.0.1:8018/admin/accounts/",
+        "status": 200
+      },
+      {
+        "role": "MANAGER",
+        "url": "http://127.0.0.1:8018/manager/catalog/products/",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "case": "Concurrent sessions CRM after Manager logout",
+    "status": "PASS",
+    "evidence": "Admin CRM remains available after Manager logout"
+  },
+  {
+    "case": "Admin delete unreferenced account",
+    "status": "PASS",
+    "evidence": "Admin UI hard delete unreferenced Manager, verified absent in DB"
+  },
+  {
+    "case": "Customer registration and duplicate",
+    "status": "PASS",
+    "evidence": "Actual registration form/hash/duplicate protection"
+  },
+  {
+    "case": "CLI demo seed cleanup",
+    "status": "FAIL",
+    "error": "CommandError: Final demo dataset detected. Use seed_demo; legacy report fixtures are separate.",
+    "traceback": "Traceback (most recent call last):\n  File \"E:\\CNTT_Code\\HTTT\\crm_project\\scripts\\audit_crm_flows.py\", line 27, in case\n    try: detail=action(); row={'case':label,'status':'PASS','evidence':detail}\n                ^^^^^^^^\n  File \"E:\\CNTT_Code\\HTTT\\crm_project\\scripts\\audit_crm_flows.py\", line 210, in seed_cleanup\n    call_command('seed_survey_report_demo','--confirm',stdout=output)\n  File \"E:\\CNTT_Code\\HTTT\\crm_project\\venv\\Lib\\site-packages\\django\\core\\management\\__init__.py\", line 194, in call_command\n    return command.execute(*args, **defaults)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\CNTT_Code\\HTTT\\crm_project\\venv\\Lib\\site-packages\\django\\core\\management\\base.py\", line 464, in execute\n    output = self.handle(*args, **options)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Tea\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 81, in inner\n    return func(*args, **kwds)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"E:\\CNTT_Code\\HTTT\\crm_project\\apps\\surveys\\management\\commands\\seed_survey_report_demo.py\", line 64, in handle\n    raise CommandError(\"Final demo dataset detected. Use seed_demo; legacy report fixtures are separate.\")\ndjango.core.management.base.CommandError: Final demo dataset detected. Use seed_demo; legacy report fixtures are separate.\n"
+  },
+  {
+    "case": "Admin Accounts API pagination and validation",
+    "status": "PASS",
+    "evidence": {
+      "pages": 2,
+      "ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "invalid_page_status": 400,
+      "password_hash_exposed": false
+    }
+  },
+  {
+    "case": "JSON mutation API lifecycle, authorization and CSRF",
+    "status": "PASS",
+    "evidence": "Real JSON create/duplicate/role policy/role change/lock/stale session/unlock/reset/delete; CSRF+Manager+Customer denied; DB values verified"
+  },
+  {
+    "case": "Customer JSON mutation form contract",
+    "status": "PASS",
+    "evidence": "JSON response contract: invalid 400, unauthorized denied, create 201 and DB round-trip, duplicate rejected, refreshed list and cleanup"
+  }
+]

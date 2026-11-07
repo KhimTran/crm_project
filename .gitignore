@@ -2,6 +2,9 @@ venv/
 __pycache__/
 *.pyc
 .env
+# Operational recovery media stay local; the already tracked canonical demo pair remains tracked.
+database/backups/*.sql
+database/backups/*.sql.json
 media/
 .vscode/
 # Byte-compiled / optimized / DLL files

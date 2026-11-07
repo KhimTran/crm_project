@@ -1,0 +1,7 @@
+{
+  "baseline_commit": "28eb667fb7e7a56011eff2eb85729d85ad5e2702",
+  "frozen_local_time": "2026-11-07T00:02:00+07:00",
+  "original_source_reproduces_rejection": true,
+  "same_full_flow_with_calendar_fixture_passes": true,
+  "business_validation_unchanged": true
+}

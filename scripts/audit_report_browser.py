@@ -7,7 +7,7 @@ django.setup()
 from django.test import RequestFactory
 from apps.accounts.models import Account
 from apps.customers.views import customer_report
-request=RequestFactory().get('/crm/reports/customers/'); request.user=Account.objects.filter(role='MANAGER',status='ACTIVE').first()
+request=RequestFactory().get('/crm/reports/customers/'); request.user=Account.objects.filter(role__role_code='MANAGER',status='ACTIVE').first()
 page=customer_report(request).content.decode().replace('href="/static/','href="http://127.0.0.1:8000/static/').replace('src="/static/','src="http://127.0.0.1:8000/static/')
 early='''<script>window.auditErrors=[];addEventListener('error',e=>auditErrors.push(e.message||e.target.src||e.target.href||'resource error'),true);addEventListener('unhandledrejection',e=>auditErrors.push(String(e.reason)));</script>'''
 probe='''<script>addEventListener('load',()=>setTimeout(()=>{let canvases=[...document.querySelectorAll('canvas')];let data={errors:auditErrors,chartLibrary:typeof Chart,canvases:canvases.length,rendered:typeof Chart==='function'?canvases.filter(c=>Chart.getChart(c)).length:0};let pre=document.createElement('pre');pre.id='audit-result';pre.textContent=JSON.stringify(data);document.body.append(pre)},500));</script>'''

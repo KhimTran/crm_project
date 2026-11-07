@@ -23,7 +23,7 @@ def _get_active_account(user):
             or not getattr(user, "pk", None)):
         return None
     # Đọc lại DB để session/object cũ không giữ quyền sau khi khóa hoặc đổi role.
-    return Account.objects.filter(pk=user.pk, status=AccountStatus.ACTIVE).only(
+    return Account.objects.select_related("role").filter(pk=user.pk, status=AccountStatus.ACTIVE).only(
         "account_id", "role", "status",
     ).first()
 
@@ -31,9 +31,9 @@ def _get_active_account(user):
 def _home_path(account):
     if account is None:
         return "/"
-    if account.role == AccountRole.ADMIN:
+    if account.role_code == AccountRole.ADMIN:
         return "/admin/"
-    if account.role == AccountRole.MANAGER:
+    if account.role_code == AccountRole.MANAGER:
         return "/manager/"
     if account.groups.filter(name__in=_CRM_GROUPS).exists():
         return "/crm/"
@@ -76,7 +76,7 @@ def role_required(*allowed_roles):
             if account is None:
                 return HttpResponseForbidden("Tài khoản không hoạt động.")
 
-            if account.role in permissions:
+            if account.role_code in permissions:
                 return view(request, *args, **kwargs)
             groups = permissions & _CRM_GROUPS
             if groups and account.groups.filter(name__in=groups).exists():

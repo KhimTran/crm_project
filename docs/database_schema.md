@@ -1,7 +1,7 @@
 # Tài liệu Đặc tả Cơ sở Dữ liệu CRM (Database Schema Specification)
 
 **Dự án:** Website bán đồ thể thao cầu lông tích hợp hệ thống quản lý quan hệ khách hàng (CRM)  
-**Phiên bản cập nhật:** 2026-10-20  
+**Phiên bản cập nhật:** 2026-11-07
 **Hệ quản trị CSDL:** MySQL 8.x (InnoDB)  
 **Tên cơ sở dữ liệu:** `crm_db`  
 **Bảng mã (Charset / Collation):** `utf8mb4` / `utf8mb4_unicode_ci`  
@@ -16,7 +16,7 @@
    - Bảng sản phẩm (`products`) chỉ thuộc về danh mục (`categories`) và thương hiệu (`brands`). Khi tạo mới database từ đầu hoặc chạy seed, hoàn toàn không tạo lại bất kỳ thực thể nhà cung cấp nào.
 2. **Chỉ duy trì 3 Vai trò Nghiệp vụ (RBAC):**
    - Ba vai trò chuẩn: `ADMIN` (Quản trị viên), `MANAGER` (Nhân sự quản lý), `CUSTOMER` (Khách hàng).
-   - Được đồng bộ chặt chẽ giữa bảng `roles`, trường `accounts.role`, ràng buộc `chk_roles_code`, `chk_accounts_role`, khóa ngoại `fk_accounts_role`, và hệ thống phân quyền Django Groups / Permissions.
+   - `accounts.role_id` tham chiếu `roles.role_id`; `uq_roles_code` và `chk_roles_code` bảo vệ ba code chuẩn. Django Groups / Permissions độc lập với Role, giữ nguyên quy tắc truy cập hiện có; Group không tự cấp ADMIN.
    - Không tồn tại vai trò CSKH hoặc Staff riêng lẻ làm lệch mô hình phân quyền 3 vai trò.
 3. **Đặc tả Bảng Tài khoản (`accounts`) & Hồ sơ Khách hàng:**
    - Đã loại bỏ hoàn toàn các trường `position` và `hire_date` khỏi schema SQL, Django models và migrations.
@@ -36,7 +36,7 @@
 
 ```mermaid
 erDiagram
-    roles ||--o{ accounts : "fk_accounts_role (role_code)"
+    roles ||--o{ accounts : "role_id"
     categories ||--o{ products : "fk_products_category (category_id)"
     brands ||--o{ products : "fk_products_brand (brand_id)"
     
@@ -70,7 +70,7 @@ erDiagram
         int account_id PK
         varchar email UK
         varchar password_hash
-        varchar role FK "ADMIN, MANAGER, CUSTOMER"
+        int role_id FK
         varchar status "ACTIVE, LOCKED"
         varchar full_name
         varchar phone
@@ -196,39 +196,43 @@ erDiagram
 
 ## 3. Danh mục Chi tiết các Bảng Dữ liệu (Data Dictionary)
 
-### 3.1. Bảng `roles` (Vai trò người dùng)
-Lưu trữ danh mục vai trò chuẩn của hệ thống CRM.
+### 3.1. Bảng `roles`
 
-| Cột | Kiểu dữ liệu | Nullable | Mặc định | Khóa / Ràng buộc | Mô tả |
-| --- | --- | --- | --- | --- | --- |
-| `role_id` | `INT` | No | AUTO_INCREMENT | PK | Khóa chính vai trò |
-| `role_code` | `VARCHAR(20)` | No | — | UNIQUE (`uq_roles_code`), CHECK (`chk_roles_code`: `ADMIN`, `MANAGER`, `CUSTOMER`) | Mã vai trò kỹ thuật |
-| `role_name` | `VARCHAR(50)` | No | — | — | Tên hiển thị tiếng Việt |
-| `description` | `VARCHAR(255)` | Yes | NULL | — | Mô tả nhiệm vụ vai trò |
-| `created_at` | `DATETIME(6)` | No | `CURRENT_TIMESTAMP` | — | Thời điểm tạo |
-| `updated_at` | `DATETIME(6)` | No | `CURRENT_TIMESTAMP ON UPDATE` | — | Thời điểm cập nhật cuối |
+Danh mục ba Role chuẩn, được khởi tạo bởi migration hoặc lệnh quản trị rõ ràng `initialize_roles`. Runtime chỉ đọc Role đã tồn tại; thiếu Role trả ValidationError có kiểm soát.
 
-### 3.2. Bảng `accounts` (Tài khoản người dùng & Khách hàng)
-Chứa tài khoản người dùng đăng nhập hệ thống kết hợp thông tin hồ sơ khách hàng.
+| Cột | Kiểu | NULL | Mặc định / nguồn | Ràng buộc |
+| --- | --- | --- | --- | --- |
+| `role_id` | signed INT | No | AUTO_INCREMENT (SQL) | PK |
+| `role_code` | VARCHAR(20) | No | Không | UNIQUE uq_roles_code; CHECK ADMIN/MANAGER/CUSTOMER |
+| `role_name` | VARCHAR(50) | No | Không | Tên hiển thị, không quyết định quyền |
+| `description` | VARCHAR(255) | Yes | NULL | Mô tả tùy chọn |
+| `created_at` | DATETIME(6) | No | timezone.now (ORM) | Không có SQL default trên schema migrate mới |
+| `updated_at` | DATETIME(6) | No | auto_now (ORM) | Không có SQL ON UPDATE trên schema migrate mới |
 
-| Cột | Kiểu dữ liệu | Nullable | Mặc định | Khóa / Ràng buộc | Mô tả |
-| --- | --- | --- | --- | --- | --- |
-| `account_id` | `INT` | No | AUTO_INCREMENT | PK | Khóa chính tài khoản |
-| `email` | `VARCHAR(255)` | No | — | UNIQUE (`uq_accounts_email`) | Email đăng nhập, bất biến |
-| `password_hash` | `VARCHAR(255)` | No | — | — | Mật khẩu băm (PBKDF2 SHA256) |
-| `role` | `VARCHAR(20)` | No | `'CUSTOMER'` | FK (`fk_accounts_role` → `roles.role_code`), CHECK (`ADMIN`, `MANAGER`, `CUSTOMER`) | Vai trò tài khoản |
-| `status` | `VARCHAR(20)` | No | `'ACTIVE'` | CHECK (`chk_accounts_status`: `ACTIVE`, `LOCKED`) | Trạng thái hoạt động |
-| `full_name` | `VARCHAR(150)` | No | `''` | — | Họ và tên |
-| `phone` | `VARCHAR(20)` | Yes | NULL | — | Số điện thoại liên hệ |
-| `date_of_birth` | `DATE` | Yes | NULL | — | Ngày sinh |
-| `gender` | `VARCHAR(20)` | Yes | NULL | — | Giới tính (MALE, FEMALE, OTHER) |
-| `address` | `VARCHAR(255)` | Yes | NULL | — | Địa chỉ cư trú |
-| `playing_level` | `VARCHAR(30)` | Yes | NULL | — | Trình độ chơi cầu lông |
-| `last_login_at` | `DATETIME(6)` | Yes | NULL | — | Thời điểm đăng nhập gần nhất |
-| `created_at` | `DATETIME(6)` | No | `CURRENT_TIMESTAMP` | — | Thời điểm tạo tài khoản |
-| `updated_at` | `DATETIME(6)` | No | `CURRENT_TIMESTAMP ON UPDATE` | — | Thời điểm sửa đổi gần nhất |
+### 3.2. Bảng `accounts`
 
-*Ghi chú:* Các cột `position` và `hire_date` đã bị loại bỏ hoàn toàn.
+Account là thực thể xác thực và hồ sơ; Customer là proxy, không có bảng hồ sơ song song. Tạo Account mới mặc định resolve CUSTOMER tại khởi tạo; không có default số cho role_id ở database. Getter không suy đoán CUSTOMER khi FK bị thiếu. `role` là quan hệ Role trong Python; API/form vẫn dùng chuỗi `role` và ORM lọc `role__role_code`.
+
+| Cột | Kiểu | NULL | Mặc định / nguồn | Ràng buộc / ý nghĩa |
+| --- | --- | --- | --- | --- |
+| `account_id` | signed INT | No | AUTO_INCREMENT (SQL) | PK |
+| `email` | VARCHAR(255) | No | Không | UNIQUE uq_accounts_email; quy tắc chỉnh sửa giữ theo service hiện có |
+| `password_hash` | VARCHAR(255) | No | Không | Django-supported password hash; không serialize ra API |
+| `role_id` | signed INT | No | Không (SQL) | FK roles.role_id; index FK; ORM PROTECT / MySQL RESTRICT |
+| `status` | VARCHAR(20) | No | ACTIVE (ORM) | CHECK ACTIVE/LOCKED |
+| `full_name` | VARCHAR(150) | No | chuỗi rỗng (ORM) | Hồ sơ |
+| `phone` | VARCHAR(20) | Yes | NULL | Hồ sơ |
+| `date_of_birth` | DATE | Yes | NULL | Validation tuổi theo role giữ nguyên |
+| `gender` | VARCHAR(20) | Yes | NULL | Hồ sơ |
+| `address` | VARCHAR(255) | Yes | NULL | Hồ sơ |
+| `playing_level` | VARCHAR(30) | Yes | NULL | Hồ sơ |
+| `last_login_at` | DATETIME | Yes | NULL | Django last_login mapping |
+| `created_at` | DATETIME | No | timezone.now (ORM) | Bảo toàn khi backfill |
+| `updated_at` | DATETIME | No | auto_now (ORM) | Bảo toàn khi backfill |
+
+**Khác biệt vật lý được giữ nguyên:** fresh Django migration dùng DATETIME(6) cho ba timestamp Account và không lưu các Python default thành SQL default. Local crm_db khôi phục từ SQL cũ vẫn có DATETIME precision 0, status SQL default ACTIVE, created_at DEFAULT CURRENT_TIMESTAMP và updated_at ON UPDATE CURRENT_TIMESTAMP. Role timestamps của cả hai schema đều precision 6, không có SQL default/ON UPDATE. Không thêm migration chỉ để làm giống các khác biệt lịch sử này; migration Role đã gán updated_at=updated_at khi backfill/reverse để tránh thay đổi dữ liệu. Snapshot metadata read-only: [hardening/schema_contract.json](role_refactor/hardening/schema_contract.json).
+
+Không có position, hire_date, role VARCHAR hoặc role_code dư thừa trong accounts. Không có index role_code trùng lặp trong roles. Hướng dẫn bốn tình huống pull/migrate/fresh/restore: [TEAM_UPGRADE.md](role_refactor/TEAM_UPGRADE.md).
 
 ### 3.3. Bảng `categories` (Danh mục sản phẩm)
 
@@ -425,3 +429,8 @@ python manage.py seed_surveys
   python manage.py backup_database --purpose="scheduled_backup"
   ```
 - **Kiểm thử phục hồi:** Dịch vụ phục hồi `apps.admin_portal.services.restore_service` hỗ trợ kiểm tra tính toàn vẹn và phục hồi an toàn vào cơ sở dữ liệu mục tiêu đã chỉ định.
+
+
+## Role normalization — 2026-11-06
+
+Migrations accounts.0005–0007 replace accounts.role VARCHAR with role_id INT NOT NULL. Role codes remain unique; the duplicate role_code unique index is removed, retaining uq_roles_code. Django Account.role is a Role relation, Account.role_id is an integer, and Account.role_code is the stable business code. ORM code uses role__role_code, including values/values_list. API/form fields remain named role and carry the same three strings. Group permissions are independent and retain existing policy. See role_refactor/REPORT.md for deployment evidence and recovery.

@@ -1,5 +1,11 @@
 # Project Overview
 
+## CURRENT ROLE FK ARCHITECTURE — owner decision 2026-11-06
+
+Account.role is a real ForeignKey to Role, stored as accounts.role_id INT NOT NULL -> roles.role_id. Account.role_id is Django's integer FK attname; the old string property is removed. Read the stable business code through account.role_code; ORM filters/projections use role__role_code. String API/form role fields remain ADMIN/MANAGER/CUSTOMER. Never hardcode numeric Role IDs. Roles retain uq_roles_code and chk_roles_code; the duplicate unique index is removed. Django Groups and role_required group policy remain independent and unchanged.
+
+New migrations accounts.0005–0007 are deployed and verified on the owner's local 127.0.0.1:3306/crm_db. Backfill preserves MySQL ON UPDATE timestamps explicitly. 20 Accounts mapped, all original account/business/technical data retained; role display names normalized to Vietnamese. Verified backup media remain only in database/backups/; do not commit recovery backups. Evidence and recovery guidance: docs/role_refactor/REPORT.md. Baseline 504/504 and final 509/509 automated tests passed on independent MySQL databases. Earlier VARCHAR-role architecture descriptions below are historical and superseded.
+
 ## CURRENT LOCAL DEMO DATABASE — owner decision 2026-11-04
 
 The owner authorized replacing all old data in local `127.0.0.1:3306/crm_db`

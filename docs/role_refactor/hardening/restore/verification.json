@@ -1,0 +1,11 @@
+{
+  "command": "python scripts/verify_restore_e2e.py",
+  "assertions_completed": [
+    "all 22 tables match after reconnect",
+    "automatic recovery: BEFORE_FAILED_RESTORE",
+    "operator recovery verified exact state",
+    "Five required event types verified",
+    "Configured source database fingerprint unchanged"
+  ],
+  "source_unchanged": true
+}

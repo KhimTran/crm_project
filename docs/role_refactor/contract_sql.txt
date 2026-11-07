@@ -1,0 +1,16 @@
+--
+-- Remove constraint chk_accounts_role from model account
+--
+ALTER TABLE `accounts` DROP CHECK `chk_accounts_role`;
+--
+-- Raw Python operation
+--
+-- THIS OPERATION CANNOT BE WRITTEN AS SQL
+--
+-- Remove field role from account
+--
+ALTER TABLE `accounts` DROP COLUMN `role`;
+--
+-- Rename field role_link on account to role
+--
+-- (no-op)

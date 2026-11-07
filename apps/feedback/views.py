@@ -59,7 +59,7 @@ def feedback_detail(request, feedback_id):
 
 # Lấy tài khoản khách hàng đang hoạt động
 def _current_customer(user):
-    if not getattr(user, "is_authenticated", False) or getattr(user, "role", None) != "CUSTOMER" or getattr(user, "status", None) != "ACTIVE":
+    if not getattr(user, "is_authenticated", False) or getattr(user, "role_code", None) != "CUSTOMER" or getattr(user, "status", None) != "ACTIVE":
         return None
     if not getattr(user, "full_name", None):
         return None

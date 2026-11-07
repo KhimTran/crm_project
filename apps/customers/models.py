@@ -64,7 +64,7 @@ class CustomerQuerySet(models.QuerySet):
 
 class CustomerManager(models.Manager.from_queryset(CustomerQuerySet)):
     def get_queryset(self):
-        return super().get_queryset().filter(role="CUSTOMER")
+        return super().get_queryset().filter(role__role_code="CUSTOMER")
 
     def create(self, **kwargs):
         account = kwargs.pop("account", None)
@@ -72,7 +72,7 @@ class CustomerManager(models.Manager.from_queryset(CustomerQuerySet)):
             account.refresh_from_db()
             for k, v in kwargs.items():
                 setattr(account, k, v)
-            account.role = "CUSTOMER"
+            account.role_code = "CUSTOMER"
             account.save()
             return self.get(pk=account.pk)
         kwargs.setdefault("role", "CUSTOMER")

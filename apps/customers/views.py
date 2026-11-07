@@ -36,7 +36,7 @@ PAGE_SIZE = 10
 
 # tv4: kiểm tra tài khoản là Admin hoặc thuộc nhóm Quản lý CRM (để hiện nút thêm/khóa/xóa; CSKH chỉ xem)
 def is_crm_manager(user):
-    return getattr(user, "role", None) in (AccountRole.ADMIN, AccountRole.MANAGER) or user.groups.filter(name="CRM_MANAGER").exists()
+    return getattr(user, "role_code", None) in (AccountRole.ADMIN, AccountRole.MANAGER) or user.groups.filter(name="CRM_MANAGER").exists()
 
 
 def _customer_list_context(request):
@@ -149,7 +149,7 @@ def customer_detail(request, customer_id):
 @portal_english
 def customer_edit(request, customer_id):
     customer = _get_active_customer_or_404(customer_id)
-    if customer.role != AccountRole.CUSTOMER:
+    if customer.role_code != AccountRole.CUSTOMER:
         raise Http404("Only customer accounts can be edited here")
 
     if request.method == "POST":

@@ -26,7 +26,7 @@ def require_survey_manager(actor):
     if not getattr(actor, "is_authenticated", False) or not getattr(actor, "pk", None):
         raise AccountPermissionDenied("Survey management requires an ADMIN, MANAGER, or CRM_MANAGER account")
     account = Account.objects.filter(pk=actor.pk, status=AccountStatus.ACTIVE).first()
-    if account is None or not (account.role in (AccountRole.ADMIN, AccountRole.MANAGER)
+    if account is None or not (account.role_code in (AccountRole.ADMIN, AccountRole.MANAGER)
                                or account.groups.filter(name=MANAGER_GROUP).exists()):
         raise AccountPermissionDenied("Survey management requires an ADMIN, MANAGER, or CRM_MANAGER account")
     return account
@@ -34,7 +34,7 @@ def require_survey_manager(actor):
 
 # tv4: khách được mời khảo sát: tài khoản đang hoạt động (không khóa) và thuộc role CUSTOMER
 def eligible_customers():
-    return Customer.objects.filter(status=AccountStatus.ACTIVE, role="CUSTOMER").exclude(
+    return Customer.objects.filter(status=AccountStatus.ACTIVE, role__role_code="CUSTOMER").exclude(
         groups__name__in=("CRM_MANAGER", "CUSTOMER_SERVICE")
     )
 
@@ -74,7 +74,7 @@ def recipient_for_user(user, recipient_id, *, lock=False):
     """Lời mời của chính khách đang đăng nhập; tài khoản phải là CUSTOMER đang hoạt động (đọc lại DB)."""
     if not getattr(user, "is_authenticated", False):
         raise PermissionDenied
-    if not Account.objects.filter(pk=user.pk, role=AccountRole.CUSTOMER, status=AccountStatus.ACTIVE).exists():
+    if not Account.objects.filter(pk=user.pk, role__role_code=AccountRole.CUSTOMER, status=AccountStatus.ACTIVE).exists():
         raise PermissionDenied
     query = SurveyRecipient.objects.select_related("survey", "customer")
     if lock:

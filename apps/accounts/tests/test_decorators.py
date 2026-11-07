@@ -94,7 +94,7 @@ class RoleRequiredTests(TestCase):
     def test_crm_manager_group_allows_manager_view(self):
         request = self.request(self.manager)
         response = role_required("CRM_MANAGER")(self.view)(request)
-        self.assertEqual(self.manager.role, AccountRole.CUSTOMER)
+        self.assertEqual(self.manager.role_code, AccountRole.CUSTOMER)
         self.assertEqual(response.status_code, 200)
         self.view.assert_called_once_with(request)
 
@@ -171,7 +171,7 @@ class RoleRequiredTests(TestCase):
 
     def test_role_revocation_in_database_blocks_stale_admin(self):
         Account.objects.filter(pk=self.admin.pk).update(role=AccountRole.CUSTOMER)
-        self.assertEqual(self.admin.role, AccountRole.ADMIN)
+        self.assertEqual(self.admin.role_code, AccountRole.ADMIN)
         response = role_required("ADMIN")(self.view)(self.request(self.admin))
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/")

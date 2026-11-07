@@ -8,7 +8,7 @@ from .models import Customer
 
 @transaction.atomic
 def ensure_customer_profile(account_id, *, full_name=None):
-    account = Account.objects.select_for_update().get(pk=account_id, role=AccountRole.CUSTOMER)
+    account = Account.objects.select_for_update().get(pk=account_id, role__role_code=AccountRole.CUSTOMER)
     if full_name:
         account.full_name = full_name
     elif not account.full_name:

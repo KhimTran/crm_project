@@ -13,7 +13,7 @@ _AGE_BOUNDS = {value: (low, high) for value, _, low, high in AGE_GROUPS}
 
 # Stable numeric ID order before filtering and pagination.
 def customer_queryset():
-    return Customer.objects.order_by("account_id")
+    return Customer.objects.select_related("role").order_by("account_id")
 
 
 # Ngày cách hôm nay n năm (29/02 rơi vào năm không nhuận thì lùi về 28/02)

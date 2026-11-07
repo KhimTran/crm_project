@@ -31,7 +31,7 @@ class StaffLoginCustomerSessionTests(TestCase):
         self.assertEqual(self.session_state(client), original_state)
         self.assertEqual(client.session["_auth_user_id"], str(self.customer.pk))
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.CUSTOMER)
+        self.assertEqual(self.customer.role_code, AccountRole.CUSTOMER)
         self.assertEqual(self.customer.password, original_hash)
 
     def assert_denied_page(self, response):
@@ -113,7 +113,7 @@ class StaffLoginCustomerSessionTests(TestCase):
                 (self.admin, reverse("accounts_admin:list")),
                 (self.manager, reverse("catalog_admin:product_list")),
             ):
-                with self.subTest(path=path, role=actor.role):
+                with self.subTest(path=path, role=actor.role_code):
                     client.logout()
                     client.get(path)
                     data = {"email": actor.email, "password": self.password}

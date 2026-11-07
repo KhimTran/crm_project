@@ -1,0 +1,294 @@
+{
+  "crm_db": {
+    "accounts": [
+      {
+        "column": "account_id",
+        "type": "int",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": "auto_increment"
+      },
+      {
+        "column": "email",
+        "type": "varchar(255)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "password_hash",
+        "type": "varchar(255)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "status",
+        "type": "varchar(20)",
+        "nullable": "NO",
+        "sql_default": "ACTIVE",
+        "extra": ""
+      },
+      {
+        "column": "last_login_at",
+        "type": "datetime",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "created_at",
+        "type": "datetime",
+        "nullable": "NO",
+        "sql_default": "CURRENT_TIMESTAMP",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "column": "updated_at",
+        "type": "datetime",
+        "nullable": "NO",
+        "sql_default": "CURRENT_TIMESTAMP",
+        "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+      },
+      {
+        "column": "address",
+        "type": "varchar(255)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "date_of_birth",
+        "type": "date",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "full_name",
+        "type": "varchar(150)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "gender",
+        "type": "varchar(20)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "phone",
+        "type": "varchar(20)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "playing_level",
+        "type": "varchar(30)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "role_id",
+        "type": "int",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      }
+    ],
+    "roles": [
+      {
+        "column": "role_id",
+        "type": "int",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": "auto_increment"
+      },
+      {
+        "column": "role_code",
+        "type": "varchar(20)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "role_name",
+        "type": "varchar(50)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "description",
+        "type": "varchar(255)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "created_at",
+        "type": "datetime(6)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "updated_at",
+        "type": "datetime(6)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      }
+    ]
+  },
+  "crm_db_role_demo_20261106": {
+    "accounts": [
+      {
+        "column": "account_id",
+        "type": "int",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": "auto_increment"
+      },
+      {
+        "column": "email",
+        "type": "varchar(255)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "password_hash",
+        "type": "varchar(255)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "status",
+        "type": "varchar(20)",
+        "nullable": "NO",
+        "sql_default": "ACTIVE",
+        "extra": ""
+      },
+      {
+        "column": "last_login_at",
+        "type": "datetime",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "created_at",
+        "type": "datetime",
+        "nullable": "NO",
+        "sql_default": "CURRENT_TIMESTAMP",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "column": "updated_at",
+        "type": "datetime",
+        "nullable": "NO",
+        "sql_default": "CURRENT_TIMESTAMP",
+        "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+      },
+      {
+        "column": "address",
+        "type": "varchar(255)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "date_of_birth",
+        "type": "date",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "full_name",
+        "type": "varchar(150)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "gender",
+        "type": "varchar(20)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "phone",
+        "type": "varchar(20)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "playing_level",
+        "type": "varchar(30)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "role_id",
+        "type": "int",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      }
+    ],
+    "roles": [
+      {
+        "column": "role_id",
+        "type": "int",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": "auto_increment"
+      },
+      {
+        "column": "role_code",
+        "type": "varchar(20)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "role_name",
+        "type": "varchar(50)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "description",
+        "type": "varchar(255)",
+        "nullable": "YES",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "created_at",
+        "type": "datetime(6)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      },
+      {
+        "column": "updated_at",
+        "type": "datetime(6)",
+        "nullable": "NO",
+        "sql_default": null,
+        "extra": ""
+      }
+    ]
+  }
+}

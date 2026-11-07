@@ -191,6 +191,10 @@ class AccountServiceTests(TestCase):
 class AccountForeignKeyDeleteTests(TransactionTestCase):
     password = "StrongPass!2026"
 
+    def setUp(self):
+        from django.core.management import call_command
+        call_command('initialize_roles', verbosity=0)
+
     def test_customer_without_history_is_hard_deleted(self):
         admin = get_user_model().objects.create_superuser("admin@example.com", self.password)
         customer = get_user_model().objects.create_user("customer@example.com", self.password, full_name="Customer")

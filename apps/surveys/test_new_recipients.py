@@ -110,7 +110,7 @@ class NewRecipientTests(PortalTestCase):
         grouped = Account.objects.create_user("grouped@new.test", PW)
         grouped.groups.add(Group.objects.create(name="CRM_MANAGER"))
         for actor in (admin, grouped):
-            with self.subTest(role=actor.role):
+            with self.subTest(role=actor.role_code):
                 self.client.force_login(actor)
                 self.assertContains(self.post_send(), "Successfully processed 1 survey(s).")
 
@@ -215,6 +215,10 @@ class NewRecipientTests(PortalTestCase):
 
 
 class ConcurrentNewRecipientTests(TransactionTestCase):
+    def setUp(self):
+        from django.core.management import call_command
+        call_command('initialize_roles', verbosity=0)
+
     @skipUnlessDBFeature("has_select_for_update")
     def test_two_simultaneous_sends_create_one_invitation(self):
         manager = Account.objects.create_user("parallel-manager@new.test", PW, role="MANAGER")

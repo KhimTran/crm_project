@@ -95,7 +95,7 @@ def validate_demo_surveys():
                 'SINGLE_CHOICE', 'MULTI_CHOICE', 'RATING', 'TEXT', 'MATRIX'}:
             raise CommandError('Demo questionnaire is incomplete; existing data preserved.')
         if responses.count() != expected[1] or recipients.exclude(
-                customer__email__in=demo_emails()[5:], customer__role='CUSTOMER').exists():
+                customer__email__in=demo_emails()[5:], customer__role__role_code='CUSTOMER').exists():
             raise CommandError('Unexpected demo response or audience; existing data preserved.')
         for response in responses.select_related('recipient__customer'):
             recipient = response.recipient
@@ -128,7 +128,7 @@ class Command(BaseCommand):
             Role.objects.get_or_create(role_code=role, defaults={"role_name": role})
             account = Account.objects.filter(email=email).first()
             if account is not None:
-                if account.role != role or account.status != "ACTIVE" or not account.check_password(PASSWORD):
+                if account.role_code != role or account.status != "ACTIVE" or not account.check_password(PASSWORD):
                     raise CommandError(f"Reserved demo email conflicts with existing account: {email}; no changes committed.")
             else:
                 customer_index = index - 5

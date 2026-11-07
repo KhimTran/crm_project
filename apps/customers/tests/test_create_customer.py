@@ -33,7 +33,7 @@ class CreateCustomerServiceTests(TestCase):
             playing_level="BEGINNER", brands=["Yonex", "Victor"])
         account = customer.account
         self.assertEqual(account.email, "an.nguyen@example.com")
-        self.assertEqual(account.role, AccountRole.CUSTOMER)
+        self.assertEqual(account.role_code, AccountRole.CUSTOMER)
         self.assertEqual(account.status, AccountStatus.ACTIVE)
         self.assertTrue(account.check_password(password))
         self.assertNotEqual(account.password, password)

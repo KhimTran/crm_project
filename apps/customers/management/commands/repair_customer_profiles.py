@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Legacy CRM employees may have role CUSTOMER plus a staff group.
-        accounts = Account.objects.filter(role=AccountRole.CUSTOMER).filter(
+        accounts = Account.objects.filter(role__role_code=AccountRole.CUSTOMER).filter(
             models.Q(full_name__isnull=True) | models.Q(full_name="")
         ).exclude(
             groups__name__in=("CRM_MANAGER", "CUSTOMER_SERVICE"),
@@ -32,7 +32,7 @@ class Command(BaseCommand):
                 with transaction.atomic():
                     # Recheck eligibility while holding the account lock.
                     account = Account.objects.select_for_update().get(pk=account_id)
-                    if (account.role != AccountRole.CUSTOMER
+                    if (account.role_code != AccountRole.CUSTOMER
                             or account.groups.filter(name__in=("CRM_MANAGER", "CUSTOMER_SERVICE")).exists()):
                         continue
                     _, was_created = ensure_customer_profile(account.pk)

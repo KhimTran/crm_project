@@ -25,9 +25,13 @@ class DevTools:
         assert header.startswith(b'HTTP/1.1 101 ') and expected in header, header
         self.sequence = 0
         self.errors = []
+        self.responses = []
+        self.network_failures = []
+        self.loads = 0
         self.command('Runtime.enable')
         self.command('Log.enable')
         self.command('Page.enable')
+        self.command('Network.enable')
 
     def read(self, count):
         data = b''
@@ -62,6 +66,14 @@ class DevTools:
                 continue
             event = json.loads(message)
             message = b''
+            if event.get('method') == 'Page.loadEventFired':
+                self.loads += 1
+            elif event.get('method') == 'Network.responseReceived':
+                response = event['params']['response']
+                self.responses.append({'url':response['url'], 'status':response['status'],
+                                       'type':event['params']['type']})
+            elif event.get('method') == 'Network.loadingFailed':
+                self.network_failures.append(event['params'])
             if event.get('method') == 'Runtime.exceptionThrown' or (event.get('method') == 'Log.entryAdded' and event['params']['entry']['level'] == 'error') or (event.get('method') == 'Runtime.consoleAPICalled' and event['params']['type'] == 'error'):
                 self.errors.append(event)
             if event.get('id') == self.sequence:

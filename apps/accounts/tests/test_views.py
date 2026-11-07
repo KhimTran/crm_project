@@ -142,7 +142,7 @@ class AccountAdminViewTests(TestCase):
             response = self.client.post(url, {"email": email.upper(), "role": role, "status": "ACTIVE", "password": self.password, "password_confirm": self.password})
             self.assertEqual(response.status_code, 302)
             account = get_user_model().objects.get(email=email)
-            self.assertEqual(account.role, role)
+            self.assertEqual(account.role_code, role)
             self.assertNotEqual(account.password, self.password)
             self.assertTrue(account.check_password(self.password))
 
@@ -185,13 +185,13 @@ class AccountAdminViewTests(TestCase):
             })
             self.assertEqual(response.status_code, 302)
             account = get_user_model().objects.get(email=f"case{index}@example.com")
-            self.assertEqual((account.role, account.status), (role.upper(), status.upper()))
+            self.assertEqual((account.role_code, account.status), (role.upper(), status.upper()))
         filtered = self.client.get(self.list_url, {"role": "customer", "status": "locked"})
         self.assertEqual(filtered.status_code, 200)
         self.assertEqual(filtered.context["page_obj"].paginator.count, 1)
         self.assertEqual(self.client.post(self.url("role"), {"role": "Manager"}).status_code, 302)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.MANAGER)
+        self.assertEqual(self.customer.role_code, AccountRole.MANAGER)
 
     def test_role_action_is_post_only_and_preserves_final_admin(self):
         self.assertEqual(self.client.get(self.url("role")).status_code, 405)
@@ -199,18 +199,18 @@ class AccountAdminViewTests(TestCase):
         response = self.client.post(self.url("role"), {"role": "ADMIN"})
         self.assertEqual(response.status_code, 302)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.CUSTOMER)
+        self.assertEqual(self.customer.role_code, AccountRole.CUSTOMER)
 
         # Cannot demote self
         response = self.client.post(self.url("role", self.admin), {"role": "CUSTOMER"})
         self.assertEqual(response.status_code, 302)
         self.admin.refresh_from_db()
-        self.assertEqual(self.admin.role, AccountRole.ADMIN)
+        self.assertEqual(self.admin.role_code, AccountRole.ADMIN)
 
         # Change customer to MANAGER succeeds
         self.assertEqual(self.client.post(self.url("role"), {"role": "MANAGER"}).status_code, 302)
         self.customer.refresh_from_db()
-        self.assertEqual(self.customer.role, AccountRole.MANAGER)
+        self.assertEqual(self.customer.role_code, AccountRole.MANAGER)
 
     def test_lock_unlock_post_only_and_self_lock_denied(self):
         self.assertEqual(self.client.get(self.url("lock")).status_code, 405)
