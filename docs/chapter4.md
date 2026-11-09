@@ -56,11 +56,8 @@ giữ nguyên. Giới tính/trình độ dùng dropdown nhãn tiếng Việt the
 ngoài choices được giữ trong option riêng, không chuyển đổi hàng loạt.
 
 **Mật khẩu.** Đổi mật khẩu yêu cầu mật khẩu cũ; giữ phiên đang thao tác bằng
-update_session_auth_hash và vô hiệu phiên khác. Reset dùng PasswordResetView,
-PasswordResetTokenGenerator và PasswordResetConfirmView của Django, thời hạn
-1 giờ, không tự đăng nhập và không gửi mật khẩu thô. Lọc Account ACTIVE thay cho
-is_active ORM vì đó là property. Reset kiểm tra lại token/status dưới row lock
-trước khi ghi. Phản hồi yêu cầu giống nhau cho email không tồn tại/bị khóa.
+update_session_auth_hash và vô hiệu phiên khác. Chức năng "Quên mật khẩu" tự phục vụ của khách hàng đã được gỡ bỏ (route /password/reset/*
+không còn); Admin đặt lại mật khẩu qua Admin Portal.
 
 **Cửa hàng.** `/` giới thiệu sản phẩm đang bán; `/products/` hỗ trợ tên, danh mục,
 thương hiệu và khoảng giá Decimal, 12 dòng/trang, giữ tham số. Product ACTIVE

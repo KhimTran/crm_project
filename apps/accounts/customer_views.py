@@ -4,19 +4,16 @@ from urllib.parse import urlsplit
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.views import PasswordResetConfirmView
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import Resolver404, resolve
-from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.customers.self_services import register_customer
-from .constants import AccountStatus
 from .customer_forms import CustomerLoginForm, CustomerRegistrationForm
 from .decorators import get_home_path, role_required
 from .models import Account
@@ -135,21 +132,3 @@ def password_change(request):
 @require_GET
 def crm_home(request):
     return render(request, "accounts/customer/crm_home.html")
-
-
-@method_decorator(sensitive_post_parameters("new_password1", "new_password2"), name="dispatch")
-class AccountPasswordResetConfirmView(PasswordResetConfirmView):
-    def get_user(self, uidb64):
-        account = super().get_user(uidb64)
-        return account if account is not None and account.is_active else None
-
-    def form_valid(self, form):
-        with transaction.atomic():
-            account = Account.objects.select_for_update().filter(pk=self.user.pk).first()
-            token = self.request.session.get("_password_reset_token")
-            if account is None or account.status != AccountStatus.ACTIVE or not self.token_generator.check_token(account, token):
-                form.add_error(None, "The link has expired or is invalid.")
-                return self.form_invalid(form)
-            form.user = account
-            transaction.on_commit(lambda: logger.info("password_reset target=%s", account.pk))
-            return super().form_valid(form)

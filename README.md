@@ -107,10 +107,6 @@ CRM_MANAGER/CUSTOMER_SERVICE hiện có vẫn được giữ; TV1 không cung c�
 | `/crm/` | ACTIVE ADMIN hoặc nhóm CRM_MANAGER/CUSTOMER_SERVICE |
 | `/account/profile/` | ACTIVE CUSTOMER, chỉ hồ sơ ACTIVE của chính mình |
 | `/account/password/change/` | Account ACTIVE, yêu cầu mật khẩu hiện tại |
-| `/password/reset/` | Yêu cầu liên kết reset, phản hồi không tiết lộ email tồn tại |
-| `/password/reset/done/` | Xác nhận đã nhận yêu cầu |
-| `/password/reset/<uidb64>/<token>/` | Đặt mật khẩu qua token Django |
-| `/password/reset/complete/` | Xác nhận reset thành công |
 
 Admin Portal dùng `/admin/login/`, `/admin/logout/`, `/admin/` cho ACTIVE ADMIN.
 Manager dùng `/manager/login/`, `/manager/logout/`, `/manager/` cho ACTIVE MANAGER.
@@ -140,13 +136,8 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 DEFAULT_FROM_EMAIL=noreply@example.test
 ```
 
-Yêu cầu reset và lấy liên kết trong console server ở môi trường phát triển.
-Trên Windows, đặt `$env:PYTHONIOENCODING='utf-8'` trước khi chạy server để
-console email tiếng Việt không lỗi mã hóa, kể cả khi chuyển output vào log.
-Liên kết có hiệu lực 1 giờ; không dùng lại sau khi đổi mật khẩu/login làm token mất
-hiệu lực. Reset không tự đăng nhập, không mở khóa và vô hiệu các session cũ.
 Đổi mật khẩu giữ session đang thao tác và vô hiệu các session khác.
-Không gửi mật khẩu thô; console reset link chỉ dùng cục bộ, không đưa vào báo cáo.
+Tính năng "Quên mật khẩu" tự phục vụ của khách hàng đã được gỡ bỏ; Admin vẫn đặt lại mật khẩu cho tài khoản trong Admin Portal.
 
 Email thật cần SMTP được nhà cung cấp cấp phép và cấu hình riêng, ví dụ:
 
@@ -162,7 +153,6 @@ DEFAULT_FROM_EMAIL=<verified-sender>
 ```
 
 Không bật TLS và SSL cùng lúc. Gửi SMTP thật chưa được kiểm chứng trong task này.
-Cơ chế reset kế thừa [Django authentication views](https://docs.djangoproject.com/en/5.2/topics/auth/default/),
 chỉ tùy biến lọc ACTIVE vì Account.is_active là property.
 
 ## Contract hồ sơ và sản phẩm

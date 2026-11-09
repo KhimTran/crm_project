@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib.auth import authenticate
-from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
@@ -54,14 +53,3 @@ class CustomerRegistrationForm(CustomerProfileForm):
             except ValidationError as exc:
                 self.add_error("password", exc)
         return data
-
-
-class AccountPasswordResetForm(PasswordResetForm):
-    email = forms.EmailField(label="Email", max_length=255)
-
-    def clean_email(self):
-        return AccountManager.normalize_account_email(self.cleaned_data["email"])
-
-    def get_users(self, email):
-        return (account for account in Account.objects.filter(email=email, status=AccountStatus.ACTIVE)
-                if account.has_usable_password())

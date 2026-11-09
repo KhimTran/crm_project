@@ -1,15 +1,8 @@
 from apps.accounts.testing import PortalTestCase as TestCase, PortalClient as Client
-import re
-from datetime import timedelta
-from unittest.mock import patch
 
 from django.contrib.auth.models import Group
-from django.contrib.auth.tokens import default_token_generator
-from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 
 from apps.accounts.models import Account
 from apps.customers.models import Customer
@@ -68,7 +61,7 @@ class CustomerAuthTests(TestCase):
 
     def test_next_blocks_external_auth_loops_unknown_paths_and_unowned_area(self):
         for destination in ("https://evil.example/", "//evil.example/", "/\\evil.example/", "/login/", "/logout/", "/register/",
-                            "/admin-portal/", "/crm/", "/missing/", "/password/reset/", "/login/?next=/login/"):
+                            "/admin-portal/", "/crm/", "/missing/", "/login/?next=/login/"):
             with self.subTest(next=destination):
                 self.client.logout()
                 self.assertRedirects(self.sign_in(next=destination), "/", fetch_redirect_response=False)
@@ -124,60 +117,9 @@ class CustomerAuthTests(TestCase):
         self.assertEqual(self.client.get("/account/profile/").status_code, 200)
         self.assertEqual(other.get("/account/profile/").status_code, 302)
 
-    def test_reset_response_does_not_disclose_email_and_skips_locked_accounts(self):
-        for email, sent in (("missing@auth.test", 0), (self.customer.email.upper(), 1)):
-            response = self.client.post("/password/reset/", {"email": email})
-            self.assertRedirects(response, "/password/reset/done/", fetch_redirect_response=False)
-            self.assertEqual(len(mail.outbox), sent)
-        Account.objects.filter(pk=self.customer.pk).update(status="LOCKED")
-        self.assertRedirects(self.client.post("/password/reset/", {"email": self.customer.email}), "/password/reset/done/", fetch_redirect_response=False)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertNotIn(self.password, mail.outbox[0].body)
-        self.assertNotIn(self.customer.password, mail.outbox[0].body)
-
-    def reset_link(self):
-        self.client.post("/password/reset/", {"email": self.customer.email})
-        return re.search(r"http://testserver([^\s]+)", mail.outbox[-1].body).group(1)
-
-    def test_reset_token_changes_password_invalidates_sessions_and_cannot_be_reused(self):
-        old_session = Client()
-        old_session.force_login(self.customer)
-        link = self.reset_link()
-        start = self.client.get(link)
-        self.assertEqual(start.status_code, 302)
-        self.assertIn("set-password", start.url)
-        form_path = start.url
-        self.assertContains(self.client.get(form_path), "Lưu mật khẩu mới")
-        weak = self.client.post(form_path, {"new_password1": "123", "new_password2": "123"})
-        self.assertTrue(weak.context["form"].errors)
-        self.assertRedirects(self.client.post(form_path, {"new_password1": self.new_password, "new_password2": self.new_password}),
-                             "/password/reset/complete/", fetch_redirect_response=False)
-        self.customer.refresh_from_db()
-        self.assertTrue(self.customer.check_password(self.new_password))
-        self.assertFalse(self.customer.check_password(self.password))
-        self.assertEqual(old_session.get("/account/profile/").status_code, 302)
-        self.assertNotIn("_auth_user_id", self.client.session)
-        self.assertContains(self.client.get(link), "không còn hợp lệ")
-        self.assertRedirects(self.sign_in(password=self.new_password), "/", fetch_redirect_response=False)
-
-    def test_reset_invalid_expired_and_locked_tokens_are_rejected(self):
-        uid = urlsafe_base64_encode(force_bytes(self.customer.pk))
-        self.assertContains(self.client.get(f"/password/reset/{uid}/bad-token/"), "không còn hợp lệ")
-        token = default_token_generator.make_token(self.customer)
-        link = f"/password/reset/{uid}/{token}/"
-        with patch.object(default_token_generator, "_now", return_value=default_token_generator._now() + timedelta(hours=2)):
-            self.assertContains(self.client.get(link), "không còn hợp lệ")
-        # A lock after opening the link also prevents the actual password write.
-        start = self.client.get(link)
-        Account.objects.filter(pk=self.customer.pk).update(status="LOCKED")
-        response = self.client.post(start.url, {"new_password1": self.new_password, "new_password2": self.new_password})
-        self.assertContains(response, "không còn hợp lệ")
-        self.customer.refresh_from_db()
-        self.assertTrue(self.customer.check_password(self.password))
-
-    def test_csrf_for_login_register_logout_profile_password_change_and_reset(self):
+    def test_csrf_for_login_register_logout_profile_and_password_change(self):
         client = Client(enforce_csrf_checks=True)
-        for path in ("/login/", "/register/", "/logout/", "/password/reset/"):
+        for path in ("/login/", "/register/", "/logout/"):
             self.assertEqual(client.post(path, {}).status_code, 403)
         page = client.get("/login/")
         self.assertEqual(page.status_code, 200)
@@ -191,15 +133,16 @@ class CustomerAuthTests(TestCase):
         self.assertRedirects(client.post("/logout/", {"csrfmiddlewaretoken": token}), "/login/", fetch_redirect_response=False)
         self.assertNotIn("_auth_user_id", client.session)
 
-    def test_reset_confirm_requires_csrf(self):
-        client = Client(enforce_csrf_checks=True)
-        uid = urlsafe_base64_encode(force_bytes(self.customer.pk))
-        token = default_token_generator.make_token(self.customer)
-        start = client.get(f"/password/reset/{uid}/{token}/")
-        client.get(start.url)
-        data = {"new_password1": self.new_password, "new_password2": self.new_password}
-        self.assertEqual(client.post(start.url, data).status_code, 403)
-        self.assertEqual(client.post(start.url, {**data, "csrfmiddlewaretoken": client.cookies["csrftoken"].value}).status_code, 302)
+    def test_forgot_password_feature_is_removed(self):
+        page = self.client.get("/login/")
+        self.assertEqual(page.status_code, 200)
+        self.assertNotContains(page, "Quên mật khẩu")
+        self.assertNotContains(page, "/password/reset/")
+        for path in ("/password/reset/", "/password/reset/done/", "/password/reset/complete/",
+                     "/password/reset/abc/token/"):
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(path).status_code, 404)
+                self.assertEqual(self.client.post(path, {"email": self.customer.email}).status_code, 404)
 
     def test_customer_login_route_and_staff_portal_separation(self):
         manager = Account.objects.create_user("role-manager@auth.test", self.password, role="MANAGER")
