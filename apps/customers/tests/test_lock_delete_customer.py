@@ -110,13 +110,11 @@ class LockDeleteViewTests(TestCase):
     def status(self):
         return Account.objects.get(pk=self.customer.account.pk).status
 
-    def test_manager_locks_with_reason_then_unlocks(self):
+    def test_manager_locks_then_unlocks(self):
         self.client.force_login(self.manager)
-        response = self.client.post(reverse("customers:lock", args=[self.customer.pk]),
-                                    {"reason": "Spam phản hồi"}, follow=True)
+        response = self.client.post(reverse("customers:lock", args=[self.customer.pk]), follow=True)
         self.assertEqual(self.status(), AccountStatus.LOCKED)
         self.assertContains(response, "locked")
-        self.assertContains(response, "Reason: Spam phản hồi")
         self.assertContains(response, "Đã khóa")
         self.assertContains(response, "Mở khóa")
 

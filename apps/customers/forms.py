@@ -110,10 +110,6 @@ class CustomerEditForm(forms.Form):
         return dob
 
 
-class CustomerLockForm(forms.Form):
-    reason = forms.CharField(label="Lock reason", required=False, max_length=255, strip=True)
-
-
 class CustomerFilterForm(forms.Form):
     q = forms.CharField(label="Keyword", required=False, max_length=100, strip=True,
                         widget=forms.TextInput(attrs={"placeholder": "Name, phone, email"}))

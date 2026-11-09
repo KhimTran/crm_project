@@ -27,7 +27,7 @@ EN = {
     "Họ tên": "Full Name", "Số điện thoại": "Phone", "Ngày sinh": "Date of Birth", "Giới tính": "Gender",
     "Mật khẩu": "Password",
     "Địa chỉ": "Address", "Trình độ chơi": "Playing Level", "Thương hiệu yêu thích": "Favorite Brands",
-    "-- Chọn --": "-- Select --", "Lý do khóa": "Lock Reason", "Từ khóa": "Keyword", "Tên, SĐT, email": "Name, phone, email",
+    "-- Chọn --": "-- Select --", "Từ khóa": "Keyword", "Tên, SĐT, email": "Name, phone, email",
     "Nhóm tuổi": "Age Group", "Trình độ": "Playing Level", "Tài khoản": "Account", "Tất cả": "All",
     "Trạng thái": "Status", "Tất cả trạng thái": "All statuses", "Sản phẩm": "Product",
     "Tất cả sản phẩm": "All products", "Số sao": "Rating", "Tất cả số sao": "All ratings",
