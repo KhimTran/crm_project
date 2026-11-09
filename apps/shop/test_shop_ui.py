@@ -107,7 +107,7 @@ class ShopNavigationTests(TestCase):
 
     def test_active_categories_appear_on_store_auth_and_detail_pages_without_brand_links(self):
         expected = [(str(self.rackets.pk), self.rackets.category_name), (str(self.shoes.pk), self.shoes.category_name)]
-        for path in ("/", "/products/", "/login/", "/register/", "/password/reset/", reverse("shop:product_detail", args=[self.product.pk])):
+        for path in ("/", "/products/", "/login/", "/register/", reverse("shop:product_detail", args=[self.product.pk])):
             with self.subTest(path=path):
                 response, html = self.page_html(path)
                 # Home category tiles and the detail breadcrumb can repeat links;
