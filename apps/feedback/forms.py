@@ -43,6 +43,12 @@ class FeedbackHandleForm(forms.Form):
     manager_note = forms.CharField(label="Trả lời khách hàng", required=False, strip=True,
                                    widget=forms.Textarea(attrs={"rows": 5}))
 
+    # tv4: phản hồi đã RESOLVED chỉ còn lựa chọn RESOLVED (không mở lại về NEW), vẫn sửa được câu trả lời
+    def __init__(self, *args, current_status=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if current_status == FeedbackStatus.RESOLVED:
+            self.fields["status"].choices = [(FeedbackStatus.RESOLVED, FeedbackStatus.RESOLVED.label)]
+
     # tv4: đánh dấu Đã xử lý thì bắt buộc có câu trả lời cho khách
     def clean(self):
         cleaned = super().clean()

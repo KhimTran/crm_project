@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<p class="crm-toolbar"><a class="crm-btn crm-btn-secondary crm-fb-back" href="{% url 'crm_feedbacks:list' %}"><span aria-hidden="true">&larr;</span> {% t "Quay lại danh sách phản hồi" "Back to feedback" %}</a></p>
+<p class="crm-toolbar"><a class="crm-btn crm-btn-secondary crm-fb-back" href="{{ back_url }}"><span aria-hidden="true">&larr;</span> {% if from_customer %}{% t "Quay lại hồ sơ khách hàng" "Back to customer profile" %}{% else %}{% t "Quay lại danh sách phản hồi" "Back to feedback" %}{% endif %}</a></p>
 
 <div class="crm-feedback-grid">
   <section class="crm-card" aria-labelledby="fb-info">

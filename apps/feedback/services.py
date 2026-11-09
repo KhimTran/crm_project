@@ -4,7 +4,8 @@ from django.utils import timezone
 from apps.catalog.models import Status as ProductStatus
 
 from .constants import FeedbackStatus
-from .errors import FeedbackNoteRequired, FeedbackNotFound, InvalidFeedbackStatus, ProductNotAvailable
+from .errors import (FeedbackNoteRequired, FeedbackNotFound, FeedbackReopenNotAllowed,
+                     InvalidFeedbackStatus, ProductNotAvailable)
 from .models import Feedback
 
 HANDLE_STATUSES = (FeedbackStatus.NEW, FeedbackStatus.RESOLVED)
@@ -23,7 +24,8 @@ def create_feedback(*, customer, product, rating, content):
 def handle_feedback(feedback_id, *, status, manager_note, handled_by):
     """4.1.4: status chỉ nhận NEW/RESOLVED; RESOLVED bắt buộc có manager_note.
 
-    handled_by = tài khoản thao tác; resolved_at = now khi RESOLVED, mở lại (NEW) thì xóa resolved_at.
+    handled_by = tài khoản thao tác; resolved_at = now khi RESOLVED (giữ mốc đầu khi sửa lại câu trả lời).
+    Đã RESOLVED thì không được chuyển về NEW, chỉ được sửa câu trả lời.
     """
     if status not in HANDLE_STATUSES:
         raise InvalidFeedbackStatus("Trạng thái xử lý không hợp lệ")
@@ -34,6 +36,9 @@ def handle_feedback(feedback_id, *, status, manager_note, handled_by):
     feedback = Feedback.objects.select_for_update().filter(pk=feedback_id).first()
     if feedback is None:
         raise FeedbackNotFound("Không tìm thấy phản hồi")
+
+    if feedback.status == FeedbackStatus.RESOLVED and status != FeedbackStatus.RESOLVED:
+        raise FeedbackReopenNotAllowed("Phản hồi đã xử lý không thể chuyển về Mới")
 
     if status == FeedbackStatus.RESOLVED:
         # Giữ mốc xử lý xong ban đầu nếu chỉ sửa lại câu trả lời.

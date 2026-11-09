@@ -46,7 +46,7 @@ TV4 feature/tv4-models `2f0b82e2a2f974e53454f5d27ae1046e26aa11ad`
 | playing_level | BEGINNER / Mới chơi; RECREATIONAL / Phong trào; COMPETITIVE / Thi đấu |
 | preference_type | CATEGORY, BRAND, PLAY_STYLE |
 | CATEGORY preference_value | category_name, ví dụ Badminton rackets; không lưu category_id |
-| BRAND preference_value | Yonex, Victor, Li-Ning, Mizuno, Kumpoo, Apacs, VNB (TV4 choices) |
+| BRAND preference_value | Yonex, Victor, Li-Ning, Mizuno, Apacs, VNB (TV4 choices) |
 | PLAY_STYLE preference_value | Tấn công, Phòng thủ, Toàn diện, Đánh đơn, Đánh đôi (TV4 choices) |
 
 TV4 tạo BRAND/PLAY_STYLE từ chuỗi hiển thị. CATEGORY hiện được seed foundation/TV5

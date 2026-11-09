@@ -31,7 +31,7 @@ CUSTOMERS = 30
 COMMENTS = ["Căng vợt chuẩn số kg, thợ đan rất khéo.", "Mong shop nhập thêm nhiều giày Yonex và Mizuno size lớn.",
             "Nhân viên tư vấn nhiệt tình, có hiểu biết sâu về vợt.", "Cần đan vợt lấy liền nhanh hơn vào cuối tuần.",
             "Giá hơi cao so với mặt bằng chung, mong có thêm khuyến mãi.", "Đóng gói cẩn thận hơn khi giao hàng."]
-OTHER_BRANDS = ["Apacs", "Kumpoo nội địa Trung", "Fleet"]
+OTHER_BRANDS = ["Apacs", "Felet nội địa Trung", "Fleet"]
 
 
 # tv4: xóa dữ liệu thử đã đánh dấu
@@ -130,9 +130,9 @@ class Command(BaseCommand):
                 total += 1
 
         # Allocate IDs through the ORM; snapshot IDs must never bind to unrelated existing rows.
-        brand_names = ['Yonex', 'Li-Ning', 'Victor', 'Mizuno', 'Apacs', 'Kumpoo']
+        brand_names = ['Yonex', 'Li-Ning', 'Victor', 'Mizuno', 'Apacs']
         CustomerPreference.objects.bulk_create([
-            CustomerPreference(customer=customer, preference_type='BRAND', preference_value=brand_names[i % 6])
+            CustomerPreference(customer=customer, preference_type='BRAND', preference_value=brand_names[i % len(brand_names)])
             for i, customer in enumerate(customers)
         ])
         plans = [

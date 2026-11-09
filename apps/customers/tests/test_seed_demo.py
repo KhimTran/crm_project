@@ -37,8 +37,8 @@ class FinalDemoContractTests(TestCase):
         self.assertEqual(Survey.objects.count(),18)
         self.assertEqual(SurveyResponse.objects.filter(status='SUBMITTED').count(),61)
         self.assertEqual(SurveyRecipient.objects.count(),91)
-        self.assertEqual(Product.objects.count(),40)
-        self.assertEqual((Category.objects.count(),Brand.objects.count()),(6,6))
+        self.assertEqual(Product.objects.count(),61)
+        self.assertEqual((Category.objects.count(),Brand.objects.count()),(6,5))
         self.assertEqual(set(Product.objects.filter(status='INACTIVE').values_list('product_name',flat=True)),
                          {'Mizuno Cầu tập luyện','Apacs Cầu lông vũ'})
         before=database_fingerprint(connection.connection)

@@ -52,10 +52,10 @@ Favorite Brand cũng giữ được tên hãng INACTIVE hoặc không còn trong
 khi sửa hồ sơ; dữ liệu mới chọn từ hãng ACTIVE hoặc Other theo flow hiện có.
 Sở thích BRAND nhiều giá trị và FAVORITE_BRAND một giá trị vẫn tách biệt.
 
-Kumpoo/VNB xuất phát từ danh sách seed sở thích cũ, không có bản ghi brands
+VNB xuất phát từ danh sách seed sở thích cũ, không có bản ghi brands
 trong dump. Giữ nguyên các dòng cũ, hiển thị/thống kê lại; không tự tạo hãng,
 đổi sang hãng khác hoặc xóa dữ liệu. Seed mới chọn từ catalog ACTIVE thực tế.
-Việc bổ sung hai hãng vào catalog cần quyết định nghiệp vụ riêng.
+Việc bổ sung hãng này vào catalog cần quyết định nghiệp vụ riêng.
 
 Tiền dùng dấu phẩy hàng nghìn, dấu chấm phần lẻ: `1,234` hoặc `1,234.50`.
 Không dùng float/tùy tiện xóa ký tự; backend từ chối nhóm sai, chữ, NaN/Infinity,

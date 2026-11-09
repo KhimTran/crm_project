@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from apps.accounts.decorators import role_required
 from apps.customers.constants import CustomerStatus
@@ -43,7 +44,8 @@ def feedback_detail(request, feedback_id):
     feedback = get_object_or_404(feedback_queryset(), pk=feedback_id)
     initial = {"status": feedback.status,
                "manager_note": feedback.manager_note or ""}
-    form = localize_form(FeedbackHandleForm(request.POST or None, initial=initial))
+    form = localize_form(FeedbackHandleForm(request.POST or None, initial=initial,
+                                                  current_status=feedback.status))
     if request.method == "POST" and form.is_valid():
         try:
             feedback = handle_feedback(feedback.pk, handled_by=request.user, **form.cleaned_data)
@@ -53,8 +55,23 @@ def feedback_detail(request, feedback_id):
             form.add_error(None, tr(str(exc)))
         else:
             messages.success(request, f"Feedback #{feedback.feedback_id} updated: {tr(feedback.status_label)}.")
-            return redirect("crm_feedbacks:list")
-    return render(request, "feedback/feedback_detail.html", {"feedback": feedback, "form": form})
+            return redirect(_back_url(request, feedback))
+    return render(request, "feedback/feedback_detail.html", {
+        "feedback": feedback, "form": form,
+        "back_url": _back_url(request, feedback), "from_customer": _from_customer(request, feedback),
+    })
+
+
+# tv4: chỉ coi là "đến từ hồ sơ khách hàng" khi có ?from=customer và khách hàng chưa bị xóa
+def _from_customer(request, feedback):
+    return request.GET.get("from") == "customer" and feedback.customer.status != CustomerStatus.DELETED
+
+
+# tv4: nơi quay lại = hồ sơ khách hàng nếu đi từ Feedback History, ngược lại là danh sách phản hồi
+def _back_url(request, feedback):
+    if _from_customer(request, feedback):
+        return reverse("customers:detail", args=[feedback.customer_id])
+    return reverse("crm_feedbacks:list")
 
 
 # Lấy tài khoản khách hàng đang hoạt động
