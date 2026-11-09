@@ -129,6 +129,9 @@ class CustomerReportFilterForm(forms.Form):
         from datetime import timedelta
         from django.utils import timezone
         data = super().clean()
+        # tv4: nếu nhập From/To thì coi như "Custom" (bỏ Period); chỉ dùng Period khi không có ngày nào
+        if data.get("date_from") or data.get("date_to"):
+            data["days"] = ""
         if data.get("days"):
             data["date_to"] = timezone.localdate()
             data["date_from"] = data["date_to"] - timedelta(days=int(data["days"]) - 1)

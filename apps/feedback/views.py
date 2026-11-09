@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from apps.accounts.decorators import role_required
-from apps.customers.constants import CustomerStatus
 from apps.customers.models import Customer
 from apps.customers.portal_text import localize_form, portal_english, say, tr
 
@@ -62,9 +61,9 @@ def feedback_detail(request, feedback_id):
     })
 
 
-# tv4: chỉ coi là "đến từ hồ sơ khách hàng" khi có ?from=customer và khách hàng chưa bị xóa
+# tv4: coi là "đến từ hồ sơ khách hàng" khi có ?from=customer (hệ thống không còn trạng thái DELETED, khách chỉ ACTIVE/LOCKED nên hồ sơ luôn truy cập được)
 def _from_customer(request, feedback):
-    return request.GET.get("from") == "customer" and feedback.customer.status != CustomerStatus.DELETED
+    return request.GET.get("from") == "customer"
 
 
 # tv4: nơi quay lại = hồ sơ khách hàng nếu đi từ Feedback History, ngược lại là danh sách phản hồi

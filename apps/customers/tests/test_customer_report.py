@@ -196,6 +196,14 @@ class CustomerReportDateFilterTests(SimpleTestCase):
                 self.assertEqual(form.cleaned_data["date_to"], TODAY)
                 self.assertEqual(form.cleaned_data["date_from"], TODAY - timedelta(days=days - 1))
 
+    # tv4: nhập From/To cùng Period thì From/To được ưu tiên (tự chuyển về Custom)
+    def test_explicit_dates_override_period(self):
+        from apps.customers.forms import CustomerReportFilterForm
+        form = CustomerReportFilterForm({"days": "7", "date_from": "2026-10-01", "date_to": "2026-10-15"})
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(str(form.cleaned_data["date_from"]), "2026-10-01")
+        self.assertEqual(str(form.cleaned_data["date_to"]), "2026-10-15")
+
     def test_custom_invalid_and_open_ranges(self):
         from apps.customers.forms import CustomerReportFilterForm
         for data in ({}, {"date_from": "2026-11-01"}, {"date_to": "2026-11-03"},

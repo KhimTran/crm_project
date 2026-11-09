@@ -30,6 +30,16 @@
   </div>
   <div class="rp-filter-errors" role="alert">{{ report_filters.errors }}</div>
 </form>
+{# tv4: nhập From/To thì Period về Custom; chọn Period thì xóa From/To #}
+<script>
+(function () {
+  var f = document.querySelector(".rp-date-filter");
+  if (!f) return;
+  var from = f.elements["date_from"], to = f.elements["date_to"], days = f.elements["days"];
+  [from, to].forEach(function (el) { el.addEventListener("change", function () { days.value = ""; }); });
+  days.addEventListener("change", function () { if (days.value) { from.value = ""; to.value = ""; } });
+})();
+</script>
 <p class="rp-foot">{% if report_filters.cleaned_data.date_from or report_filters.cleaned_data.date_to %}{{ report_filters.cleaned_data.date_from|date:"Y-m-d"|default:"…" }} – {{ report_filters.cleaned_data.date_to|date:"Y-m-d"|default:"…" }} · {% endif %}{% t 'Lọc khách hàng theo ngày tạo hồ sơ (bao gồm hai ngày đầu/cuối).' 'Filter customers by profile creation date (inclusive). ' %}</p>
 </section>
 <div class="rp-kpis">
