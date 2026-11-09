@@ -5,10 +5,14 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/crm_customers.css' %}"><link rel="stylesheet" href="{% static 'css/crm_portal.css' %}">
 <link rel="stylesheet" href="{% static 'css/crm_feedbacks.css' %}">
-<link rel="stylesheet" href="{% static 'css/crm_reports.css' %}?v=report-layout-3">
+<link rel="stylesheet" href="{% static 'css/crm_reports.css' %}?v=report-layout-12">
 {% endblock %}
 
 {% block content %}
+<div class="rp-print-head">
+  <div><b>{% t "BÁO CÁO KHÁCH HÀNG" "CUSTOMER REPORT" %}</b><span>{% t "Hệ thống CRM cửa hàng cầu lông" "Badminton shop CRM" %}</span></div>
+  <small>{% t "Ngày lập:" "Generated:" %} {{ generated_at|date:datetime_fmt }}</small>
+</div>
 <div class="crm-toolbar rp-toolbar">
   {% if in_admin_portal %}<span>Data as of {{ generated_at|date:datetime_fmt }} (deleted customers excluded).</span>
   {% else %}<span>Số liệu tính đến {{ generated_at|date:datetime_fmt }} (không tính khách hàng đã xóa).</span>{% endif %}

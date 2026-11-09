@@ -10,6 +10,46 @@
   // tv4: mở các bảng số liệu thu gọn khi in để bản in vẫn đủ dữ liệu
   window.addEventListener("beforeprint", function () {
     document.querySelectorAll("details.rp-more").forEach(function (d) { d.open = true; });
+    // tv4: đặt kích thước pixel cố định cho từng biểu đồ theo khổ A4 (tắt responsive để không bị méo/đè bảng)
+    if (typeof Chart === "undefined" || !Chart.instances) return;
+    // tv4: chú thích nhỏ gọn khi in - đặt tạm ở mặc định của Chart.js (không gán lại options.legend.labels của từng biểu đồ vì làm hỏng cấu hình)
+    var LL = Chart.defaults.plugins.legend.labels;
+    window.__legendBackup = { font: LL.font, boxWidth: LL.boxWidth, boxHeight: LL.boxHeight, padding: LL.padding };
+    LL.font = { size: 8 }; LL.boxWidth = 8; LL.boxHeight = 8; LL.padding = 5;
+    Object.values(Chart.instances).forEach(function (c) {
+      var id = c.canvas.id, w = 205, h = 165;
+      if (id === "chart-monthly") { w = 680; h = 150; }
+      else if (id === "chart-brand") { w = 320; h = 150; }
+      // tv4: chữ nhỏ gọn, chú thích 1-2 hàng; nhãn nhóm tuổi xuống dòng thay vì xoay chéo để dễ đọc
+      c.$prevLabels = c.data.labels;
+      if (id === "chart-age") {
+        c.data.labels = c.data.labels.map(function (l) { return String(l).split(" "); });
+        var sx = c.options.scales && c.options.scales.x;
+        if (sx && sx.ticks) { sx.ticks.maxRotation = 0; sx.ticks.minRotation = 0; sx.ticks.autoSkip = false; sx.ticks.font = { size: 9 }; }
+      }
+      c.resize(w, h);
+      c.update("none");
+    });
+  });
+  // tv4: sau khi in (hoặc bấm Cancel) trả lại cấu hình gốc rồi làm mới trạng thái sự kiện của từng biểu đồ.
+  // Lý do: sau hộp thoại in, Chrome có thể làm Chart.js kẹt hàng đợi sự kiện (hover/click chú thích không còn tác dụng);
+  // gắn lại listener sạch nên bấm Male/Female/Other lại hoạt động bình thường.
+  window.addEventListener("afterprint", function () {
+    if (typeof Chart === "undefined" || !Chart.instances) return;
+    if (window.__legendBackup) { var L2 = Chart.defaults.plugins.legend.labels, B = window.__legendBackup;
+      L2.font = B.font; L2.boxWidth = B.boxWidth; L2.boxHeight = B.boxHeight; L2.padding = B.padding; window.__legendBackup = null; }
+    Object.values(Chart.instances).slice().forEach(function (c) {
+      if (c.$prevLabels) c.data.labels = c.$prevLabels;
+      var id = c.canvas.id, sx = c.options.scales && c.options.scales.x;
+      if (id === "chart-age" && sx && sx.ticks) { delete sx.ticks.maxRotation; delete sx.ticks.minRotation; delete sx.ticks.autoSkip; delete sx.ticks.font; }
+      // tv4: gỡ và gắn lại listener chuột + xoá trạng thái hover/tooltip đang kẹt, rồi vẽ lại theo kích thước khung
+      try { c.unbindEvents(); c.bindEvents(); } catch (e) { /* bản Chart.js khác: bỏ qua */ }
+      c._active = []; c._lastEvent = null;
+      if (c.tooltip) c.tooltip.setActiveElements([], { x: 0, y: 0 });
+      var box = c.canvas.parentElement;
+      if (box) c.resize(box.clientWidth, box.clientHeight);
+      c.update("none");
+    });
   });
 
   // tv4: biểu đồ tròn thương hiệu yêu thích; màu cố định theo thương hiệu (Yonex, Li-Ning, Victor, Mizuno, Other)
@@ -58,9 +98,10 @@
       document.querySelectorAll(".brand-legend tbody tr").forEach(function (tr, i) {
         tr.style.cursor = "pointer";
         tr.addEventListener("click", function () {
-          brandChart.toggleDataVisibility(i);
-          brandChart.update();
-          tr.classList.toggle("brand-off", !brandChart.getDataVisibility(i));
+          var bc = Chart.getChart(canvas) || brandChart; // tv4: lấy biểu đồ hiện tại (có thể đã được tạo lại sau khi in)
+          bc.toggleDataVisibility(i);
+          bc.update();
+          tr.classList.toggle("brand-off", !bc.getDataVisibility(i));
         });
       });
       var loading = document.getElementById("brand-loading");
