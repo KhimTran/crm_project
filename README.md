@@ -1,296 +1,129 @@
-# crm_project
+# CRM Shop Cầu Lông
 
-## Bộ demo cuối cùng — 2026-11-04
+Đồ án môn **Hệ thống thông tin doanh nghiệp** (841065) — Đại học Sài Gòn (SGU), HK1 2026–2027.
+Website bán đồ cầu lông tích hợp hệ thống quản lý quan hệ khách hàng (CRM).
 
-Hướng dẫn hiện hành: [Thiết lập demo và 20 tài khoản](docs/HUONG_DAN_CHAY_DO_AN.md).
-Ngày 2026-11-04, theo phê duyệt của chủ dự án, database **cục bộ**
-`127.0.0.1:3306/crm_db` đã được thay bằng Full Backup demo chuẩn sau khi restore
-clone thành công. Máy này có thể chạy server trực tiếp, không seed/import lại.
-Chỉ dùng `database/backups/` cho Backup/Restore; các snapshot cũ đã được dọn sau xác minh.
+- Công nghệ: Python 3.12, Django 5.2, MySQL 8.x, Django Templates + Bootstrap 5, Chart.js
+- Repository: https://github.com/KhimTran/crm_project
 
-Chỉ dùng database phát triển mới, rỗng, cấu hình đúng trong `.env`:
+## Nhóm thực hiện
 
-```powershell
-git pull origin develop
-python manage.py migrate
-python manage.py seed_demo
-python manage.py runserver
-```
+| TV | Họ tên | MSSV | Phụ trách |
+| --- | --- | --- | --- |
+| TV1 | Trần Trọng Duy Khiêm | 3123411153 | Nhóm trưởng; nền tảng, xác thực, giao diện khách hàng, tích hợp, tổng hợp báo cáo |
+| TV2 | Nguyễn Công Vinh | 3123411341 | Danh mục sản phẩm, loại sản phẩm, thương hiệu; khảo sát doanh nghiệp |
+| TV3 | Trần Thị Quỳnh Như | 3123411214 | Tài khoản, phân quyền, CSDL, sao lưu/phục hồi, giao diện Admin |
+| TV4 | Huỳnh Phúc Hoàng Nhật | 3123411208 | Khách hàng, phản hồi, báo cáo khách hàng, phân tích hệ thống |
+| TV5 | Nguyễn Minh | 3123411188 | Khảo sát khách hàng, thống kê kết quả, sơ đồ luồng dữ liệu |
 
-Dataset: **2 Admin, 3 Manager, 15 Customer, 20 Feedback, 18 Survey**, 61 lượt trả lời
-SUBMITTED trên cả 15 Survey ACTIVE/CLOSED. DRAFT không có lời mời/trả lời.
-Catalog giữ 40 sản phẩm thực tế, giá và ảnh chuẩn; seed không ghi đè Catalog hiện có.
-Account: `admin1..2@demo.test`, `manager1..3@demo.test`, `cus1..15@demo.test`;
-mật khẩu công khai demo **`Crm@2026`** (Django hash). Đăng nhập tương ứng:
-`/admin/login/`, `/manager/login/`, `/login/`. Bảng đầy đủ trong hướng dẫn trên.
+## Chức năng chính
 
-Cách thay thế: restore `database/backups/crm_YYMMDD_HHMMSS.sql` hoặc canonical
-`database/crm_db.sql` vào database mới rỗng. Manifest `.sql.json` nằm cạnh backup;
-đối chiếu SHA-256 trước restore. Full dump đã có migration history.
-`database/seed_survey_report.sql` là data-only cho schema đã migrate, không cần
-import sau seed_demo/full restore. Chọn một cách nạp; không kết hợp trên cùng DB.
-Không chạy các seed lịch sử `seed_data`, `seed_surveys`, `seed_survey_report_demo`
-trong setup chuẩn. Không migrate/reset/seed/restore lên database thật hoặc dùng chung.
-Không commit `.env`, MySQL credentials hoặc dữ liệu cá nhân thật.
+- **Khách hàng** (`/login/`): xem/lọc sản phẩm, đăng ký, hồ sơ cá nhân, gửi phản hồi, làm khảo sát.
+- **Manager** (`/manager/login/`): quản lý sản phẩm, danh mục, thương hiệu; CRM gồm khách hàng, báo cáo, phản hồi, khảo sát.
+- **Admin** (`/admin/login/`): quản lý tài khoản (tạo, xóa, khóa/mở khóa, đặt lại mật khẩu, phân quyền) và công cụ database (backup/restore).
 
-## Ghi chép lịch sử (không dùng làm hướng dẫn setup hiện hành)
+## Yêu cầu cài đặt
 
-Các số lượng, seed commands và điều kiện triển khai bên dưới là lịch sử của từng
-revision; hướng dẫn demo ở đầu file và tài liệu thiết lập ở trên có hiệu lực hiện tại.
+- Python 3.12, MySQL Server 8.x (đã thử trên 8.4), Git
+- Tài khoản MySQL có quyền tạo bảng trên database `crm_db`
 
+## Cài đặt và chạy
 
-## CRM completion verification — 2026-11-02
-
-Current verification and remaining deployment condition: [audit report](docs/crm_audit_20261101/REPORT.md).
-All 456 original tests plus eight regression cases pass on isolated MySQL (464 total).
-`/login/` selects `sessionid` (Customer), `staff_sessionid` (Admin) or
-`manager_sessionid` (Manager). Logout removes only the selected portal session.
-The shared password page accepts `?portal=manager` or `?portal=admin`; without
-that parameter an authenticated Customer remains selected, with staff fallback
-when no Customer session is available.
-
-`seed_survey_report_demo --confirm` uses ORM-assigned IDs and recreates only marked
-demo accounts/surveys. `--clear --confirm` retains unrelated rows. The data-only
-SQL seed names its columns explicitly to support migration-created schemas.
-
-Migration `surveys.0006_reconcile_rating_constraint` reconciles legacy SQL imports
-with the existing questionnaire Rating 1–10 contract. Fresh migrations, upgraded
-clones and the current SQL import were verified. **It has not been applied to
-shared `crm_db`: its legacy Rating 1–5 CHECK remains a deployment blocker for
-scores 6–10.** Live changes were excluded by the audit request. Before deployment,
-use the project's verified full-backup/recovery procedure and apply the migration
-in an authorized maintenance window. Do not re-import the initialization SQL over
-an existing database.
-
-Website bán đồ cầu lông tích hợp CRM. Django 5.2, MySQL 8.x, Django Templates.
-
-Phần TV1 trên nhánh `feature/tv1-auth-customer` được xây từ develop `ee13e42`.
-Không cần gộp nhánh TV2/TV4/TV5 để chạy auth, hồ sơ cá nhân và cửa hàng.
-
-## Chạy ứng dụng
+**1. Lấy mã nguồn và cài thư viện** (PowerShell, Windows)
 
 ```powershell
+git clone https://github.com/KhimTran/crm_project.git
+cd crm_project
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+Copy-Item .env.example .env
 ```
 
-Điền SECRET_KEY và thông tin MySQL thực tế vào `.env`; không commit file này.
-DB_NAME phải là `crm_db`. Dùng database đã được chủ nhóm khởi tạo đúng migrations
-của revision hiện tại. Chỉ với database mới, rỗng và được chỉ định cho phát triển,
-người quản lý DB mới chạy `python manage.py migrate`; không chạy lại dump,
-migrate, seed, flush hoặc restore máy móc trên DB chung.
+**2. Tạo database rỗng** (đăng nhập MySQL bằng tài khoản quản trị)
+
+```sql
+CREATE DATABASE crm_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+GRANT ALL PRIVILEGES ON crm_db.* TO '<user>'@'localhost';
+```
+
+**3. Sửa file `.env`**: điền `SECRET_KEY`, `DB_USER`, `DB_PASSWORD` (giữ `DB_NAME=crm_db`, `DB_HOST=127.0.0.1`, `DB_PORT=3306`) và `MYSQL_BIN` là thư mục `bin` của MySQL trên máy bạn (dùng cho backup/restore). Không commit file `.env`.
+
+**4. Nạp dữ liệu — chọn MỘT trong hai cách, không kết hợp trên cùng database**
+
+*Cách A (khuyến nghị): migrations + seed*
+
+```powershell
+python manage.py migrate
+python manage.py seed_demo
+```
+
+*Cách B: import bản dump có sẵn* vào database rỗng (không chạy `migrate`/`seed_demo` trước đó):
+
+```sql
+SOURCE <đường-dẫn>/crm_project/database/crm_db.sql;
+```
+
+**5. Chạy server**
 
 ```powershell
 python manage.py check
-python manage.py showmigrations
-python manage.py migrate --plan
 python manage.py runserver
 ```
 
-Giữ một hostname duy nhất khi demo, ví dụ `http://127.0.0.1:8000`.
-Account email bất biến; role gồm ADMIN/MANAGER/CUSTOMER. Admin quản trị tài khoản
-và database; Manager quản lý Catalog và truy cập CRM. Các Groups
-CRM_MANAGER/CUSTOMER_SERVICE hiện có vẫn được giữ; TV1 không cung cấp màn hình tự gán nhóm.
+Mở http://127.0.0.1:8000 (dùng một hostname duy nhất khi demo).
 
-## URLs TV1
+## Tài khoản demo
 
-| URL | Chức năng / quyền |
-| --- | --- |
-| `/` | Trang chủ cửa hàng, công khai |
-| `/products/` | Danh sách, tìm tên, lọc và phân trang, công khai |
-| `/products/<product_id>/` | Chi tiết sản phẩm ACTIVE, công khai |
-| `/login/` | Đăng nhập khách hàng/CRM/ADMIN |
-| `/logout/` | Đăng xuất, chỉ POST + CSRF |
-| `/register/` | Tạo Account CUSTOMER ACTIVE và Customer cùng transaction |
-| `/crm/` | ACTIVE ADMIN hoặc nhóm CRM_MANAGER/CUSTOMER_SERVICE |
-| `/account/profile/` | ACTIVE CUSTOMER, chỉ hồ sơ ACTIVE của chính mình |
-| `/account/password/change/` | Account ACTIVE, yêu cầu mật khẩu hiện tại |
+Mật khẩu chung: **`Crm@2026`** (chỉ dùng cho demo, dữ liệu giả lập).
 
-Admin Portal dùng `/admin/login/`, `/admin/logout/`, `/admin/` cho ACTIVE ADMIN.
-Manager dùng `/manager/login/`, `/manager/logout/`, `/manager/` cho ACTIVE MANAGER.
-Django Admin mặc định ở `/django-admin/`; `/admin-portal/` đã bị loại bỏ.
-`/api/docs`, `/api/auth/*`, `/api/accounts/*` giữ nguyên.
-Tên URL `login`/`logout` cũ vẫn thuộc admin; TV1 dùng namespace `customer_auth`.
-LOGIN_URL mới là `customer_auth:login`, guard admin riêng vẫn dùng route admin.
+| Vai trò | Email | Trang đăng nhập |
+| --- | --- | --- |
+| Admin (2) | `admin1@demo.test`, `admin2@demo.test` | `/admin/login/` |
+| Manager (3) | `manager1@demo.test` … `manager3@demo.test` | `/manager/login/` |
+| Khách hàng (15) | `cus1@demo.test` … `cus15@demo.test` | `/login/` |
 
-Đăng nhập không có `next`: ADMIN → `/admin/`, MANAGER → `/manager/`, nhóm CRM → `/crm/`,
-CUSTOMER → `/`. `next` chỉ nhận route GET nội bộ nằm trong allowlist và phù hợp
-quyền; bỏ qua URL ngoài site, route auth gây vòng lặp, route chưa có và thao tác POST.
-Tài khoản LOCKED không dùng được trang bảo vệ qua session cũ.
-Chỉ thông báo khóa tại login sau khi mật khẩu đã được xác minh.
+Dữ liệu demo: 20 tài khoản, 40 sản phẩm (6 danh mục, 6 thương hiệu), 20 phản hồi, 18 khảo sát (61 lượt trả lời).
+Trang chủ: `/` · Django Admin mặc định (chỉ để phát triển): `/django-admin/`.
 
-Template custom Admin ở `templates/admin/portal/`; không dùng trực tiếp
-`templates/admin/base.html`, `base_site.html`, `index.html` hoặc `login.html` để
-tránh che template Django Admin. Tên app `apps.admin_portal`, URL/namespace và
-static `admin_portal.css`/`admin_portal.js` giữ nguyên. Xem
-[bàn giao Admin/Manager và recovery](docs/crm_audit_20261101/REPORT.md).
+## Backup / Restore
 
-## Email và mật khẩu
-
-DEBUG=True mặc định dùng console backend khi EMAIL_BACKEND chưa đặt. Ví dụ:
-
-```dotenv
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-DEFAULT_FROM_EMAIL=noreply@example.test
-```
-
-Đổi mật khẩu giữ session đang thao tác và vô hiệu các session khác.
-Tính năng "Quên mật khẩu" tự phục vụ của khách hàng đã được gỡ bỏ; Admin vẫn đặt lại mật khẩu cho tài khoản trong Admin Portal.
-
-Email thật cần SMTP được nhà cung cấp cấp phép và cấu hình riêng, ví dụ:
-
-```dotenv
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=<smtp-host>
-EMAIL_PORT=587
-EMAIL_HOST_USER=<smtp-user>
-EMAIL_HOST_PASSWORD=<smtp-password>
-EMAIL_USE_TLS=True
-EMAIL_USE_SSL=False
-DEFAULT_FROM_EMAIL=<verified-sender>
-```
-
-Không bật TLS và SSL cùng lúc. Gửi SMTP thật chưa được kiểm chứng trong task này.
-chỉ tùy biến lọc ACTIVE vì Account.is_active là property.
-
-## Contract hồ sơ và sản phẩm
-
-Hồ sơ nhận `full_name`, `phone`, `date_of_birth`, `gender`, `address`,
-`playing_level`; các ID/account/email/role/status/groups/permissions không writable.
-Checkbox “Danh mục bạn quan tâm” nhận `categories` là danh sách Category ID ACTIVE;
-backend xác minh và lưu `CATEGORY` / `category_name` (tên, không lưu ID).
-Service chỉ đồng bộ các tên danh mục hiện tại của chính khách, tránh trùng lặp.
-Sở thích danh mục cũ không khớp vẫn giữ; `remove_preferences` chỉ nhận ID các dòng
-cũ của chính khách để xóa chủ động. BRAND/PLAY_STYLE và loại khác giữ nguyên.
-Dropdown theo TV4: gender MALE/FEMALE/OTHER; playing_level
-BEGINNER/RECREATIONAL/COMPETITIVE, nhãn tiếng Việt. Giá trị cũ ngoài danh sách chỉ
-được giữ cho hồ sơ đã lưu; giá trị mới không hợp lệ bị từ chối. Không đổi
-models/migrations/SQL hoặc chuyển dữ liệu hàng loạt. Điện thoại nhận 9–15 chữ số và dấu định dạng;
-ngày sinh phải hợp lệ và không ở tương lai.
-
-Cửa hàng chỉ đọc `Product.status=ACTIVE`, không suy ra trạng thái bán từ tồn kho
-hay thêm cột. Bộ lọc `q`, `category`, `brand`, `min_price`, `max_price`, `page`;
-12 sản phẩm/trang, thứ tự product_id ổn định. ID lọc phải có trong danh mục/thương
-hiệu ACTIVE; giá dùng Decimal không âm và có tối đa 2 số lẻ; khoảng giá sai trả 400
-kèm lỗi form. Chi tiết không tồn tại hoặc INACTIVE trả 404.
-Bootstrap 5.3.3 CSS và placeholder SVG nằm trong static, không cần CDN.
-Phản hồi/khảo sát và các module CRM chưa có landing phù hợp hiển thị “Sắp có”.
+- Vào `/admin/login/` → mục **Database Tools** (`/admin/database/`): tạo bản sao lưu, tải về và khôi phục.
+- File sao lưu lưu trong `database/backups/` (không đưa lên Git). Khi restore, hệ thống yêu cầu gõ đúng tên database đích và tự tạo bản sao lưu trước khi khôi phục.
+- Cần cấu hình đúng `MYSQL_BIN` trong `.env`. Không restore lên database đang có dữ liệu thật.
+- Kế hoạch sao lưu chi tiết xem trong báo cáo (chương 4).
 
 ## Kiểm thử
 
-MySQL user cần quyền tạo/đọc/ghi `test_crm_db`, tách khỏi `crm_db`.
-`config.test_settings` chỉ định TEST.NAME=`test_crm_db`, UTF-8 và email locmem.
-Test runner áp dụng migrations thật lên DB test; không fake hay bỏ migrations.
-DB này dành riêng kiểm thử, không chứa dữ liệu cần bảo toàn. Không chạy đồng thời
-nhiều test runner dùng cùng test_crm_db.
+Cần MySQL user có quyền tạo `test_crm_db` (tách khỏi `crm_db`):
 
 ```powershell
-python manage.py check
-python manage.py makemigrations --check --dry-run
-python manage.py test apps.accounts.tests.test_customer_auth apps.customers apps.shop --settings=config.test_settings --keepdb --noinput
 python manage.py test --settings=config.test_settings --keepdb --noinput
 ```
 
-Lệnh trên đã chạy bằng Python 3.12.10 / Django 5.2.17 / mysqlclient 2.3.0.
-Kết quả và giới hạn môi trường ghi trong `plans.md`.
-Review trước PR chạy lại toàn bộ suite: **144/144 passed trong 175.004 giây**,
-check 0 lỗi và không có migration mới. Kết quả này bao gồm regression API/admin;
-demo riêng sau đó pass **42 kiểm tra HTTP**, cùng kiểm tra giao diện bằng browser.
+## Cấu trúc thư mục
 
-## Demo và bàn giao
-
-Demo TV1 dùng MySQL database **`crm_tv1_demo`**, độc lập với `crm_db` legacy và
-`test_crm_db` (chỉ dùng automated tests). Cấu hình máy ở
-`config/local_settings.py` được Git bỏ qua; không đổi `.env` hoặc settings mặc định
-của nhóm để chuyển DB demo. Nếu chưa có file này, tạo cục bộ:
-
-```python
-from copy import deepcopy
-from .settings import *
-
-DATABASES = deepcopy(DATABASES)
-DATABASES['default']['NAME'] = 'crm_tv1_demo'
-DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+```
+apps/accounts      Tài khoản, vai trò, đăng nhập, phân quyền
+apps/admin_portal  Giao diện Admin và Manager
+apps/catalog       Sản phẩm, danh mục, thương hiệu (+ lệnh seed_demo)
+apps/customers     Hồ sơ khách hàng, sở thích, báo cáo khách hàng
+apps/feedback      Phản hồi của khách hàng
+apps/surveys       Khảo sát
+apps/shop          Trang cửa hàng cho khách hàng
+config/            Cấu hình Django (settings, urls)
+database/          crm_db.sql (dump demo), backups/
+docs/              Tài liệu hướng dẫn, báo cáo
+templates/ static/ Giao diện và tài nguyên tĩnh
 ```
 
-Tài khoản MySQL đọc từ `.env` cần quyền CREATE/DDL/DML trên `crm_tv1_demo`.
-Người quản trị MySQL có thể cấp quyền vào **DB demo này**:
+## Cơ sở dữ liệu
 
-```sql
-GRANT ALL PRIVILEGES ON crm_tv1_demo.* TO 'crm_user'@'localhost';
-CREATE DATABASE crm_tv1_demo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
+MySQL `crm_db`, utf8mb4: 14 bảng nghiệp vụ — `roles`, `accounts`, `categories`, `brands`, `products`, `customer_preferences`, `feedbacks`, `surveys`, `survey_questions`, `survey_options`, `survey_recipients`, `survey_responses`, `survey_answers` — cộng các bảng kỹ thuật của Django. Khách hàng là tài khoản có vai trò CUSTOMER (không có bảng `customers` riêng).
 
-Chỉ CREATE khi tên DB chưa tồn tại; nếu đã có thì kiểm tra trước, không DROP/reset.
-Sau khi DB mới được tạo và vẫn rỗng, dùng đúng settings demo để xem kế hoạch,
-apply migrations hiện có và chạy server:
+## Lưu ý
 
-```powershell
-python manage.py migrate --plan --settings=config.local_settings
-python manage.py migrate --settings=config.local_settings
-python manage.py check --settings=config.local_settings
-$env:PYTHONIOENCODING='utf-8'
-python manage.py runserver 127.0.0.1:8000 --settings=config.local_settings
-```
-
-Không chạy test runner với local_settings vì dữ liệu demo cần được giữ lại.
-Khách hàng có thể đăng ký qua `/register/`; ADMIN tạo bằng
-`python manage.py createsuperuser --settings=config.local_settings` (nhập mật khẩu
-tại prompt, không đặt trong argv/source). Người quản trị cấp nhóm
-CRM_MANAGER/CUSTOMER_SERVICE cho Account demo qua quy trình quản trị riêng;
-không thêm role mới. Sản phẩm demo tạo bằng chức năng catalog hiện có trên DB demo.
-Không sao chép dữ liệu cá nhân từ DB chung vào demo.
-
-**Kết quả demo 2026-10-08:** lỗi quyền 1044 ban đầu đã được giải quyết sau khi
-chủ máy cấp quyền và tạo `crm_tv1_demo` rỗng. Đã review migration plan, apply toàn
-bộ migrations hiện có và check 0 lỗi. MySQL 8.4.11, utf8mb4/utf8mb4_unicode_ci,
-23 bảng vật lý gồm 14 bảng nghiệp vụ và các bảng kỹ thuật Django.
-Inventory gần nhất ghi nhận 7 Account, 4 Customer, 14 sản phẩm ACTIVE và 1 INACTIVE.
-Bước cải thiện hồ sơ chỉ bổ sung một Account/Customer giả lập; dữ liệu demo có sẵn được giữ nguyên.
-**42 kiểm tra HTTP pass**: đăng ký/trùng email, login khách hàng/CRM/admin,
-CSRF/quyền/LOCKED/session cũ, hồ sơ/sở thích/ownership, đổi/reset mật khẩu và token,
-cửa hàng/lọc/phân trang/404; account list/detail, catalog và Django admin render 200.
-Browser đã xác minh shop, profile, CRM, đăng nhập admin và catalog admin.
-Console reset ban đầu lỗi encoding Windows; bật UTF-8 và chạy lại reset thành công.
-Mật khẩu ngẫu nhiên, credentials, script, log và ảnh demo chỉ lưu cục bộ ngoài repo.
-SMTP thật vẫn chưa kiểm chứng. `crm_db` legacy không bị migrate/reset/thay đổi.
-
-PR bàn giao: [#3](https://github.com/KhimTran/crm_project/pull/3), vào `develop`.
-Không merge PR hoặc gộp nhánh TV2/TV4/TV5 trong task này.
-
-Cải thiện hồ sơ sau PR: **47/47 kiểm thử liên quan pass trong 50.937 giây** trên
-test_crm_db; **26 kiểm tra demo mới pass** trên crm_tv1_demo. Đã xác minh bộ lọc
-giá trị/trình độ của TV5 đọc được dữ liệu mới mà không merge nhánh TV5. Hồ sơ
-desktop/390px không tràn ngang; nút “Xem sản phẩm” có chữ trắng ở normal/hover/focus.
-Contract và khác biệt seed trình độ của TV5 được ghi trong docs/tv1_handoff.md.
-
-Trên DB phát triển đã khớp schema: mở `/`, lọc sản phẩm; đăng ký một khách hàng;
-đăng nhập, cập nhật hồ sơ/sở thích; đổi mật khẩu; đăng xuất bằng nút POST; yêu cầu
-reset và dùng console link. Dùng Account có nhóm CRM do người quản lý cấp sẵn để
-xem `/crm/`; ADMIN vẫn vào Admin Portal hiện có. Không chạy seed trong task TV1.
-
-**Giới hạn tại máy khảo sát 2026-10-08:** live `crm_db` còn bảng auth legacy và
-chưa khớp models develop. Check source thành công không chứng minh live DB dùng
-được. Chủ DB cần xử lý riêng bằng quy trình backup/migration đã duyệt trước demo;
-TV1 không reset hoặc migrate DB đó. Kiểm thử TV1 dùng MySQL test schema riêng.
-
-Bàn giao: [docs/tv1_handoff.md](docs/tv1_handoff.md).
-Kế hoạch: [docs/crm_audit_20261101/REPORT.md](docs/crm_audit_20261101/REPORT.md).
-Báo cáo: [docs/chapter4.md](docs/chapter4.md).
-
-
-Live finalization 2026-11-02: owner authorized and applied surveys.0006; verified recovery backup outside backups, full dump/restore22 tables, unchanged business fingerprints, idempotent seed (0 new live rows). Prior pending-0006 statements are superseded. Evidence: docs/crm_audit_20261101/completion/finalize_database.json.
-
-
-Feedback owner decision 2026-11-02: only NEW and RESOLVED are valid. Existing IN_PROGRESS feedbacks converted to NEW by feedback.0003_two_status_feedback; note and handler retained, resolved_at cleared. Existing reopen remains RESOLVED -> NEW. Survey response IN_PROGRESS is unrelated and remains supported. Live migration and verified recovery/full backup evidence: docs/crm_audit_20261101/completion/feedback_finalization.json. Previous three-status Feedback descriptions are historical and superseded.
-
-
-### Role FK upgrade — PR #27
-
-Account.role is a Role relation; use role_code for business comparisons and role__role_code in ORM filters. APIs/forms retain their string role contract. Runtime never recreates missing Roles; migrations or the explicit initialize_roles command initialize them. This hardening has no schema migration and requires no seed on an existing normalized database.
-
-Read [the four-path team upgrade/restore guide](docs/role_refactor/TEAM_UPGRADE.md) before changing an existing database, and [verification evidence](docs/role_refactor/hardening/REPORT.md) before reviewing PR #27. Never overwrite populated tables with a dump or fake migration history.
+- Chỉ chạy `migrate`/`seed_demo`/import/restore trên database **mới, rỗng, dành cho phát triển**.
+- Không chạy các lệnh seed lịch sử: `seed_data`, `seed_surveys`, `seed_survey_report_demo`.
+- Không commit `.env`, mật khẩu MySQL hoặc dữ liệu thật.
+- Hướng dẫn chi tiết hơn: [docs/HUONG_DAN_CHAY_DO_AN.md](docs/HUONG_DAN_CHAY_DO_AN.md).
