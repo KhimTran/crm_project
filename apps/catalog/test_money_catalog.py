@@ -69,7 +69,7 @@ class CatalogNormalizationTests(TestCase):
         # bulk_create deliberately models pre-existing storage, bypassing new-write normalization.
         CustomerPreference.objects.bulk_create([
             CustomerPreference(customer=self.customer, preference_type="BRAND", preference_value=value)
-            for value in ("Lining", "Li-Ning", "Kumpoo", "VNB")
+            for value in ("Lining", "Li-Ning", "Felet", "VNB")
         ])
 
     def test_preview_apply_preserves_ids_fks_prices_and_unknowns(self):
@@ -90,7 +90,7 @@ class CatalogNormalizationTests(TestCase):
         self.assertEqual(self.brand.brand_name, "Li-Ning")
         self.assertEqual((self.brand.status, self.product.status), ("INACTIVE", "INACTIVE"))
         self.assertEqual(set(CustomerPreference.objects.values_list("preference_value", flat=True)),
-                         {"Li-Ning", "Kumpoo", "VNB"})
+                         {"Li-Ning", "Felet", "VNB"})
         self.assertEqual(normalize_catalog(apply=True), {"brands": 0, "products": 0, "preferences": 0, "merged": 0})
 
     def test_search_filters_and_reports_accept_both_aliases_before_and_after(self):
@@ -108,25 +108,25 @@ class CatalogNormalizationTests(TestCase):
                 self.assertTrue(form.is_valid(), form.errors)
                 self.assertEqual(form.cleaned_data["preferences"], ["Li-Ning"])
             rows = next(group["rows"] for group in preference_report() if group["type"] == "BRAND")
-            self.assertEqual({row["label"]: row["count"] for row in rows}, {"Li-Ning": 1, "Kumpoo": 1, "VNB": 1})
+            self.assertEqual({row["label"]: row["count"] for row in rows}, {"Li-Ning": 1, "Felet": 1, "VNB": 1})
             self.assertIn(("Li-Ning", "Li-Ning"), preference_choices())
             self.assertNotIn(("Lining", "Lining"), preference_choices())
 
     def test_active_choices_saved_inactive_and_unmatched_values_survive(self):
         Brand.objects.create(brand_name="Disabled", status="INACTIVE")
         self.assertNotIn("Disabled", dict(brand_choices()))
-        self.assertNotIn("Kumpoo", dict(brand_choices()))
-        preference = CustomerPreference.objects.create(customer=self.customer, preference_type="FAVORITE_BRAND", preference_value="Kumpoo")
+        self.assertNotIn("Felet", dict(brand_choices()))
+        preference = CustomerPreference.objects.create(customer=self.customer, preference_type="FAVORITE_BRAND", preference_value="Felet")
         category = Category.objects.create(category_name="Badminton bags", status="INACTIVE")
         CustomerPreference.objects.create(customer=self.customer, preference_type="CATEGORY", preference_value=category.category_name)
         CustomerPreference.objects.create(customer=self.customer, preference_type="BRAND", preference_value="VNB")
         form = CustomerProfileForm(instance=self.customer.customer)
-        self.assertIn("Kumpoo", dict(form.fields["favorite_brand"].choices))
-        update_own_profile(self.customer, profile_data={"full_name": "Updated", "favorite_brand": "Kumpoo"})
-        self.assertEqual(get_favorite_brand(self.customer.customer), ("Kumpoo", ""))
+        self.assertIn("Felet", dict(form.fields["favorite_brand"].choices))
+        update_own_profile(self.customer, profile_data={"full_name": "Updated", "favorite_brand": "Felet"})
+        self.assertEqual(get_favorite_brand(self.customer.customer), ("Felet", ""))
         self.assertTrue(CustomerPreference.objects.filter(preference_value="Badminton bags").exists())
         self.assertTrue(CustomerPreference.objects.filter(preference_value="VNB").exists())
-        self.assertFalse(CustomerProfileForm({"full_name": "New", "favorite_brand": "Kumpoo"}).is_valid())
+        self.assertFalse(CustomerProfileForm({"full_name": "New", "favorite_brand": "Felet"}).is_valid())
         report = favorite_brand_report()
         self.assertEqual(report["answered"], 1)
 

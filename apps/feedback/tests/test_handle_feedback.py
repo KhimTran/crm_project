@@ -10,7 +10,8 @@ from apps.accounts.models import Account
 from apps.catalog.models import Brand, Category, Product
 from apps.customers.services import create_customer
 from apps.feedback.constants import FeedbackStatus
-from apps.feedback.errors import FeedbackNoteRequired, FeedbackNotFound, InvalidFeedbackStatus
+from apps.feedback.errors import (FeedbackNoteRequired, FeedbackNotFound, FeedbackReopenNotAllowed,
+                                  InvalidFeedbackStatus)
 from apps.feedback.models import Feedback
 from apps.feedback.selectors import feedback_queryset, filter_feedbacks
 from apps.feedback.services import handle_feedback
@@ -83,7 +84,27 @@ class HandleFeedbackServiceTests(FeedbackTestData):
         self.assertEqual(feedback.handled_by, self.manager)
         self.assertIsNotNone(feedback.resolved_at)
 
-    def test_editing_reply_keeps_first_resolved_at_and_reopen_clears_it(self):
+    # tv4: đã RESOLVED thì không về NEW được, dữ liệu giữ nguyên
+    def test_resolved_cannot_be_reopened(self):
+        feedback = self.make_feedback()
+        handle_feedback(feedback.pk, status=FeedbackStatus.RESOLVED, manager_note="Đã xử lý", handled_by=self.staff)
+        with self.assertRaises(FeedbackReopenNotAllowed):
+            handle_feedback(feedback.pk, status=FeedbackStatus.NEW, manager_note="Mở lại", handled_by=self.manager)
+        feedback.refresh_from_db()
+        self.assertEqual(feedback.status, FeedbackStatus.RESOLVED)
+        self.assertEqual(feedback.manager_note, "Đã xử lý")
+        self.assertEqual(feedback.handled_by, self.staff)
+        self.assertIsNotNone(feedback.resolved_at)
+
+    # tv4: form của phản hồi đã RESOLVED chỉ có lựa chọn Resolved
+    def test_form_limits_choices_when_resolved(self):
+        from apps.feedback.forms import FeedbackHandleForm
+        form = FeedbackHandleForm({"status": "NEW", "manager_note": "x"}, current_status=FeedbackStatus.RESOLVED)
+        self.assertFalse(form.is_valid())
+        self.assertIn("status", form.errors)
+        self.assertEqual([v for v, _ in form.fields["status"].choices], [FeedbackStatus.RESOLVED])
+
+    def test_editing_reply_keeps_first_resolved_at(self):
         feedback = self.make_feedback()
         handle_feedback(feedback.pk, status=FeedbackStatus.RESOLVED, manager_note="Lần 1", handled_by=self.staff)
         first = Feedback.objects.get(pk=feedback.pk).resolved_at
@@ -92,12 +113,6 @@ class HandleFeedbackServiceTests(FeedbackTestData):
         self.assertEqual(feedback.resolved_at, first)
         self.assertEqual(feedback.manager_note, "Lần 2")
         self.assertEqual(feedback.handled_by, self.manager)
-
-        handle_feedback(feedback.pk, status=FeedbackStatus.NEW, manager_note="Kiểm tra lại",
-                        handled_by=self.staff)
-        feedback.refresh_from_db()
-        self.assertIsNone(feedback.resolved_at)
-        self.assertEqual(feedback.status, FeedbackStatus.NEW)
 
     def test_invalid_input_is_rejected_without_changes(self):
         feedback = self.make_feedback()
@@ -180,6 +195,22 @@ class FeedbackViewTests(FeedbackTestData):
         self.assertEqual(self.feedback.handled_by, self.staff)
         self.assertEqual(self.feedback.manager_note, "Shop sẽ căng lại miễn phí.")
         self.assertIsNotNone(self.feedback.resolved_at)
+
+    # tv4: trang chi tiết phản hồi đã RESOLVED: không có option New, POST NEW bị chặn, sửa câu trả lời được
+    def test_resolved_detail_hides_new_and_allows_editing_reply(self):
+        handle_feedback(self.feedback.pk, status=FeedbackStatus.RESOLVED, manager_note="Lần 1", handled_by=self.staff)
+        self.client.force_login(self.manager)
+        url = reverse("crm_feedbacks:detail", args=[self.feedback.pk])
+        response = self.client.get(url)
+        self.assertNotContains(response, 'value="NEW"')
+        self.client.post(url, {"status": FeedbackStatus.NEW, "manager_note": "Mở lại"})
+        self.feedback.refresh_from_db()
+        self.assertEqual(self.feedback.status, FeedbackStatus.RESOLVED)
+        self.assertEqual(self.feedback.manager_note, "Lần 1")
+        self.client.post(url, {"status": FeedbackStatus.RESOLVED, "manager_note": "Lần 2"})
+        self.feedback.refresh_from_db()
+        self.assertEqual(self.feedback.manager_note, "Lần 2")
+        self.assertEqual(self.feedback.status, FeedbackStatus.RESOLVED)
 
     def test_resolve_without_reply_shows_error(self):
         self.client.force_login(self.manager)

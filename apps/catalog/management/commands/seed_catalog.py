@@ -21,8 +21,10 @@ BRANDS = (
     ("Victor", "Thương hiệu cầu lông Đài Loan"),
     ("Mizuno", "Thương hiệu thể thao Nhật Bản"),
     ("Apacs", "Thương hiệu cầu lông Malaysia"),
-    ("Kumpoo", None),
 )
+
+# tv4: thương hiệu đã bị loại khỏi danh mục; seed sẽ xóa nếu không còn sản phẩm nào tham chiếu
+REMOVED_BRANDS = ("Kumpoo",)
 
 # Preserve the existing canonical catalog's availability, including hidden items.
 INACTIVE_PRODUCTS = frozenset({"Mizuno Cầu tập luyện", "Apacs Cầu lông vũ"})
@@ -74,6 +76,29 @@ PRODUCTS = (
     ("Badminton shoes", "Apacs", "Apacs Cushion Pro", "Giày đệm êm cho tập luyện", "1500000"),
     ("Shuttlecocks", "Apacs", "Apacs Cầu lông vũ", "Cầu lông vũ, hộp 12 quả", "650000"),
     ("Badminton apparel", "Apacs", "Apacs Áo thi đấu nam", "Áo thun thoáng khí cho tập luyện", "350000"),
+    # --- Badminton bags ---
+    ("Badminton bags", "Yonex", "Yonex Pro Racquet Bag BA92226", "Túi vợt 6 cây, có ngăn giày riêng", "2100000"),
+    ("Badminton bags", "Yonex", "Yonex Active Backpack BA82212", "Balo cầu lông gọn nhẹ, đựng 2 vợt", "950000"),
+    ("Badminton bags", "Li-Ning", "Li-Ning ABJT005 Racquet Bag", "Túi vợt 6 cây, chống thấm nước", "1100000"),
+    ("Badminton bags", "Li-Ning", "Li-Ning Backpack ABSS23", "Balo thể thao đựng vợt và quần áo", "650000"),
+    ("Badminton bags", "Victor", "Victor BR9213 Racquet Bag", "Túi vợt 9 cây, ngăn giày thoáng khí", "1800000"),
+    ("Badminton bags", "Victor", "Victor BR3025 Backpack", "Balo cầu lông đa ngăn, đựng 3 vợt", "1200000"),
+    ("Badminton bags", "Mizuno", "Mizuno Racquet Bag 73GD", "Túi vợt 6 cây, vải bền chống mài mòn", "1300000"),
+    ("Badminton bags", "Apacs", "Apacs AP-2188 Racquet Bag", "Túi vợt 6 cây cho tập luyện", "850000"),
+    # --- Accessories ---
+    ("Accessories", "Yonex", "Yonex Super Grap AC102 (3 cuộn)", "Quấn cán vợt thấm hút mồ hôi, bộ 3 cuộn", "95000"),
+    ("Accessories", "Yonex", "Yonex Cước BG65 Titanium", "Cước đan vợt bền, độ nảy tốt", "130000"),
+    ("Accessories", "Yonex", "Yonex Vớ thể thao cầu lông", "Vớ dày chống trượt, thấm hút mồ hôi", "120000"),
+    ("Accessories", "Li-Ning", "Li-Ning GP20 Grip (5 cuộn)", "Quấn cán vợt mỏng, bộ 5 cuộn", "70000"),
+    ("Accessories", "Li-Ning", "Li-Ning No.1 String", "Cước đan vợt tầm trung, cảm giác êm", "90000"),
+    ("Accessories", "Li-Ning", "Li-Ning Băng bảo vệ cổ tay", "Băng cổ tay co giãn, thấm hút", "80000"),
+    ("Accessories", "Victor", "Victor GR262 Grip", "Quấn cán vợt chống trượt", "85000"),
+    ("Accessories", "Victor", "Victor VS-850 String", "Cước đan vợt độ bền cao", "110000"),
+    ("Accessories", "Victor", "Victor Băng bảo vệ đầu gối", "Băng gối hỗ trợ khớp khi thi đấu", "220000"),
+    ("Accessories", "Mizuno", "Mizuno Vớ cầu lông", "Vớ cổ ngắn, đệm êm gót chân", "110000"),
+    ("Accessories", "Mizuno", "Mizuno Quấn cán Towel Grip", "Quấn cán dạng khăn, thấm hút tốt", "75000"),
+    ("Accessories", "Apacs", "Apacs Quấn cán AP-3 (3 cuộn)", "Quấn cán vợt giá tốt, bộ 3 cuộn", "60000"),
+    ("Accessories", "Apacs", "Apacs Cước Nano String", "Cước đan vợt cho người mới chơi", "80000"),
 )
 
 # Link ảnh trực tiếp (kết thúc .jpg, .png hoặc .webp). Sản phẩm nào chưa có link thì để trống.
@@ -120,6 +145,27 @@ IMAGES = {
     'Yonex Power Cushion 65 Z3': 'https://i.imgur.com/GFxsPzr.jpeg'
 }
 
+# tv4: ảnh minh họa dùng chung theo loại cho túi/balo và phụ kiện (chưa có ảnh riêng từng sản phẩm)
+_BAG = "https://badminton-shop.com/wp-content/uploads/2022/09/Yonex-Pro-Racket-Bag-92326EX-X6-Grayish-Pearl.jpg"
+_BACKPACK = "https://ksa.gosportme.com/cdn/shop/files/int_ba82412_black.jpg?v=1716438099"
+_GRIP = "https://images.nexusapp.co/assets/ce/cb/c5/212170651.jpg"
+_STRING = "https://racquetstore.com/cdn/shop/files/YonexAerobiteBadmintonStringReel.jpg?v=1755649671"
+_SOCKS = "https://img.lazcdn.com/g/p/f27ed810d0cda1e2abfe6d7da31a8819.png_720x720q80.png"
+_WRIST = "https://joybadminton.com/cdn/shop/collections/badminton-wrist-band-ac489ex-main2.jpg?v=1616179352"
+_KNEE = "https://feelrecovery.com/wp-content/uploads/Knee-Brace-Support-Black-4-2-1024x1024.jpg"
+IMAGES.update({
+    "Yonex Pro Racquet Bag BA92226": _BAG, "Li-Ning ABJT005 Racquet Bag": _BAG,
+    "Victor BR9213 Racquet Bag": _BAG, "Mizuno Racquet Bag 73GD": _BAG, "Apacs AP-2188 Racquet Bag": _BAG,
+    "Yonex Active Backpack BA82212": _BACKPACK, "Li-Ning Backpack ABSS23": _BACKPACK, "Victor BR3025 Backpack": _BACKPACK,
+    "Yonex Super Grap AC102 (3 cuộn)": _GRIP, "Li-Ning GP20 Grip (5 cuộn)": _GRIP, "Victor GR262 Grip": _GRIP,
+    "Mizuno Quấn cán Towel Grip": _GRIP, "Apacs Quấn cán AP-3 (3 cuộn)": _GRIP,
+    "Yonex Cước BG65 Titanium": _STRING, "Li-Ning No.1 String": _STRING, "Victor VS-850 String": _STRING,
+    "Apacs Cước Nano String": _STRING,
+    "Yonex Vớ thể thao cầu lông": _SOCKS, "Mizuno Vớ cầu lông": _SOCKS,
+    "Li-Ning Băng bảo vệ cổ tay": _WRIST, "Victor Băng bảo vệ đầu gối": _KNEE,
+})
+
+
 class Command(BaseCommand):
     help = "Create repeatable real catalog data: categories, brands and products"
 
@@ -139,6 +185,11 @@ class Command(BaseCommand):
                 brand_name=name,
                 defaults={"description": description, "status": Status.ACTIVE},
             )
+
+        # tv4: xóa thương hiệu đã loại bỏ (Kumpoo) nếu không còn sản phẩm tham chiếu
+        for removed in REMOVED_BRANDS:
+            if not Product.objects.filter(brand__brand_name=removed).exists():
+                Brand.objects.filter(brand_name=removed).delete()
 
         created = 0
         for category_name, brand_name, name, description, price in PRODUCTS:

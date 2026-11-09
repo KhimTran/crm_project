@@ -132,7 +132,7 @@ class SurveyReportTests(TestCase):
 
     # tv4: test donut câu 6 và lát Khác
     def test_brands_donut_shares_other_slice_and_respondent_pct(self):
-        self.respond(brands=(0, 1, 5), other_text="Kumpoo nội địa")
+        self.respond(brands=(0, 1, 5), other_text="Felet nội địa")
         self.respond(brands=(0,))
         self.respond(brands=(5,), other_text="  Apacs ")
         brands = build_report(now=NOW)["brands"]
@@ -142,7 +142,7 @@ class SurveyReportTests(TestCase):
         self.assertEqual((rows["Khác"]["share_pct"], rows["Khác"]["respondent_pct"]), (40.0, 66.7))
         self.assertTrue(brands["rows"][-1]["is_other"])
         self.assertEqual(sum(1 for r in brands["rows"] if r["is_other"]), 1)
-        self.assertEqual(sorted(o["text"] for o in brands["other_texts"]), ["Apacs", "Kumpoo nội địa"])
+        self.assertEqual(sorted(o["text"] for o in brands["other_texts"]), ["Apacs", "Felet nội địa"])
         self.assertAlmostEqual(sum(r["share_pct"] for r in brands["rows"]), 100.0)
 
     # tv4: test phân khúc phổ biến câu 2

@@ -59,6 +59,7 @@ def send_result(request, survey_id):
 
 @require_GET
 def take(request, recipient_id):
+    close_expired()  # tv4: khảo sát hết hạn tự chuyển Đã đóng ngay khi khách mở form
     try:
         response, can_answer = start_survey(request.user, recipient_id)
     except PermissionDenied:
@@ -77,6 +78,7 @@ def take(request, recipient_id):
 
 @require_POST
 def submit(request, recipient_id):
+    close_expired()  # tv4: đồng bộ trạng thái hết hạn trước khi nhận bài nộp
     wants_json = "application/json" in request.headers.get("Accept", "")
     try:
         answers = json.loads(request.POST.get("answers", "[]"))
@@ -149,7 +151,11 @@ def _send_error(message):
 
 
 # tv4: dịch nhãn thống kê (vd. "5 sao") khi Admin xem trong Admin Portal
-def _localized_stats(stats):
+def _localized_stats(stats, translate_content=True):
+    if not translate_content:  # tv4: trang chi tiết giữ nguyên nội dung khảo sát (câu hỏi, đáp án) bằng tiếng Việt
+        for item in stats["items"]:
+            item["question_text"] = item["question"].question_text
+        return stats
     for item in stats["items"]:
         item["rows"] = localize_rows(item["rows"])
         item["section"] = tr(item["section"])
@@ -605,7 +611,7 @@ def manage_detail(request, survey_id):
     questions = prepare_questions(list(SurveyQuestion.objects.filter(survey=survey).prefetch_related("surveyoption_set")
                                       .order_by("sort_order", "question_id")))
     recipients = SurveyRecipient.objects.filter(survey=survey)
-    stats = _localized_stats(build_stats(survey))
+    stats = _localized_stats(build_stats(survey), translate_content=False)
     return render(request, "surveys/manage_detail.html", {
         "saved_audience": saved_audience_details(survey),
         "stats": stats, "charts": _question_charts(stats),

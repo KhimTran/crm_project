@@ -13,6 +13,11 @@ class InvalidFeedbackStatus(FeedbackServiceError):
     pass
 
 
+# tv4: 4.1.4 chặn mở lại phản hồi đã RESOLVED về NEW
+class FeedbackReopenNotAllowed(FeedbackServiceError):
+    pass
+
+
 # tv4: 4.1.4 bắt buộc có câu trả lời khi chuyển RESOLVED
 class FeedbackNoteRequired(FeedbackServiceError):
     pass
