@@ -110,3 +110,113 @@
 @media (max-width: 1050px) { .rp-filter-panel .rp-date-filter { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 600px) { .rp-filter-panel .rp-date-filter { grid-template-columns: minmax(0,1fr); } .rp-filter-actions .crm-btn { flex: 1; } }
 @media print { .rp-filter-panel { border: 0; padding: 0; } }
+
+/* tv4: bản in A4 gọn đẹp - bỏ header user/đăng xuất, giữ tiêu đề; giữ màu nền; 2 cột; không cắt ngang panel */
+@page { size: A4 portrait; margin: 12mm; }
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-shadow: none !important; }
+  html, body { background: #fff !important; font-size: 11pt; }
+  .crm-shell { display: block !important; min-height: 0; }
+  .crm-workspace { display: block; width: 100%; }
+  .crm-header { display: block; padding: 0 0 6mm; border: 0; background: none; }
+  .crm-header > :not(div), .crm-header form, .crm-user, .crm-eyebrow { display: none !important; }
+  .crm-header h1 { font-size: 18pt; }
+  .crm-main { padding: 0 !important; }
+  .rp-toolbar { margin-bottom: 4mm; }
+  .rp-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2mm; margin-bottom: 4mm; }
+  .rp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3mm; }
+  .rp-wide { grid-column: 1 / -1; }
+  .rp-kpi, .rp-panel { border-color: #999; break-inside: avoid; page-break-inside: avoid; }
+  .rp-chart-box, .rp-chart-box.is-doughnut, .rp-wide .rp-chart-box, .brand-chart { height: 200px !important; max-width: 100%; }
+  .rp-chart-box canvas { max-width: 100% !important; }
+  .rp-more > summary { display: none; }
+  .rp-table { font-size: 9pt; }
+  .brand-report { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  a[href]::after { content: none !important; }
+}
+
+/* tv4: bản in gọn hơn - 3 biểu đồ nhỏ một hàng, chữ/khoảng cách nhỏ, cố gắng vừa 1-2 trang A4 */
+@media print {
+  html, body { font-size: 9.5pt; }
+  .crm-header { padding-bottom: 2mm; }
+  .crm-header h1 { font-size: 15pt; }
+  .rp-toolbar { margin-bottom: 2mm; font-size: 8.5pt; }
+  .rp-filter-panel { margin-bottom: 2mm; }
+  .rp-filter-panel .rp-foot { margin: 0; font-size: 8pt; }
+  .rp-kpis { gap: 1.5mm; margin-bottom: 2.5mm; }
+  .rp-kpi { padding: 2mm 2.5mm; }
+  .rp-kpi b { font-size: 13pt; }
+  .rp-kpi span { font-size: 6.5pt; }
+  .rp-kpi small { font-size: 7pt; }
+  .rp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2mm; }
+  .rp-panel { padding: 2.5mm 3mm; }
+  .rp-panel h2 { font-size: 9.5pt; margin-bottom: 1.5mm; }
+  .rp-chart-box, .rp-chart-box.is-doughnut { height: 165px !important; padding-bottom: 0; border-bottom: 0; }
+  .rp-wide .rp-chart-box { height: 150px !important; }
+  .brand-chart { height: 150px !important; }
+  .rp-more { margin-top: 1.5mm; }
+  .rp-table { font-size: 7.5pt; }
+  .rp-table td, .rp-table th { padding: 1px 4px; }
+  .rp-panel > .rp-foot { display: none; }
+}
+
+/* tv4: giao diện bản in "báo cáo" - đầu trang có kẻ màu, KPI/panel có viền nhấn, bảng kẻ sọc */
+.rp-print-head { display: none; }
+@media print {
+  .crm-header { display: none !important; }
+  .rp-print-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4mm; padding-bottom: 2.5mm; border-bottom: 2.5pt solid #176b86; }
+  .rp-print-head b { display: block; font-size: 16pt; letter-spacing: .04em; color: #176b86; }
+  .rp-print-head span { font-size: 9pt; color: #536984; }
+  .rp-print-head small { font-size: 8.5pt; color: #536984; }
+  .rp-toolbar { display: none !important; }
+  .rp-filter-panel .rp-foot { color: #536984; }
+  .rp-kpi { border: 0; border-top: 2.5pt solid #176b86; background: #f1f7f9 !important; border-radius: 0 0 2mm 2mm; }
+  .rp-kpi b { color: #176b86; }
+  .rp-panel { border: .6pt solid #c9d4dc; border-radius: 2mm; }
+  .rp-panel h2 { padding-bottom: 1mm; border-bottom: .6pt solid #c9d4dc; color: #176b86; text-transform: uppercase; letter-spacing: .03em; font-size: 8.5pt; }
+  .rp-table th { background: #e8f1f4 !important; color: #176b86; }
+  .rp-table tbody tr:nth-child(even) td { background: #f7fafb !important; }
+  .rp-table, .rp-table td, .rp-table th { border-color: #dbe3e8; }
+}
+
+/* tv4: sửa lệch bản in (portal layout): canvas lấp đầy khung biểu đồ, bỏ header/nền xám của portal, tránh bảng đè lên biểu đồ */
+@media print {
+  .portal-main:has(.rp-print-head) .portal-header,
+  .portal-sidebar, .portal-mobile-sidebar, .offcanvas, .portal-user { display: none !important; }
+  .portal-shell, .portal-main, .portal-main:has(.rp-print-head), .portal-content { display: block !important; background: #fff !important; padding: 0 !important; margin: 0 !important; min-height: 0 !important; }
+  .rp-chart-box { position: relative !important; overflow: hidden; }
+  .rp-chart-box canvas { display: block; margin: 0 auto; }
+  .rp-chart-box + .rp-more, .rp-chart-box + .rp-more .rp-table { margin-top: 2mm; }
+  .rp-more { display: block; clear: both; }
+  .rp-more > .rp-table { display: table; }
+  .rp-panel { overflow: hidden; }
+  .rp-grid { align-items: stretch; }
+  .rp-wide .rp-table { font-size: 7pt; }
+  .brand-report { align-items: start; }
+}
+
+/* tv4: web gọn hơn - bộ lọc 1 hàng thấp, KPI thấp, biểu đồ thấp, khoảng cách nhỏ (chỉ áp dụng trên màn hình) */
+@media screen {
+  .rp-toolbar { margin-bottom: 8px; font-size: .8rem; }
+  .rp-filter-panel { padding: 10px 14px; margin-bottom: 12px; }
+  .rp-filter-panel .rp-date-filter { gap: 10px; }
+  .rp-filter-panel .rp-date-filter label { gap: 3px; font-size: .75rem; }
+  .rp-filter-panel .rp-date-filter input, .rp-filter-panel .rp-date-filter select,
+  .rp-filter-panel .rp-filter-actions .crm-btn { height: 34px; min-height: 34px; padding: 4px 12px; font-size: .88rem; }
+  .rp-filter-panel .rp-foot { margin: 6px 0 0; font-size: .72rem; line-height: 1.3; }
+  .rp-kpis { gap: .5rem; margin-bottom: .75rem; }
+  .rp-kpi { min-height: 0; padding: 8px 12px; }
+  .rp-kpi span { font-size: .66rem; line-height: 1.3; }
+  .rp-kpi b { margin-top: 2px; font-size: 1.25rem; }
+  .rp-kpi small { margin-top: 0; font-size: .7rem; }
+  .rp-grid { gap: .6rem; }
+  .rp-panel { padding: .65rem .8rem; }
+  .rp-panel h2 { margin-bottom: .3rem; font-size: .88rem; }
+  .rp-chart-box, .rp-chart-box.is-doughnut { height: 170px; }
+  .rp-wide .rp-chart-box { height: 185px; }
+  .brand-chart { height: 190px !important; }
+  .rp-more { margin-top: .35rem; }
+  .rp-more > summary { padding: .1rem .5rem; font-size: .72rem; }
+  .rp-table td, .rp-table th { padding: .25rem .6rem; }
+  .brand-report { gap: 1rem; }
+}
