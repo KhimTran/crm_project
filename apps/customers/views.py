@@ -18,7 +18,7 @@ from apps.feedback.models import Feedback
 
 from .constants import CustomerStatus, PreferenceType
 from .errors import CustomerNotFound, CustomerServiceError, DuplicateCustomerEmail, DuplicateCustomerPhone
-from .forms import CustomerCreateForm, CustomerEditForm, CustomerFilterForm, CustomerLockForm, CustomerReportFilterForm
+from .forms import CustomerCreateForm, CustomerEditForm, CustomerFilterForm,CustomerReportFilterForm
 from .models import Customer, CustomerPreference
 from . import reports
 from .portal_text import localize_form, localize_rows, portal_english, say, tr
@@ -196,14 +196,11 @@ def _back_after_action(request, customer_id):
     return redirect("customers:list")
 
 
-# tv4: 4.1.3 xử lý nút khóa tài khoản khách hàng (POST), kèm lý do trong thông báo
+# tv4: 4.1.3 xử lý nút khóa tài khoản khách hàng (POST)
 @role_required("ADMIN", "MANAGER", "CRM_MANAGER")
 @require_POST
 @portal_english
 def customer_lock(request, customer_id):
-    form = CustomerLockForm(request.POST)
-    reason = form.cleaned_data["reason"] if form.is_valid() else ""
-
     try:
         customer = lock_customer(customer_id)
     except CustomerNotFound as exc:
@@ -211,8 +208,7 @@ def customer_lock(request, customer_id):
     except CustomerServiceError as exc:
         messages.error(request, str(exc))
     else:
-        suffix = f" Reason: {reason}" if reason else ""
-        messages.success(request, f"Account {customer.customer_code} – {customer.full_name} locked.{suffix}")
+        messages.success(request, f"Account {customer.customer_code} – {customer.full_name} locked.")
     return _back_after_action(request, customer_id)
 
 

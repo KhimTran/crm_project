@@ -70,8 +70,8 @@ class AdminAccessTests(TestCase):
                                                                    "phone": "123"})
         self.assertContains(response, "Invalid phone number")
 
-        response = self.client.post(reverse("customers:lock", args=[self.customer.pk]), {"reason": "spam"}, follow=True)
-        self.assertContains(response, "locked. Reason: spam")
+        response = self.client.post(reverse("customers:lock", args=[self.customer.pk]), follow=True)
+        self.assertContains(response, "locked.")
 
         manager = get_user_model().objects.create_user("manager@example.test", self.password)
         manager.groups.add(Group.objects.get_or_create(name="CRM_MANAGER")[0])

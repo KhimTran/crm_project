@@ -17,7 +17,6 @@
         <form method="post" action="{% url 'customers:lock' customer.customer_id %}">
           {% csrf_token %}
           <input type="hidden" name="from" value="detail">
-          <input type="text" name="reason" maxlength="255" placeholder="{% t 'Lý do khóa' 'Lock reason' %}" aria-label="{% t 'Lý do khóa' 'Lock reason' %}">
           <button type="submit" class="crm-btn crm-btn-secondary">{% t "Khóa" "Lock" %}</button>
         </form>
       {% else %}
@@ -87,7 +86,7 @@
           <td>{{ f.content|truncatechars:80 }}</td>
           <td><span class="crm-badge fb-{{ f.status|lower }}">{% t f.status_label %}</span></td>
           <td>{{ f.manager_note|default:"–"|truncatechars:60 }}</td>
-          <td><a class="crm-btn crm-btn-secondary crm-btn-sm" href="{% url 'crm_feedbacks:detail' f.feedback_id %}">{% t "Xem / xử lý" "View / Handle" %}</a></td>
+          <td><a class="crm-btn crm-btn-secondary crm-btn-sm" href="{% url 'crm_feedbacks:detail' f.feedback_id %}?from=customer">{% t "Xem / xử lý" "View / Handle" %}</a></td>
         </tr>
       {% empty %}
         <tr><td colspan="8">{% t "Khách hàng chưa gửi phản hồi nào." "This customer has not sent any feedback." %}</td></tr>
