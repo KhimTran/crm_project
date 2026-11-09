@@ -42,7 +42,7 @@ class CustomerFeedbackTests(TestCase):
         response = self.client.post(reverse("feedbacks:create"),
                                     {"product": self.racket.pk, "rating": 4, "content": "  Vợt đầm tay  "}, follow=True)
         self.assertRedirects(response, reverse("feedbacks:mine"))
-        self.assertContains(response, "Thank you for your feedback!")
+        self.assertContains(response, "Cảm ơn bạn đã gửi phản hồi!")
         feedback = Feedback.objects.get()
         self.assertEqual((feedback.customer, feedback.rating, feedback.content, feedback.status),
                          (self.an, 4, "Vợt đầm tay", FeedbackStatus.NEW))

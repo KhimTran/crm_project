@@ -3,6 +3,7 @@ from django import forms
 from apps.catalog.money import MoneyField
 
 from apps.catalog.models import Brand, Category, Status
+from apps.catalog.vocabulary import category_label_vi
 
 
 class ProductFilterForm(forms.Form):
@@ -11,6 +12,11 @@ class ProductFilterForm(forms.Form):
     brand = forms.ModelChoiceField(label="Thương hiệu", required=False, queryset=Brand.objects.filter(status=Status.ACTIVE).order_by("brand_name"))
     min_price = MoneyField(label="Giá từ", required=False, min_value=0, max_digits=12, decimal_places=2)
     max_price = MoneyField(label="Giá đến", required=False, min_value=0, max_digits=12, decimal_places=2)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Display only: option values stay category IDs, so ?category=<id> and filtering are unchanged.
+        self.fields["category"].label_from_instance = lambda category: category_label_vi(category.category_name)
 
     def clean(self):
         data = super().clean()

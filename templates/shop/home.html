@@ -1,4 +1,5 @@
 {% extends "layouts/base_customer.html" %}
+{% load shop_ui %}
 {% block content %}
 <section class="shop-banner" aria-labelledby="banner-title">
   <div><h1 id="banner-title">Vợt và phụ kiện cầu lông</h1><p>Tìm sản phẩm theo danh mục, thương hiệu và mức giá.</p></div>
@@ -7,7 +8,7 @@
 <section class="category-section" aria-labelledby="categories-title">
   <div class="section-heading"><h2 id="categories-title">Danh mục sản phẩm</h2></div>
   <div class="category-grid">
-    {% for category in categories %}<a class="category-tile" href="{% url 'shop:products' %}?category={{ category.category_id }}">{{ category.category_name }}</a>
+    {% for category in categories %}<a class="category-tile" href="{% url 'shop:products' %}?category={{ category.category_id }}">{{ category|category_label_vi }}</a>
     {% empty %}<p>Danh mục đang được cập nhật.</p>{% endfor %}
   </div>
 </section>

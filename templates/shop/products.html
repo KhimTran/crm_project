@@ -1,14 +1,14 @@
 {% extends "layouts/base_customer.html" %}
 {% block title %}Sản phẩm · Cửa hàng cầu lông{% endblock %}
 {% block content %}
-<nav class="shop-breadcrumb" aria-label="Breadcrumb"><a href="{% url 'shop:home' %}">Trang chủ</a><span aria-hidden="true">/</span><span aria-current="page">Sản phẩm</span></nav>
+<nav class="shop-breadcrumb" aria-label="Đường dẫn trang"><a href="{% url 'shop:home' %}">Trang chủ</a><span aria-hidden="true">/</span><span aria-current="page">Sản phẩm</span></nav>
 <div class="page-heading"><h1>Sản phẩm</h1></div>
 <div class="catalog-layout">
   <aside class="catalog-filters" aria-label="Bộ lọc sản phẩm">
     <details class="filter-disclosure" open>
       <summary>Bộ lọc sản phẩm <span aria-hidden="true">⌄</span></summary>
       <form method="get" class="filter-panel">
-        {% if form.errors %}<p class="filter-error" role="alert">Invalid filter. Please check the information below.</p>{% endif %}
+        {% if form.errors %}<p class="filter-error" role="alert">Bộ lọc không hợp lệ. Vui lòng kiểm tra các thông tin bên dưới.</p>{% endif %}
         {{ form.as_div }}
         <div class="filter-actions"><button class="shop-button" type="submit">Lọc sản phẩm</button><a href="{% url 'shop:products' %}">Xóa bộ lọc</a></div>
       </form>

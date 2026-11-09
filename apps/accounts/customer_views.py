@@ -104,9 +104,9 @@ def register(request):
             for field, errors in (exc.message_dict if hasattr(exc, "message_dict") else {"__all__": exc.messages}).items():
                 form.add_error(field if field in form.fields else None, errors)
         else:
-            messages.success(request, "Registration successful. You can now log in.")
+            messages.success(request, "Đăng ký thành công. Bạn có thể đăng nhập ngay bây giờ.")
             return redirect("customer_auth:login")
-    return render(request, "accounts/customer/form.html", {"form": form, "title": "Customer Registration", "submit_label": "Register"})
+    return render(request, "accounts/customer/form.html", {"form": form, "title": "Đăng ký tài khoản khách hàng", "submit_label": "Đăng ký"})
 
 
 @role_required("ADMIN", "MANAGER", "CUSTOMER")
@@ -123,9 +123,9 @@ def password_change(request):
             form.save()
             transaction.on_commit(lambda: logger.info("password_changed actor=%s target=%s", account.pk, account.pk))
             update_session_auth_hash(request, account)
-            messages.success(request, "Password changed successfully.")
+            messages.success(request, "Đổi mật khẩu thành công.")
             return redirect(get_home_path(account))
-    return render(request, "accounts/customer/form.html", {"form": form, "title": "Change Password", "submit_label": "Change Password"})
+    return render(request, "accounts/customer/form.html", {"form": form, "title": "Đổi mật khẩu", "submit_label": "Đổi mật khẩu"})
 
 
 @role_required("ADMIN", "CRM_MANAGER", "CUSTOMER_SERVICE")

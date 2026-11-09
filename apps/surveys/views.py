@@ -63,7 +63,7 @@ def take(request, recipient_id):
     try:
         response, can_answer = start_survey(request.user, recipient_id)
     except PermissionDenied:
-        return HttpResponseForbidden("You do not have permission to take this survey.")
+        return HttpResponseForbidden("Bạn không có quyền làm khảo sát này.")
     except SurveyRecipient.DoesNotExist as exc:
         raise Http404 from exc
     except ValidationError as exc:
@@ -86,7 +86,7 @@ def submit(request, recipient_id):
             raise ValueError
         submitted = submit_survey(request.user, recipient_id, answers)
     except PermissionDenied:
-        return HttpResponseForbidden("You do not have permission to take this survey.")
+        return HttpResponseForbidden("Bạn không có quyền làm khảo sát này.")
     except SurveyRecipient.DoesNotExist as exc:
         raise Http404 from exc
     except (ValidationError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
@@ -96,9 +96,9 @@ def submit(request, recipient_id):
         return HttpResponseBadRequest(str(exc))
     except DatabaseError:
         if wants_json:
-            return JsonResponse({"errors": ["Unable to save answers right now. Please try again."]}, status=503)
-        return HttpResponseBadRequest("Unable to save answers right now. Please try again.")
-    messages.success(request, "Answers submitted successfully." if submitted else COMPLETED_MESSAGE)
+            return JsonResponse({"errors": ["Hiện chưa thể lưu câu trả lời. Vui lòng thử lại."]}, status=503)
+        return HttpResponseBadRequest("Hiện chưa thể lưu câu trả lời. Vui lòng thử lại.")
+    messages.success(request, "Đã gửi câu trả lời thành công." if submitted else COMPLETED_MESSAGE)
     if wants_json:
         return JsonResponse({"submitted": submitted, "redirect_url": reverse("surveys:result", args=[recipient_id])})
     return redirect("surveys:result", recipient_id=recipient_id)
@@ -692,7 +692,7 @@ def my_surveys(request):
     customer = Customer.objects.filter(pk=request.user.pk, status="ACTIVE").first()
     todo, done, closed = [], [], []
     if customer is None:
-        messages.error(request, "Account has no customer profile.")
+        messages.error(request, "Tài khoản chưa có hồ sơ khách hàng.")
     else:
         rows = SurveyRecipient.objects.filter(customer=customer).exclude(survey__status=SurveyStatus.DRAFT) \
             .select_related("survey").order_by("-sent_at")

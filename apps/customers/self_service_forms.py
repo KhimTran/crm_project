@@ -5,7 +5,7 @@ from apps.accounts.birth_dates import BirthDateField
 from django.utils import timezone
 
 from apps.catalog.models import Category, Status
-from apps.catalog.vocabulary import brand_choices, canonical_brand
+from apps.catalog.vocabulary import brand_choices, canonical_brand, category_label_vi
 from .constants import FAVORITE_BRAND_OTHER, FAVORITE_BRAND_OTHER_MAX_LENGTH
 from .favorite_brand import get_favorite_brand
 from .models import Customer
@@ -18,13 +18,13 @@ class CustomerProfileForm(forms.ModelForm):
     playing_level = forms.ChoiceField(label="Trình độ chơi", required=False)
     # tv4: thương hiệu cầu lông yêu thích (không bắt buộc); "Other" mở thêm ô nhập tên hãng
     favorite_brand = forms.ChoiceField(
-        label="Favorite Badminton Brand", required=False,
+        label="Thương hiệu cầu lông yêu thích", required=False,
         choices=(),
-        help_text="Optional. Choose the one brand you like most.",
+        help_text="Không bắt buộc. Chọn một thương hiệu bạn thích nhất.",
     )
     favorite_brand_other = forms.CharField(
-        label="Other brand name", required=False, max_length=FAVORITE_BRAND_OTHER_MAX_LENGTH,
-        widget=forms.TextInput(attrs={"placeholder": "Enter the brand name", "autocomplete": "off"}),
+        label="Tên thương hiệu khác", required=False, max_length=FAVORITE_BRAND_OTHER_MAX_LENGTH,
+        widget=forms.TextInput(attrs={"placeholder": "Nhập tên thương hiệu", "autocomplete": "off"}),
     )
     FAVORITE_BRAND_FIELDS = ("favorite_brand", "favorite_brand_other")
 
@@ -35,8 +35,11 @@ class CustomerProfileForm(forms.ModelForm):
             brand, other_name = get_favorite_brand(self.instance)
             self.initial.setdefault("favorite_brand", brand or "")
             self.initial.setdefault("favorite_brand_other", other_name)
+        # Display only: the stored/posted value of the last option stays "Other" (see favorite_brand.js).
         self.fields["favorite_brand"].choices = [
-            ("", "Select your favorite brand"), *brand_choices(saved=(brand,), include_other=True),
+            ("", "Chọn thương hiệu yêu thích"),
+            *((value, "Khác" if value == FAVORITE_BRAND_OTHER else label)
+              for value, label in brand_choices(saved=(brand,), include_other=True)),
         ]
         # Accept only the two explicit aliases, before ChoiceField validation.
         if self.is_bound and self.data.get("favorite_brand"):
@@ -121,7 +124,7 @@ class CustomerCategoryPreferencesForm(forms.Form):
         preferences = list(preferences)
         active_names = {category.category_name for category in self.active_categories}
         saved_names = {preference.preference_value for preference in preferences}
-        self.fields["categories"].choices = [(category.pk, category.category_name) for category in self.active_categories]
+        self.fields["categories"].choices = [(category.pk, category_label_vi(category.category_name)) for category in self.active_categories]
         self.fields["remove_preferences"].choices = [
             (preference.pk, preference.preference_value) for preference in preferences
             if preference.preference_value not in active_names

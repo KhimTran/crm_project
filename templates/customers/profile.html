@@ -46,16 +46,9 @@
         </div>
       </fieldset>
     {% else %}{{ preferences.remove_preferences.errors }}{% endif %}
-    {% if other_preferences %}
-      <section class="preference-panel" aria-labelledby="other-preferences-title">
-        <h2 id="other-preferences-title">Lựa chọn khác đã lưu</h2>
-        <ul>{% for preference in other_preferences %}<li>{{ preference.preference_value }}</li>{% endfor %}</ul>
-        <p>Các lựa chọn này được giữ nguyên khi bạn lưu hồ sơ.</p>
-      </section>
-    {% endif %}
     <div class="form-actions">
-      <button class="shop-button" type="submit">Save Changes</button>
-      <a class="shop-button shop-button-secondary" href="{% url 'customers:profile' %}">Cancel</a>
+      <button class="shop-button" type="submit">Lưu thay đổi</button>
+      <a class="shop-button shop-button-secondary" href="{% url 'customers:profile' %}">Hủy</a>
       <a href="{% url 'shop:products' %}">Tiếp tục xem sản phẩm</a>
     </div>
   </form>

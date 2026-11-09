@@ -19,11 +19,10 @@ from apps.feedback.models import Feedback
 from .constants import CustomerStatus, PreferenceType
 from .errors import CustomerNotFound, CustomerServiceError, DuplicateCustomerEmail, DuplicateCustomerPhone
 from .forms import CustomerCreateForm, CustomerEditForm, CustomerFilterForm,CustomerReportFilterForm
-from .models import Customer, CustomerPreference
+from .models import Customer
 from . import reports
 from .portal_text import localize_form, localize_rows, portal_english, say, tr
 from .selectors import customer_queryset, filter_customers
-from .self_service_choices import CATEGORY_PREFERENCE_TYPE
 from .self_service_forms import CustomerCategoryPreferencesForm, CustomerProfileForm
 from .self_services import own_customer, update_own_profile
 from .services import (
@@ -329,14 +328,8 @@ def profile(request):
                         errors,
                     )
             else:
-                messages.success(request, "Profile and preferences updated successfully.")
+                messages.success(request, "Đã cập nhật hồ sơ và sở thích.")
                 return redirect("customers:profile")
-
-    other_preferences = (
-        CustomerPreference.objects.filter(customer=customer)
-        .exclude(preference_type=CATEGORY_PREFERENCE_TYPE)
-        .order_by("preference_id")
-    )
 
     return render(
         request,
@@ -345,6 +338,5 @@ def profile(request):
             "form": form,
             "preferences": preferences,
             "customer": customer,
-            "other_preferences": other_preferences,
         },
     )
