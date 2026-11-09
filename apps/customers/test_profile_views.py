@@ -34,7 +34,7 @@ class OwnProfileViewTests(TestCase):
     def test_profile_page_owned_preselects_names_and_uses_customer_labels(self):
         response = self.client.get('/account/profile/?customer_id=' + str(self.other_customer.pk))
         self.assertContains(response, self.owner.email)
-        self.assertContains(response, 'Badminton rackets')
+        self.assertContains(response, 'Vợt cầu lông')  # customer-facing label; stored value stays English
         self.assertNotContains(response, 'Other rackets')
         for forbidden in ('name="email"', 'name="account_id"', 'CATEGORY', 'preference_type', 'Loại sở thích'):
             self.assertNotContains(response, forbidden)

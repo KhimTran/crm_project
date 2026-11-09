@@ -60,7 +60,7 @@ class FavoriteBrandTests(TestCase):
         self.assertFalse(CustomerPreference.objects.filter(customer=customer, preference_type="FAVORITE_BRAND_OTHER").exists())
         page = self.client.get(reverse("customers:profile"))
         self.assertContains(page, 'value="Li-Ning" selected')
-        self.assertContains(page, "Save Changes")
+        self.assertContains(page, "Lưu thay đổi")
         # Omitting the field keeps the saved value; an explicit empty choice clears it.
         self.client.post(reverse("customers:profile"), {"full_name": "New Player"})
         self.assertEqual(get_favorite_brand(customer)[0], "Li-Ning")

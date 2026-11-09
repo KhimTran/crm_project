@@ -70,7 +70,9 @@ class SavedAudienceTests(TestCase):
         profile=self.client.get('/account/profile/')
         self.assertEqual(profile.status_code,200)
         self.assertNotContains(profile,'ATTACK_LEGACY')
-        self.assertContains(profile,'Yonex')
+        # BRAND rows are no longer listed on the customer profile (panel removed); the CRM detail above still shows them.
+        self.assertNotContains(profile,'Lựa chọn khác đã lưu')
+        self.assertTrue(CustomerPreference.objects.filter(customer=self.first, preference_type='BRAND', preference_value='Yonex').exists())
 
     def test_builder_label_and_saved_audience_edit(self):
         self.login(); survey=self.survey({'audience':'pick','customer_ids':[self.first.pk]})
