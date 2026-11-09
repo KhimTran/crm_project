@@ -17,7 +17,7 @@ from .configuration import rating_bounds
 from .questionnaire import NOT_USED
 
 
-COMPLETED_MESSAGE = "You have already completed this survey and cannot submit it again."
+COMPLETED_MESSAGE = "Bạn đã hoàn thành khảo sát này và không thể gửi lại."
 NO_NEW_RECIPIENTS_MESSAGE = "No new eligible customers in the saved audience to invite."
 
 

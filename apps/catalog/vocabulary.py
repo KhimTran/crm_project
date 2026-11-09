@@ -5,6 +5,23 @@ BRAND_ALIASES = {"Lining": "Li-Ning", "Li-Ning": "Li-Ning"}
 BRAND_PREFERENCE_TYPES = ("BRAND", "FAVORITE_BRAND")
 
 
+# Customer-facing Vietnamese labels. DB values stay English; Admin/Manager keep the stored name.
+CATEGORY_LABELS_VI = {
+    "accessories": "Phụ kiện cầu lông",
+    "badminton apparel": "Quần áo cầu lông",
+    "badminton bags": "Túi & balo cầu lông",
+    "badminton rackets": "Vợt cầu lông",
+    "badminton shoes": "Giày cầu lông",
+    "shuttlecocks": "Quả cầu lông",
+}
+
+
+def category_label_vi(name):
+    """Vietnamese display label for a category name; unknown names are returned unchanged."""
+    key = " ".join(str(name or "").split()).casefold()
+    return CATEGORY_LABELS_VI.get(key, name)
+
+
 def canonical_brand(value):
     value = (value or "").strip()
     return BRAND_ALIASES.get(value, value)

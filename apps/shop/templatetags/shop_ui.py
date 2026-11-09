@@ -22,6 +22,13 @@ def shop_navigation(context):
 
 
 @register.filter
+def category_label_vi(value):
+    """Customer-facing Vietnamese category name; accepts a Category or a plain name."""
+    from apps.catalog.vocabulary import category_label_vi as translate
+    return translate(getattr(value, "category_name", value))
+
+
+@register.filter
 def vnd_price(value):
     from apps.catalog.templatetags.money import money
     formatted = money(value)
